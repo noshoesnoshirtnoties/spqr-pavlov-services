@@ -16,7 +16,7 @@ def run_praefectus(meta,config,srv):
     if bool(config['debug'])==True: level=logging.DEBUG
     else: level=logging.INFO
     logging.basicConfig(
-        filename='praefectus.log',
+        filename='praefectus'+str(srv)+'.log',
         filemode='a',
         format='%(asctime)s,%(msecs)d [%(levelname)s] %(message)s',
         datefmt='%m/%d/%Y %H:%M:%S',
@@ -478,7 +478,7 @@ def run_praefectus(meta,config,srv):
             case 'LogHAL':
                 logmsg('info','server is starting')
                 asyncio.run(action_enablerconplus(srv))
-                time.sleep(0.5)
+                time.sleep(0.2)
                 asyncio.run(action_enableprone(srv))
             case 'Server Status Helper':
                 logmsg('info','server is now online')

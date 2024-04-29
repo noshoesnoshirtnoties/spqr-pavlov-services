@@ -2,9 +2,10 @@
 
 VERSION=1.0
 USAGE="
-Usage: $0 -d <dsthost> -u <sshuser> -v\n
+Usage: $0 -d <dsthost> -u <sshuser> -y -v\n
 -d destination host\n
 -u ssh/scp user\n
+-y dont ask\n
 -v verbose output\n"
 
 
@@ -14,7 +15,7 @@ if [ $# == 0 ] ; then
     echo -e $USAGE; exit 1;
 fi
 
-while getopts ":d:u:v" optname
+while getopts ":d:u:yv" optname
   do
     case "$optname" in
       "v")
@@ -26,6 +27,9 @@ while getopts ":d:u:v" optname
         ;;
       "u")
         SSHUSER=$OPTARG
+        ;;
+      "y")
+        DONT_ASK=true
         ;;
       "?")
         echo "[ERROR] unknown option $OPTARG - exiting"
@@ -61,7 +65,9 @@ if [ -z $SSHUSER ]; then
   SSHUSER="root"
 fi
 
-read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
+if [ "$DONT_ASK" != true ]; then
+  read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
+fi
 if [ $VERBOSE ]; then echo "[INFO] starting deployment"; fi
 
 

@@ -81,8 +81,8 @@ docker exec -it pavlov-server-0 bash -c 'tail -f /home/steam/pavlovserver/Pavlov
 ### pavlov-server-praefectus #0
 ```
 docker exec -it pavlov-server-praefectus-0 bash
-docker exec -it pavlov-server-praefectus-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus.log'
-docker exec -it pavlov-server-praefectus-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus.log | grep -v "RCON\|DEBUG\|heartbeat"'
+docker exec -it pavlov-server-praefectus-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus-0.log'
+docker exec -it pavlov-server-praefectus-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus-0.log | grep -v "RCON\|DEBUG\|heartbeat"'
 ```
 
 ### servus-publicus

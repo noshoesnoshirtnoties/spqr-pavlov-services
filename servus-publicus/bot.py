@@ -782,7 +782,7 @@ def run_bot(meta,config):
                                     rconparams.append(part)
                                 i+=1
                             data=await rcon(rconcommand,rconparams,rconsrv)
-                            if data['Successful'] is True: response=command+' successful: '+str(data)
+                            response=command+' response: '+str(data)
                         else: # missing parameters
                             logmsg('warn','missing parameter(s)')
                             response='missing parameter(s) - rtfm :P'
