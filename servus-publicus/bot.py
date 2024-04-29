@@ -72,6 +72,11 @@ def run_bot(meta,config):
 
 
     async def rcon(rconcmd,rconparams,srv):
+        logmsg('debug','FFS rcon called')
+        logmsg('debug','FFS rconcmd: '+str(rconcmd))
+        logmsg('debug','FFS rconparams: '+str(rconparams))
+        logmsg('debug','FFS srv: '+str(srv))
+
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         for rconparam in rconparams: rconcmd+=' '+str(rconparam)
@@ -152,6 +157,7 @@ def run_bot(meta,config):
 
             if access_granted:
                 logmsg('info','access to command has been granted')
+                log_to_discord=True
                 match command:
                     case '!help': response=Path('txt/help.txt').read_text()
 
@@ -769,19 +775,21 @@ def run_bot(meta,config):
                         if len(user_message_split)>2:
                             rconsrv=user_message_split[1]
                             rconcommand=user_message_split[2]
-                            rconparams={}
+                            rconparams=[]
                             i=0
-                            j=0
                             for part in user_message_split:
                                 if i>2:
-                                    rconparams[j]=part
-                                    j+=1
+                                    rconparams.append(part)
                                 i+=1
                             data=await rcon(rconcommand,rconparams,rconsrv)
                             if data['Successful'] is True: response=command+' successful: '+str(data)
                         else: # missing parameters
                             logmsg('warn','missing parameter(s)')
                             response='missing parameter(s) - rtfm :P'
+                            
+                    case _ : log_to_discord=False
+
+                if log_to_discord: await log_discord('[servus-publicus] command '+str(command)+' has been called by user '+str(message.author.name)+' ('+str(message.author.id)+')')
 
             else: # access denied
                 logmsg('warn','missing access rights for command: '+str(command))
