@@ -1,0 +1,43 @@
+**SPQR Servus Publicus Help**
+```
+!help ....................... outputs this message
+
+!spqr ....................... outputs spqr translation
+!loremipsum ................. outputs lorem ipsum
+!suntzu ..................... outputs random sun tzu quote
+!echo <in> .................. outputs the input
+
+!roles ...................... outputs spqr roles info
+!reqs ....................... outputs gladiator requirements
+!rules ...................... outputs gladiator rules
+
+!getstats ................... outputs stats
+!getrank .................... outputs rank
+
+!showservers ................ outputs servers
+!serverinfo <srv> ........... outputs server info
+!maplist <srv> .............. outputs current maplist
+!playerlist <srv> ........... outputs current playerlist
+!modlist <srv> .............. outputs list of server admins
+!blacklist <srv> ............ outputs list of banned players
+!pings <srv> ................ outputs average ping for all current players
+
+### Senate only
+!writeas <chn> <in> ......... outputs the input to a given channel
+!register <steamid64> ....... registers current discord user with given steamid64
+!unregister <dscrdusrid> .... unregisters given discord user id
+!genteams <msgid> ........... generates teams for given discord msg id
+
+!resetsnd <srv> ............. resets snd
+!rotatemap <srv> ............ rotates map
+!setrandommap <srv> ......... sets random snd map
+!setmap <map> <mode> <srv> .. sets specific map and gamemode
+
+!kick <steamid64> <srv> ..... kicks player with given steamid64
+!ban <steamid64> <svr> ...... bans player with given steamid64
+!unban <steamid64> <srv> .... unbans player with given steamid64
+
+!rcon <srv> <cmd> <params> .. executes rcon command on server
+
+```
+*hint: <srv> is always optional; its default is 0*

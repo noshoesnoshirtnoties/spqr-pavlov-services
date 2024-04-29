@@ -1,12 +1,3 @@
-pavlov-server/0
-pavlov-server/1
-pavlov-server/1
-pavlov-server/2
-pavlov-server/3
-pavlov-server/4
-pavlov-server/5
-pavlov-server/6
-pavlov-server/7
-pavlov-server/8
-pavlov-server/9
+pavlov-server/conf.d/*
+pavlov-server/praefectus/config.json
 servus-publicus/config.json

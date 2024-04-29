@@ -1,0 +1,1 @@
+> Numerical weakness comes from having to prepare against possible attacks. Numerical strength comes from compelling our adversary to make these preparations against us.

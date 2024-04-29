@@ -1,0 +1,6 @@
+**Signup Rules**
+```
+> use a unique (!) reaction on an event entry in #g-matches to sign up
+> only sign up if you will be there; no-showing will be punished
+> show up in time; dont make people wait
+```

@@ -1,10 +1,24 @@
 FROM ubuntu:22.04
 
+ENV SRV=0
+ENV PORT=7777
+
 RUN apt update && apt upgrade -y && apt install -y -q gdb curl lib32gcc-s1 libc++-dev unzip
 
 RUN useradd -m -N -s /bin/bash -u 1000 -p 'password' steam
-USER steam
 
+USER steam
+RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Config/LinuxServer
+#RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/maps
+RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Logs
+
+USER root
+RUN mkdir -p /var/log/spqr-pavlov-services
+RUN ln -s /home/steam/pavlovserver/Pavlov/Saved/Logs /home/steam/pavlovserver/Pavlov/Saved/Logs/$SRV
+RUN chown -R steam:users /var/log/spqr-pavlov-services
+RUN chown -R steam:users /home/steam/pavlovserver
+
+USER steam
 RUN mkdir /home/steam/Steam && cd /home/steam/Steam && curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 RUN /home/steam/Steam/steamcmd.sh +login anonymous +force_install_dir /home/steam/pavlovserver +app_update 622970 -beta default +exit && chmod +x /home/steam/pavlovserver/PavlovServer.sh
 RUN cd ~/Steam && ~/Steam/steamcmd.sh +login anonymous +app_update 1007 +quit
@@ -19,7 +33,12 @@ RUN ln -s /lib/x86_64-linux-gnu/libc++.so.1 /lib/x86_64-linux-gnu/libc++.so
 COPY pavlov_start.sh /home/steam/pavlov_start.sh
 COPY pavlov_update.sh /home/steam/pavlov_update.sh
 COPY pavlov_update_cron /etc/cron.d/pavlov_update_cron
-RUN chown -R steam:root /home/steam
+
+COPY conf.d/blacklist.txt /home/steam/pavlovserver/Pavlov/Saved/Config/blacklist.txt
+COPY conf.d/whitelist.txt /home/steam/pavlovserver/Pavlov/Saved/Config/whitelist.txt
+COPY conf.d/mods.txt /home/steam/pavlovserver/Pavlov/Saved/Config/mods.txt
+
+RUN chown -R steam:users /home/steam
 
 USER steam
 CMD ["/home/steam/pavlov_start.sh"]

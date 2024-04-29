@@ -1,0 +1,10 @@
+**Roles Info**
+```
+> grey     SPQR Amicus       read-only access to the gladiator channels
+> blue     SPQR Tiro         temporary access to the gladiator channels
+> green    SPQR Gladiator    regular access to the gladiator channels
+> orange   SPQR Senate       admin capabilities
+> orange   SPQR Admin        server admin
+> yellow   SPQR Centurion    server owner (doesnt talk)
+> yellow   SPQR Emperor      discord bots
+```

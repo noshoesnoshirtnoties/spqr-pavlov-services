@@ -1,0 +1,107 @@
+{
+  "debug":true,
+  "rcon":{
+    "ip":"localhost",
+    "port":9100,
+    "pass":"supersecurerconpassword"
+  },
+  "mysql":{
+    "host":"localhost",
+    "port":3306,
+    "database":"spqr",
+    "user":"spqr",
+    "pass":"supersecuremysqlpassword"
+  },
+  "discord":{
+    "bot_token":"supersecurediscordbottoken"
+  },
+  "autopin":"9678",
+  "autopin_limits":{
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "pinglimit":{
+    "minentries":10,
+    "keepentries":2,
+    "0": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "1":{
+      "enabled":true,
+      "hard":75,
+      "soft":65,
+      "delta":15
+    },
+    "2": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "3": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "4": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "5": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "6": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "7": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "8": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    },
+    "9": {
+      "enabled":true,
+      "hard":150,
+      "soft":100,
+      "delta":25
+    }
+  },
+  "autobot_limits":{
+    "0": 2,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  }
+}

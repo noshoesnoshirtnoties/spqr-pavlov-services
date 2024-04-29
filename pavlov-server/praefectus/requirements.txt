@@ -1,0 +1,3 @@
+discord
+async-pavlov
+mysql-connector
