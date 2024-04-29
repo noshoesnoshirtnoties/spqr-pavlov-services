@@ -16,7 +16,7 @@ def run_praefectus(meta,config,srv):
     if bool(config['debug'])==True: level=logging.DEBUG
     else: level=logging.INFO
     logging.basicConfig(
-        filename='praefectus'+str(srv)+'.log',
+        filename='praefectus-'+str(srv)+'.log',
         filemode='a',
         format='%(asctime)s,%(msecs)d [%(levelname)s] %(message)s',
         datefmt='%m/%d/%Y %H:%M:%S',
