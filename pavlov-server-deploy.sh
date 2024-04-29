@@ -2,11 +2,12 @@
 
 VERSION=1.0
 USAGE="
-Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -v\n
+Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -y -v\n
 -d destination host\n
 -s server number (0-9)\n
 -u ssh/scp user\n
 -p praefectus only\n
+-y dont ask\n
 -v verbose output\n"
 
 
@@ -16,7 +17,7 @@ if [ $# == 0 ] ; then
     echo -e $USAGE; exit 1;
 fi
 
-while getopts ":d:s:u:pv" optname
+while getopts ":d:s:u:ypv" optname
   do
     case "$optname" in
       "v")
@@ -35,6 +36,9 @@ while getopts ":d:s:u:pv" optname
       "p")
         echo "[INFO] praefectus_only has been set"
         PRAEFECTUS_ONLY=true
+        ;;
+      "y")
+        DONT_ASK=true
         ;;
       "?")
         echo "[ERROR] unknown option $OPTARG - exiting"
@@ -78,7 +82,9 @@ PORT1=$((x=7777, y=$SRV, x+y))
 PORT2=$((x=$PORT1, y=400, x+y))
 PORTRCON=$((x=9100, y=$SRV, x+y))
 
-read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
+if [ "$DONT_ASK" != true ]; then
+  read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
+fi
 if [ $VERBOSE ]; then echo "[INFO] starting deployment"; fi
 
 

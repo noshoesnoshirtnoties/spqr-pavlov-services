@@ -365,14 +365,14 @@ def run_praefectus(meta,config,srv):
                     # check avg ping against soft limit
                     if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
                         logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
-                        msg='your ping ('+str(int(avg_ping))+') is too high - please fix this'
+                        msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - PLEASE FIX THIS'
                         await rcon('Notify',{steamusers_id,msg},srv)
                     else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
 
                     # check avg ping against hard limit
                     if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
                         logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamusers_id))
-                        msg='your ping ('+str(int(avg_ping))+') is too high - you will be kicked'
+                        msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
                         await rcon('Notify',{steamusers_id,msg},srv)
                     else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamusers_id))
 
@@ -380,7 +380,7 @@ def run_praefectus(meta,config,srv):
                     min_max_delta=int(max_ping)-int(min_ping)
                     if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
                         logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
-                        msg='your ping delta ('+str(int(min_max_delta))+') is too high - you will be kicked'
+                        msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
                         await rcon('Notify',{steamusers_id,msg},srv)
                     else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
 
@@ -510,6 +510,7 @@ def run_praefectus(meta,config,srv):
                 logmsg('info','player banned: '+str(banplayer).strip())
             case 'Heart beat received':
                 logmsg('info','heartbeat received')
+                asyncio.run(action_checkpings(srv))
 
 
     def find_keyword_in_line(line,keywords):

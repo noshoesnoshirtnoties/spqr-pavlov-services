@@ -39,7 +39,24 @@ an example configuration can be found in "servus-publicus/config.json".
 ### pavlov-server-deploy.sh
 a server (0 in this example) and its monitoring service named "praefectus" can be deployed to a target server like this:
 ```
-./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -v
+./pavlov-server-deploy.sh -d spqr-server -s 0 -u root
+```
+
+this is an example for deploying multiple servers in one go (and without being asked for confirmation each time):
+```
+./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 1 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 2 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 3 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 4 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 5 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 6 -u root -y
+```
+
+#### praefectus only
+to only deploy the praefectus service for a pavlov-server, use the "-p" flag like so:
+```
+./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -p
 ```
 
 ### servus-publicus-deploy.sh
@@ -51,7 +68,6 @@ the discord bot can be deployed to a target server like this:
 ## example commands for service handling
 ### general
 ```
-docker stats
 watch -n 1 'docker ps --format "{{.ID}} {{.Status}} {{.Names}}"'
 ```
 

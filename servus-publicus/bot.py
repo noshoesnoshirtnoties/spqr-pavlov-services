@@ -766,20 +766,22 @@ def run_bot(meta,config):
 
                     case '!rcon':
                         user_message_split=user_message.split(' ')
-                        try:
+                        if len(user_message_split)>2:
                             rconsrv=user_message_split[1]
                             rconcommand=user_message_split[2]
                             rconparams={}
                             i=0
+                            j=0
                             for part in user_message_split:
                                 if i>2:
-                                    rconparams.add(user_message_split[i])
+                                    rconparams[j]=part
+                                    j+=1
                                 i+=1
-                            else:
-                                data=await rcon(rconcommand,rconparams,rconsrv)
-                                if data['Successful'] is True: response=command+' successful'
-                                else: response=command+' failed - something went wrong'
-                        except Exception as e: response=command+' failed: '+str(e)
+                            data=await rcon(rconcommand,rconparams,rconsrv)
+                            if data['Successful'] is True: response=command+' successful: '+str(data)
+                        else: # missing parameters
+                            logmsg('warn','missing parameter(s)')
+                            response='missing parameter(s) - rtfm :P'
 
             else: # access denied
                 logmsg('warn','missing access rights for command: '+str(command))
