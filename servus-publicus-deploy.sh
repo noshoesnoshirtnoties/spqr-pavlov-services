@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.0
+VERSION=1.1
 USAGE="
 Usage: $0 -d <dsthost> -u <sshuser> -y\n
 -d destination host\n
