@@ -311,22 +311,6 @@ def run_praefectus(meta,config,srv):
         else: logmsg('warn','not pulling stats because serverinfo returned unsuccessful')
 
 
-    async def action_enablerconplus(srv):
-        logmsg('debug','action_enablerconplus called')
-        command='UGCAddMod'
-        params={'UGC3462586'}
-        data={}
-        data=await rcon(command,params,srv)
-        if data['Successful'] is True: logmsg('info','rconplus has been enabled')
-        else:
-            logmsg('warn','error when enabling rconplus - something went wrong - trying again')
-            time.sleep(0.5)
-            data=await rcon(command,params,srv)
-            if data['Successful'] is True: logmsg('info','rconplus has been enabled on the second attempt')
-            else:
-                logmsg('error','error when enabling rconplus on the second attempt - giving up')
-
-
     async def action_checkpings(srv):
         logmsg('debug','action_checkpings called')
         inspectall=[]
@@ -425,12 +409,30 @@ def run_praefectus(meta,config,srv):
         else: logmsg('info','action_autobot is disabled for server '+str(srv))
 
 
+    async def action_enablerconplus(srv):
+        logmsg('debug','action_enablerconplus called')
+        if config['rconplus_enabled'][srv]==True:
+            command='UGCAddMod'
+            params={'UGC3462586'}
+            data={}
+            data=await rcon(command,params,srv)
+            if data['Successful'] is True: logmsg('info','rconplus has been enabled')
+            else:
+                logmsg('warn','error when enabling rconplus - something went wrong - trying again')
+                time.sleep(0.5)
+                data=await rcon(command,params,srv)
+                if data['Successful'] is True: logmsg('info','rconplus has been enabled on the second attempt')
+                else:
+                    logmsg('error','error when enabling rconplus on the second attempt - giving up')
+        else: logmsg('info','action_enablerconplus canceled, because rconplus is disabled for server '+str(srv))
+
+
     async def action_enableprone(srv):
         logmsg('debug','action_enableprone called')
         if config['prone_enabled'][srv]==True:
             await rcon('EnableProne',{'1'},srv)
             logmsg('info','prone has been enabled via rconplus for server '+str(srv))
-        else: logmsg('info','action_enableprone is disabled for server '+str(srv))
+        else: logmsg('info','action_enableprone canceled, because prone is disabled for server '+str(srv))
 
 
     def process_found_keyword(line,keyword,srv):
