@@ -185,7 +185,8 @@ def run_praefectus(meta,config,srv):
                     logmsg('debug','rowcount ('+str(cnt_ping)+') >= minentries ('+str(config['pinglimit']['minentries'])+')')
 
                     # check avg ping against soft limit
-                    if int(avg_ping)>int(config['pinglimit'][srv]['soft']): logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
+                    if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
+                        logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
                     else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
 
                     # check avg ping against hard limit
@@ -201,10 +202,6 @@ def run_praefectus(meta,config,srv):
                     min_max_delta=int(max_ping)-int(min_ping)
                     if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
                         logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
-                        if config['pinglimit'][srv]['enabled'] is True:
-                            await rcon('Kick',{steamusers_id},srv)
-                            logmsg('warn','player ('+str(steamusers_id)+') has been kicked by auto-kick-high-ping')
-                        else: logmsg('warn','player ('+str(steamusers_id)+') would have been kicked by auto-kick-high-ping, but config says "no"')
                     else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
 
                     # delete accumulated entries, but keep some recent ones
@@ -380,7 +377,7 @@ def run_praefectus(meta,config,srv):
                     min_max_delta=int(max_ping)-int(min_ping)
                     if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
                         logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
-                        msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
+                        msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - PLEASE FIX THIS'
                         await rcon('Notify',{steamusers_id,msg},srv)
                     else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
 
