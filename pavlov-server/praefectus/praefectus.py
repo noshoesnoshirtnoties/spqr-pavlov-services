@@ -410,9 +410,9 @@ def run_praefectus(meta,config,srv):
 
                         await rcon('GiveMenu',{'0':player['UniqueId']},srv)
                         logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
+                    else: logmsg('debug','action_admin hasnt been applied - user_who_just_joined: '+str(user_who_just_joined))
             except Exception as e:
                 logmsg('warn','action_admin failed: '+str(e))
-        else: logmsg('info','action_admin canceled, because rconplus is disabled for server '+str(srv))
 
 
     def process_found_keyword(line,keyword,srv):
@@ -476,7 +476,7 @@ def run_praefectus(meta,config,srv):
                 joinuser0=line.split('succeeded: ',2)
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
-                asyncio.run(action_admin(srv,joinuser))
+                asyncio.run(action_admin(srv,str(joinuser).strip()))
                 #asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv,'remove'))
 
