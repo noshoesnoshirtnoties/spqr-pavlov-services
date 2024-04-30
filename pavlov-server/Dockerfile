@@ -12,20 +12,15 @@ RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Config/LinuxServer
 #RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/maps
 RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Logs
 
-USER root
-RUN mkdir -p /var/log/spqr-pavlov-services
-RUN chown -R steam:users /var/log/spqr-pavlov-services
-RUN chown -R steam:users /home/steam/pavlovserver
-
 USER steam
 RUN mkdir /home/steam/Steam && cd /home/steam/Steam && curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
 RUN /home/steam/Steam/steamcmd.sh +login anonymous +force_install_dir /home/steam/pavlovserver +app_update 622970 -beta default +exit && chmod +x /home/steam/pavlovserver/PavlovServer.sh
 RUN cd ~/Steam && ~/Steam/steamcmd.sh +login anonymous +app_update 1007 +quit
+
+USER root
 #RUN mkdir -p /home/steam/.steam/sdk64
 #RUN cp /home/steam/Steam/steamapps/common/Steamworks\ SDK\ Redist/linux64/steamclient.so /home/steam/.steam/sdk64/steamclient.so
 #RUN cp /home/steam/Steam/steamapps/common/Steamworks\ SDK\ Redist/linux64/steamclient.so /home/steam/pavlovserver/Pavlov/Binaries/Linux/steamclient.so
-
-USER root
 RUN mv /lib/x86_64-linux-gnu/libc++.so /lib/x86_64-linux-gnu/libc++.so.backup
 RUN ln -s /lib/x86_64-linux-gnu/libc++.so.1 /lib/x86_64-linux-gnu/libc++.so
 
