@@ -499,7 +499,6 @@ def run_praefectus(meta,config,srv):
                 #asyncio.run(action_autobot(srv))
             case '"KillData":':
                 logmsg('info','a player died...')
-                asyncio.run(action_autokickhighping(srv))
             case 'LogTemp: Rcon: KickPlayer':
                 kickplayer0=line.split('KickPlayer ',2)
                 kickplayer=kickplayer0[1]
@@ -511,6 +510,7 @@ def run_praefectus(meta,config,srv):
             case 'Heart beat received':
                 logmsg('info','heartbeat received')
                 asyncio.run(action_checkpings(srv))
+                asyncio.run(action_autokickhighping(srv))
 
 
     def find_keyword_in_line(line,keywords):
