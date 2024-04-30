@@ -396,14 +396,14 @@ def run_praefectus(meta,config,srv):
         else: logmsg('info','action_enableprone canceled, because rconplus is disabled for server '+str(srv))
 
 
-    async def action_admin(srv):
+    async def action_admin(srv,user_who_just_joined):
         logmsg('debug','action_admin called')
         if config['rconplus_enabled'][srv]==True:
             data={}
             data=await rcon('InspectAll',{},srv)
             try:
                 for player in data['InspectList']:
-                    if player['UniqueId']=="76561199476460201": # [SPQR] Agent
+                    if player['UniqueId']=="76561199476460201" and user_who_just_joined=="[EU][SPQR] Agent":
 
                         await rcon('Notify',{'0':player['UniqueId'],'1':'HELLO SPQR AGENT'},srv)
                         logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
@@ -411,7 +411,7 @@ def run_praefectus(meta,config,srv):
                         await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
                         logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
 
-                        #await rcon('NoClip',{player['UniqueId'],'1'},srv)
+                        #await rcon('NoClip',{'0':player['UniqueId'],'1':'1'},srv)
                         #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
 
                         await rcon('GiveMenu',{'0':player['UniqueId']},srv)
