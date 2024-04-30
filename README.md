@@ -3,6 +3,10 @@
 ## description
 this repo contains everything needed to rollout and run pavlov vr custom servers for SPQR, as well as a discord bot, using docker.
 
+* "pavlov-server" is the pavlov vr custom server
+* "praefectus" is the monitoring service for the game servers
+* "servus-publicus" is the discord bot
+
 ## requirements
 * a debian or ubuntu server with docker, accessible as root or with root privs
 * a mysqldb (see database_template.sql)
