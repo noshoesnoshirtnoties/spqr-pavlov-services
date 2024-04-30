@@ -787,8 +787,8 @@ def run_bot(meta,config):
                     case _ : log_this=False
 
                 if log_this:
-                    logmsg('info','[servus-publicus] command '+str(command)+' has been called by user '+str(message.author.name)+' ('+str(message.author.id)+')')
-                    await log_discord('[servus-publicus] command '+str(command)+' has been called by user '+str(message.author.name)+' ('+str(message.author.id)+')')
+                    logmsg('info','[servus-publicus] '+str(command)+' called by '+str(message.author.name)+' ('+str(message.author.id)+')')
+                    await log_discord('[servus-publicus] '+str(command)+' called by '+str(message.author.name)+' ('+str(message.author.id)+')')
 
             else: # access denied
                 logmsg('warn','missing access rights for command: '+str(command))
