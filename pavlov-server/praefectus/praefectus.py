@@ -338,8 +338,6 @@ def run_praefectus(meta,config,srv):
                         if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
                             await rcon('AddBot',{'0':str(limit//2),'1':'0'},srv)
                             logmsg('info','action_autobot added '+str(limit//2)+' bots to RedTeam')
-
-                            time.sleep(0.3)
                             await rcon('AddBot',{'0':str(limit//2),'1':'1'},srv)
                             logmsg('info','action_autobot added '+str(limit//2)+' bots to BlueTeam')
                         else:
@@ -350,8 +348,6 @@ def run_praefectus(meta,config,srv):
                         if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
                             await rcon('AddBot',{'0':'1','1':'0'},srv)
                             logmsg('info','action_autobot added 1 bot to RedTeam')
-
-                            time.sleep(0.3)
                             await rcon('AddBot',{'0':'1','1':'1'},srv)
                             logmsg('info','action_autobot added 1 bot to BlueTeam')
                         else:
@@ -362,8 +358,6 @@ def run_praefectus(meta,config,srv):
                         if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
                             await rcon('RemoveBot',{'0':'1','1':'0'},srv)
                             logmsg('info','action_autobot removed 1 bot from RedTeam')
-
-                            time.sleep(0.3)
                             await rcon('RemoveBot',{'0':'1','1':'1'},srv)
                             logmsg('info','action_autobot removed 1 bot from BlueTeam')
                         else:
@@ -482,7 +476,7 @@ def run_praefectus(meta,config,srv):
                 joinuser0=line.split('succeeded: ',2)
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
-                asyncio.run(action_admin(srv))
+                asyncio.run(action_admin(srv,joinuser))
                 #asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv,'remove'))
 
