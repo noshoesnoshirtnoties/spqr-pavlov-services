@@ -74,7 +74,10 @@ def run_bot(meta,config):
     async def rcon(rconcmd,rconparams,srv):
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-        for rconparam in rconparams: rconcmd+=' '+str(rconparam)
+        i=0
+        while i<len(rconparams):
+            rconcmd+=' '+str(rconparams[str(i)])
+            i+=1
         try:
             data=await conn.send(rconcmd)
             data_json=json.dumps(data)
@@ -251,16 +254,12 @@ def run_bot(meta,config):
 
                     case '!setmap':
                         user_message_split=user_message.split(' ',4)
-                        rconparams={
-                            user_message_split[1],
-                            user_message_split[2]
-                        }
                         if len(user_message_split)>2: srv=user_message_split[3]
                         else: srv='0'
 
                         if len(user_message_split)<2: response='SwitchMap is missing parameters'
                         else:
-                            switchmap=await rcon('SwitchMap',rconparams,srv)
+                            switchmap=await rcon('SwitchMap',{'0':user_message_split[1],'1':user_message_split[2]},srv)
                             if switchmap['Successful'] is True: response=command+' successful'
                             else: response=command+' something went wrong'
 
@@ -278,50 +277,40 @@ def run_bot(meta,config):
                                     poolofrandommaps[i]=mapentry['MapId']
                                     i+=1
                         randommap=random.choice(poolofrandommaps)
-                        gamemode='SND'
-                        rconcmd='SwitchMap'
-                        rconparams={randommap,gamemode}
-                        switchmap=await rcon(rconcmd,rconparams,srv)
+                        switchmap=await rcon('SwitchMap',{'0':randommap,'1':'SND'},srv)
                         if switchmap['Successful'] is True: response=command+' successful'
                         else: response=command+' something went wrong'
 
                     case '!kick':
                         user_message_split=user_message.split(' ',3)
-                        rconparams={user_message_split[1]}
                         if len(user_message_split)>1: srv=user_message_split[2]
                         else: srv='0'
 
                         if len(user_message_split)<2: response='Kick is missing parameters'
                         else:
-                            kick=await rcon('Kick',{rconparams[0]},srv)
+                            kick=await rcon('Kick',{'0':user_message_split[1]},srv)
                             if kick['Successful'] is True: response=command+' successful'
                             else: response=command+' something went wrong'
 
                     case '!ban':
                         user_message_split=user_message.split(' ',3)
-                        rconparams={
-                            user_message_split[1]
-                        }
                         if len(user_message_split)>1: srv=user_message_split[2]
                         else: srv='0'
 
                         if len(user_message_split)<2: response='Ban is missing parameters'
                         else:
-                            ban=await rcon('Ban',{rconparams[0]},srv)
+                            ban=await rcon('Ban',{'0':user_message_split[1]},srv)
                             if ban['Successful'] is True: response=command+' successful'
                             else: response=command+' something went wrong'
 
                     case '!unban':
                         user_message_split=user_message.split(' ',3)
-                        rconparams={
-                            user_message_split[1]
-                        }
                         if len(user_message_split)>1: srv=user_message_split[2]
                         else: srv='0'
 
                         if len(user_message_split)<2: response='Unban is missing parameters'
                         else:
-                            unban=await rcon('Unban',{rconparams[0]},srv)
+                            unban=await rcon('Unban',{'0':user_message_split[1]},srv)
                             if unban['Successful'] is True: response=command+' successful'
                             else: response=command+' something went wrong'
 
@@ -770,11 +759,13 @@ def run_bot(meta,config):
                         if len(user_message_split)>2:
                             rconsrv=user_message_split[1]
                             rconcommand=user_message_split[2]
-                            rconparams=[]
+                            rconparams={}
                             i=0
+                            j=0
                             for part in user_message_split:
                                 if i>2:
-                                    rconparams.append(part)
+                                    rconparams[str(j)]=part
+                                    j+=1
                                 i+=1
                             data=await rcon(rconcommand,rconparams,rconsrv)
                             if type(data)=='tuple':
