@@ -63,24 +63,24 @@ fi
 if [ "$DONT_ASK" != true ]; then
   read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
 fi
-echo "[INFO] starting deployment"; fi
+echo "[INFO] starting deployment"
 
 
 # --- servus-publicus ---
 
-echo "[INFO] stopping running container..."; fi
+echo "[INFO] stopping running container..."
 $SSHCMD $DSTHOST "docker stop servus-publicus"
 
-echo "[INFO] removing old container..."; fi
+echo "[INFO] removing old container..."
 $SSHCMD $DSTHOST "docker container rm servus-publicus"
 
-echo "[INFO] copying files..."; fi
+echo "[INFO] copying files..."
 $SCPCMD -r "servus-publicus" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
-echo "[INFO] building docker image..."; fi
+echo "[INFO] building docker image..."
 $SSHCMD $DSTHOST "cd ${INSTALLDIR}/servus-publicus && docker build -t servus-publicus ."
 
-echo "[INFO] starting docker container..."; fi
+echo "[INFO] starting docker container..."
 $SSHCMD $DSTHOST "docker run --name servus-publicus -d \
   --restart unless-stopped \
   --net=host \
@@ -89,5 +89,5 @@ $SSHCMD $DSTHOST "docker run --name servus-publicus -d \
 
 # --- done ---
 
-echo "[INFO] exiting successfully"; fi
+echo "[INFO] exiting successfully"
 exit 0

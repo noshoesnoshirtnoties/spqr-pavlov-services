@@ -55,6 +55,7 @@ def run_praefectus(meta,config,srv):
 
 
     async def rcon(rconcmd,rconparams,srv):
+        logmsg('debug','rcon called ('+str(rconcmd)+','+str(rconparams)+','+str(srv)+')')
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         for rconparam in rconparams: rconcmd+=' '+str(rconparam)
