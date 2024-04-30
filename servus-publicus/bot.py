@@ -72,11 +72,6 @@ def run_bot(meta,config):
 
 
     async def rcon(rconcmd,rconparams,srv):
-        logmsg('debug','FFS rcon called')
-        logmsg('debug','FFS rconcmd: '+str(rconcmd))
-        logmsg('debug','FFS rconparams: '+str(rconparams))
-        logmsg('debug','FFS srv: '+str(srv))
-
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         for rconparam in rconparams: rconcmd+=' '+str(rconparam)
@@ -782,7 +777,9 @@ def run_bot(meta,config):
                                     rconparams.append(part)
                                 i+=1
                             data=await rcon(rconcommand,rconparams,rconsrv)
-                            response=command+' response: '+str(data)
+                            if data: 
+                                if data['Successful'] is True: response=command+' response: '+str(data)
+                            else: response=command+' executed, but rconplus does not answer if calls worked or not...'
                         else: # missing parameters
                             logmsg('warn','missing parameter(s)')
                             response='missing parameter(s) - rtfm :P'
