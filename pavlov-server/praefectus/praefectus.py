@@ -413,6 +413,7 @@ def run_praefectus(meta,config,srv):
     async def action_enablerconplus(srv):
         logmsg('debug','action_enablerconplus called')
         if config['rconplus_enabled'][srv]==True:
+            time.sleep(0.5)
             command='UGCAddMod'
             params={'UGC3462586'}
             data={}
@@ -430,10 +431,13 @@ def run_praefectus(meta,config,srv):
 
     async def action_enableprone(srv):
         logmsg('debug','action_enableprone called')
-        if config['prone_enabled'][srv]==True:
-            await rcon('EnableProne',{'1'},srv)
-            logmsg('info','prone has been enabled via rconplus for server '+str(srv))
-        else: logmsg('info','action_enableprone canceled, because prone is disabled for server '+str(srv))
+        if config['rconplus_enabled'][srv]==True:
+            if config['prone_enabled'][srv]==True:
+                time.sleep(0.5)
+                await rcon('EnableProne',{'1'},srv)
+                logmsg('info','prone has been enabled via rconplus for server '+str(srv))
+            else: logmsg('info','action_enableprone canceled, because prone is disabled for server '+str(srv))
+        else: logmsg('info','action_enableprone canceled, because rconplus is disabled for server '+str(srv))
 
 
     def process_found_keyword(line,keyword,srv):
@@ -478,7 +482,6 @@ def run_praefectus(meta,config,srv):
             case 'LogHAL':
                 logmsg('info','server is starting')
                 asyncio.run(action_enablerconplus(srv))
-                time.sleep(0.2)
                 asyncio.run(action_enableprone(srv))
             case 'Server Status Helper':
                 logmsg('info','server is now online')
