@@ -95,10 +95,9 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 ```
 
 ## todo
-* migrate crons from old repo
-* logrotate?
-* cron-triggered pav-server update?
-* cron-triggered weekly container redeploy / image recreate / volume recreate?
+* logrotate
+* cron-triggered pav-server update
+* cron-triggered weekly container redeploy / image recreate / volume recreate
 
 ## more info
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
