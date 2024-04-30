@@ -53,7 +53,7 @@ this is an example for deploying multiple servers in one go (and without being a
 ```
 
 #### praefectus only
-to only deploy the praefectus service, not touching the pavlov-server, use the "-p" flag like so:
+to only deploy the praefectus service, not touching the pavlov-server, use the "-p" flag like this:
 ```
 ./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -p
 ```
