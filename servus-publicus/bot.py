@@ -777,7 +777,7 @@ def run_bot(meta,config):
                                     rconparams.append(part)
                                 i+=1
                             data=await rcon(rconcommand,rconparams,rconsrv)
-                            if data: 
+                            if type(data)=='tuple':
                                 if data['Successful'] is True: response=command+' response: '+str(data)
                             else: response=command+' executed, but rconplus does not answer if calls worked or not...'
                         else: # missing parameters
