@@ -153,83 +153,6 @@ def run_praefectus(meta,config,srv):
         else: logmsg('warn','action_autopin is disabled for server '+str(srv))
 
 
-    async def action_autokickhighping(srv):
-        logmsg('debug','action_autokickhighping called')
-        inspectall=[]
-        inspectall=await rcon('InspectAll',{},srv)
-        logmsg('debug','inspectall: '+str(inspectall))
-
-        try:
-            for player in inspectall['InspectList']:
-                steamusers_id=player['UniqueId']
-                current_ping=player['Ping']
-
-                # get averages for current player
-                query="SELECT steamid64,ping,"
-                query+="AVG(ping) as avg_ping,"
-                query+="MIN(ping) as min_ping,"
-                query+="MAX(ping) as max_ping,"
-                query+="COUNT(id) as cnt_ping "
-                query+="FROM pings "
-                query+="WHERE steamid64 = %s"
-                values=[]
-                values.append(steamusers_id)
-                pings=dbquery(query,values)
-
-                avg_ping=pings['rows'][0]['avg_ping']
-                min_ping=pings['rows'][0]['min_ping']
-                max_ping=pings['rows'][0]['max_ping']
-                cnt_ping=pings['rows'][0]['cnt_ping']
-
-                # check if there are enough samples
-                if cnt_ping>=config['pinglimit']['minentries']:
-                    logmsg('debug','rowcount ('+str(cnt_ping)+') >= minentries ('+str(config['pinglimit']['minentries'])+')')
-
-                    # check avg ping against soft limit
-                    if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
-                        logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
-                    else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
-
-                    # check avg ping against hard limit
-                    if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
-                        logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamusers_id))
-                        if config['pinglimit'][srv]['enabled'] is True:
-                            await rcon('Kick',{steamusers_id},srv)
-                            logmsg('warn','player ('+str(steamusers_id)+') has been kicked by auto-kick-high-ping')
-                        else: logmsg('warn','player ('+str(steamusers_id)+') would have been kicked by auto-kick-high-ping, but config says "no"')
-                    else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamusers_id))
-
-                    # check min-max-delta
-                    min_max_delta=int(max_ping)-int(min_ping)
-                    if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
-                        logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
-                    else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
-
-                    # delete accumulated entries, but keep some recent ones
-                    logmsg('debug','deleting entries for player in pings db')
-                    query="DELETE FROM pings WHERE steamid64 = %s ORDER BY id DESC LIMIT %s"
-                    values=[]
-                    values.append(steamusers_id)
-                    values.append(cnt_ping - int(config['pinglimit']['keepentries']))
-                    dbquery(query,values)
-                else: logmsg('debug','not enough data on pings yet')
-
-                # add the current sample for the current player
-                if str(current_ping)=='0': # not sure yet what these are
-                    logmsg('warn','ping is 0 - simply gonna ignore this for now')
-                else:
-                    logmsg('debug','adding entry in pings db for player: '+str(steamusers_id))
-                    timestamp=datetime.now(timezone.utc)            
-                    query="INSERT INTO pings ("
-                    query+="steamid64,ping,timestamp"
-                    query+=") VALUES (%s,%s,%s)"
-                    values=[steamusers_id,current_ping,timestamp]
-                    dbquery(query,values)
-        except Exception as e:
-            logmsg('warn','ping check failed: '+str(e))
-            logmsg('debug','inspectall: '+str(inspectall))
-
-
     async def action_pullstats(srv):
         logmsg('debug','action_pullstats called')
         data=await get_serverinfo(srv)
@@ -312,14 +235,12 @@ def run_praefectus(meta,config,srv):
         else: logmsg('warn','not pulling stats because serverinfo returned unsuccessful')
 
 
-    async def action_checkpings(srv):
+    async def action_autokickhighping(srv):
         logmsg('debug','action_checkpings called')
-        inspectall=[]
-        inspectall=await rcon('InspectAll',{},srv)
-        logmsg('debug','inspectall: '+str(inspectall))
-
+        data={}
+        data=await rcon('InspectAll',{},srv)
         try:
-            for player in inspectall['InspectList']:
+            for player in data['InspectList']:
                 steamusers_id=player['UniqueId']
                 current_ping=player['Ping']
 
@@ -347,27 +268,36 @@ def run_praefectus(meta,config,srv):
                     # check avg ping against soft limit
                     if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
                         logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
-                        msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - PLEASE FIX THIS'
-                        await rcon('Notify',{steamusers_id,msg},srv)
+                        if config['pinglimit'][srv]['enabled'] is True:
+                            msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - PLEASE FIX THIS'
+                            await rcon('Notify',{steamusers_id,msg},srv)
+                        else: logmsg('warn','player ('+str(steamusers_id)+') would have been notified by auto-kick-high-ping, but config says "no"')
                     else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamusers_id))
 
                     # check avg ping against hard limit
                     if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
                         logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamusers_id))
-                        msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
-                        await rcon('Notify',{steamusers_id,msg},srv)
+                        if config['pinglimit'][srv]['enabled'] is True:
+                            msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
+                            await rcon('Notify',{steamusers_id,msg},srv)
+                            time.sleep(1)
+                            await rcon('Kick',{steamusers_id},srv)
+                            logmsg('warn','player ('+str(steamusers_id)+') has been kicked by auto-kick-high-ping')
+                        else: logmsg('warn','player ('+str(steamusers_id)+') would have been kicked by auto-kick-high-ping, but config says "no"')
                     else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamusers_id))
 
                     # check min-max-delta
                     min_max_delta=int(max_ping)-int(min_ping)
                     if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
                         logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
-                        msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - PLEASE FIX THIS'
-                        await rcon('Notify',{steamusers_id,msg},srv)
+                        if config['pinglimit'][srv]['enabled'] is True:
+                            msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - PLEASE FIX THIS'
+                            await rcon('Notify',{steamusers_id,msg},srv)
+                        else: logmsg('warn','player ('+str(steamusers_id)+') would have been notified by auto-kick-high-ping, but config says "no"')
                     else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamusers_id))
 
                     # delete accumulated entries, but keep some recent ones
-                    logmsg('debug','deleting entries for player in pings db')
+                    logmsg('info','deleting entries for player in pings db')
                     query="DELETE FROM pings WHERE steamid64 = %s ORDER BY id ASC LIMIT %s"
                     values=[]
                     values.append(steamusers_id)
@@ -379,7 +309,7 @@ def run_praefectus(meta,config,srv):
                 if str(current_ping)=='0': # not sure yet what these are
                     logmsg('warn','ping is 0 - simply gonna ignore this for now')
                 else:
-                    logmsg('debug','adding entry in pings db for player: '+str(steamusers_id))
+                    logmsg('info','adding entry in pings db for player: '+str(steamusers_id))
                     timestamp=datetime.now(timezone.utc)            
                     query="INSERT INTO pings ("
                     query+="steamid64,ping,timestamp"
@@ -388,6 +318,7 @@ def run_praefectus(meta,config,srv):
                     dbquery(query,values)
         except Exception as e:
             logmsg('warn','ping check failed: '+str(e))
+            logmsg('debug','inspectall: '+str(data))
 
 
     async def action_autobot(srv):
@@ -413,7 +344,6 @@ def run_praefectus(meta,config,srv):
     async def action_enablerconplus(srv):
         logmsg('debug','action_enablerconplus called')
         if config['rconplus_enabled'][srv]==True:
-            time.sleep(0.5)
             command='UGCAddMod'
             params={'UGC3462586'}
             data={}
@@ -421,7 +351,7 @@ def run_praefectus(meta,config,srv):
             if data['Successful'] is True: logmsg('info','rconplus has been enabled')
             else:
                 logmsg('warn','error when enabling rconplus - something went wrong - trying again')
-                time.sleep(0.5)
+                time.sleep(0.3)
                 data=await rcon(command,params,srv)
                 if data['Successful'] is True: logmsg('info','rconplus has been enabled on the second attempt')
                 else:
@@ -433,16 +363,50 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','action_enableprone called')
         if config['rconplus_enabled'][srv]==True:
             if config['prone_enabled'][srv]==True:
-                time.sleep(0.5)
+                time.sleep(0.3)
                 await rcon('EnableProne',{'1'},srv)
                 logmsg('info','prone has been enabled via rconplus for server '+str(srv))
             else: logmsg('info','action_enableprone canceled, because prone is disabled for server '+str(srv))
         else: logmsg('info','action_enableprone canceled, because rconplus is disabled for server '+str(srv))
 
 
+    async def action_admin(srv):
+        logmsg('debug','action_admin called')
+        if config['rconplus_enabled'][srv]==True:
+            data={}
+            data=await rcon('InspectAll',{},srv)
+            try:
+                for player in data['InspectList']:
+                    if player['UniqueId']=="76561199476460201": # [SPQR] Agent
+                        await rcon('Godmode',{player['UniqueId'],True},srv)
+                        logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
+                        #await rcon('NoClip',{player['UniqueId'],True},srv)
+                        #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
+                        await rcon('GiveMenu',{player['UniqueId']},srv)
+                        logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
+                        await rcon('Notify',{player['UniqueId'],'HELLO SPQR AGENT'},srv)
+                        logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
+            except Exception as e:
+                logmsg('warn','action_admin failed: '+str(e))
+        else: logmsg('info','action_admin canceled, because rconplus is disabled for server '+str(srv))
+
+
     def process_found_keyword(line,keyword,srv):
         match keyword:
-            case 'Rotating map': logmsg('info','map rotation called')
+            case 'LogHAL':
+                logmsg('info','server is starting')
+
+            case 'Server Status Helper':
+                logmsg('info','server is now online')
+
+            case 'Heart beat received':
+                logmsg('info','heartbeat received')
+                #asyncio.run(action_checkpings(srv))
+                asyncio.run(action_autokickhighping(srv))
+
+            case 'Rotating map':
+                logmsg('info','map rotation called')
+
             case 'LogLoad: LoadMap':
                 if '/Game/Maps/ServerIdle' in line: logmsg('info','map switch called')
                 elif '/Game/Maps/download.download' in line:
@@ -463,8 +427,12 @@ def run_praefectus(meta,config,srv):
                     gamemode0=line.split('game=',1)
                     gamemode=gamemode0[1]
                     logmsg('info','vrankrupt map is loading: '+str(mapugc).strip()+' as '+str(gamemode).strip())
+
             case 'PavlovLog: StartPlay':
                 logmsg('info','map started')
+                asyncio.run(action_enablerconplus(srv))
+                asyncio.run(action_enableprone(srv))
+
             case '"State":':
                 roundstate0=line.split('": "',1)
                 roundstate1=roundstate0[1].split('"',1)
@@ -473,47 +441,52 @@ def run_praefectus(meta,config,srv):
                 match roundstate:
                     case 'Starting':
                         asyncio.run(action_serverinfo(srv))
+                        asyncio.run(action_enablerconplus(srv))
+                        asyncio.run(action_enableprone(srv))
                     #case 'Started':
                     #case 'StandBy':
                     case 'Ended':
                         asyncio.run(action_pullstats(srv))
-            case 'Preparing to exit':
-                logmsg('info','server is shutting down')
-            case 'LogHAL':
-                logmsg('info','server is starting')
-                asyncio.run(action_enablerconplus(srv))
-                asyncio.run(action_enableprone(srv))
-            case 'Server Status Helper':
-                logmsg('info','server is now online')
+
             case 'Join succeeded':
                 joinuser0=line.split('succeeded: ',2)
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
-                asyncio.run(action_checkpings(srv))
+                asyncio.run(action_admin(srv))
+                #asyncio.run(action_checkpings(srv))
                 #asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv))
+
             case 'LogNet: UChannel::Close':
                 leaveuser0=line.split('RemoteAddr: ',2)
                 leaveuser1=leaveuser0[1].split(',',2)
                 leaveuser=leaveuser1[0]
                 logmsg('info','user left the server: '+str(leaveuser).strip())
-                asyncio.run(action_checkpings(srv))
+                #asyncio.run(action_checkpings(srv))
                 #asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv))
+
             case '"KillData":':
                 logmsg('info','a player died...')
+
             case 'LogTemp: Rcon: KickPlayer':
                 kickplayer0=line.split('KickPlayer ',2)
                 kickplayer=kickplayer0[1]
                 logmsg('info','player kicked: '+str(kickplayer).strip())
+
             case 'LogTemp: Rcon: BanPlayer':
                 banplayer0=line.split('BanPlayer ',2)
                 banplayer=banplayer0[1]
                 logmsg('info','player banned: '+str(banplayer).strip())
-            case 'Heart beat received':
-                logmsg('info','heartbeat received')
-                asyncio.run(action_checkpings(srv))
-                asyncio.run(action_autokickhighping(srv))
+                
+            case 'Critical error:':
+                logmsg('error','server crashed: critical error')
+                
+            case 'Fatal error!':
+                logmsg('error','server crashed: fatal error')
+
+            case 'Preparing to exit':
+                logmsg('info','server is shutting down')
 
 
     def find_keyword_in_line(line,keywords):
@@ -559,5 +532,7 @@ def run_praefectus(meta,config,srv):
                 '"KillData":',
                 'LogTemp: Rcon: KickPlayer',
                 'LogTemp: Rcon: BanPlayer',
-                'Heart beat received'])
+                'Heart beat received',
+                'Critical error:',
+                'Fatal error!'])
             if found_keyword!='': process_found_keyword(line,found_keyword,srv)
