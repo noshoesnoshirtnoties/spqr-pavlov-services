@@ -536,7 +536,7 @@ def run_praefectus(meta,config,srv):
                     yield line
 
 
-    target_log='/opt/pavlov-server/praefectus/logs/'+str(srv)+'/Pavlov.log'
+    target_log='/opt/pavlov-server/praefectus/logs/Pavlov.log'
     logmsg('info',str(meta['name'])+' '+str(meta['version'])+' is now active')
     logmsg('debug','monitoring log file: '+target_log)
     loglines=follow_log(target_log)

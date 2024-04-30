@@ -94,7 +94,7 @@ if [ $VERBOSE ]; then echo "[INFO] copying files..."; fi
 $SCPCMD -r "pavlov-server" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
 if [ $VERBOSE ]; then echo "[INFO] creating data volumes..."; fi
-$SSHCMD $DSTHOST "docker volume create pavlov-server-logs"
+$SSHCMD $DSTHOST "docker volume create pavlov-server-logs-${SRV}"
 $SSHCMD $DSTHOST "docker volume create pavlov-server-maps"
 
 if [ $VERBOSE ]; then echo "[INFO] stopping running containers..."; fi
@@ -121,7 +121,7 @@ $SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server/praefectus && docker build -t p
 
 if [ $VERBOSE ]; then echo "[INFO] starting docker container..."; fi
 $SSHCMD $DSTHOST "docker run --name pavlov-server-praefectus-${SRV} -d \
-  -v pavlov-server-logs:/opt/pavlov-server/praefectus/logs/${SRV} \
+  -v pavlov-server-logs-${SRV}:/opt/pavlov-server/praefectus/logs/ \
   -e SRV=${SRV} \
   --restart unless-stopped \
   --net=host \
@@ -138,7 +138,7 @@ if [ "$PRAEFECTUS_ONLY" != true ]; then
     -p 0.0.0.0:${PORTRCON}:${PORTRCON}/tcp \
     -v ${INSTALLDIR}/pavlov-server/conf.d/$SRV/Game.ini:/home/steam/pavlovserver/Pavlov/Saved/Config/LinuxServer/Game.ini \
     -v ${INSTALLDIR}/pavlov-server/conf.d/$SRV/RconSettings.txt:/home/steam/pavlovserver/Pavlov/Saved/Config/RconSettings.txt \
-    -v pavlov-server-logs:/home/steam/pavlovserver/Pavlov/Saved/Logs \
+    -v pavlov-server-logs-${SRV}:/home/steam/pavlovserver/Pavlov/Saved/Logs \
     -v pavlov-server-maps:/home/steam/pavlovserver/Pavlov/Saved/maps \
     -e SRV=${SRV} \
     -e PORT=${PORT1} \

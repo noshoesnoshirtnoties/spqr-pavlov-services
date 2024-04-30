@@ -14,7 +14,6 @@ RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Logs
 
 USER root
 RUN mkdir -p /var/log/spqr-pavlov-services
-RUN ln -s /home/steam/pavlovserver/Pavlov/Saved/Logs /home/steam/pavlovserver/Pavlov/Saved/Logs/$SRV
 RUN chown -R steam:users /var/log/spqr-pavlov-services
 RUN chown -R steam:users /home/steam/pavlovserver
 
