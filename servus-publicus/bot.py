@@ -152,7 +152,7 @@ def run_bot(meta,config):
 
             if access_granted:
                 logmsg('info','access to command has been granted')
-                log_to_discord=True
+                log_this=True
                 match command:
                     case '!help': response=Path('txt/help.txt').read_text()
 
@@ -784,9 +784,11 @@ def run_bot(meta,config):
                             logmsg('warn','missing parameter(s)')
                             response='missing parameter(s) - rtfm :P'
                             
-                    case _ : log_to_discord=False
+                    case _ : log_this=False
 
-                if log_to_discord: await log_discord('[servus-publicus] command '+str(command)+' has been called by user '+str(message.author.name)+' ('+str(message.author.id)+')')
+                if log_this:
+                    logmsg('info','[servus-publicus] command '+str(command)+' has been called by user '+str(message.author.name)+' ('+str(message.author.id)+')')
+                    await log_discord('[servus-publicus] command '+str(command)+' has been called by user '+str(message.author.name)+' ('+str(message.author.id)+')')
 
             else: # access denied
                 logmsg('warn','missing access rights for command: '+str(command))
