@@ -13,15 +13,16 @@ before deployment, each server requires a folder named after its "server number"
 
 this is an example folder structure for 2 servers (0+1):
 ```
-pavlov-server/
+pavlov-server
 ├── conf.d
 │   ├── 0
-│   │   └── Game.ini
+│   │   ├── Game.ini
+│   │   └── RconSettings.txt
 │   ├── 1
-│   │   └── Game.ini
+│   │   ├── Game.ini
+│   │   └── RconSettings.txt
 │   ├── blacklist.txt
 │   ├── mods.txt
-│   ├── RconSettings.txt
 │   └── whitelist.txt
 ```
 
