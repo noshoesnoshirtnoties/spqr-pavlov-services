@@ -55,10 +55,12 @@ def run_praefectus(meta,config,srv):
 
 
     async def rcon(rconcmd,rconparams,srv):
-        logmsg('debug','rcon called ('+str(rconcmd)+','+str(rconparams)+','+str(srv)+')')
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-        for rconparam in rconparams: rconcmd+=' '+str(rconparam)
+        i=0
+        while i<len(rconparams):
+            rconcmd+=' '+str(rconparams[str(i)])
+            i+=1
         try:
             data=await conn.send(rconcmd)
             data_json=json.dumps(data)
@@ -144,7 +146,7 @@ def run_praefectus(meta,config,srv):
                     playercount_split=data['ServerInfo']['PlayerCount'].split('/',2)
                     if (int(playercount_split[0]))>=limit:
                         logmsg('info','limit ('+str(limit)+') reached - setting pin '+str(config['autopin'])+' for server '+str(srv))
-                        data=await rcon('SetPin',{config['autopin']},srv)
+                        data=await rcon('SetPin',{'0':config['autopin']},srv)
                     else:
                         logmsg('info','below limit ('+str(limit)+') - removing pin for server '+str(srv))
                         data=await rcon('SetPin',{''},srv)
@@ -271,7 +273,7 @@ def run_praefectus(meta,config,srv):
                             logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
                                 msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - PLEASE FIX THIS'
-                                await rcon('Notify',{steamid64,msg},srv)
+                                await rcon('Notify',{'0':steamid64,'1':msg},srv)
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
                         else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
 
@@ -280,9 +282,9 @@ def run_praefectus(meta,config,srv):
                             logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
                                 msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
-                                await rcon('Notify',{steamid64,msg},srv)
+                                await rcon('Notify',{'0':steamid64,'1':msg},srv)
                                 time.sleep(1)
-                                await rcon('Kick',{steamid64},srv)
+                                await rcon('Kick',{'0':steamid64},srv)
                                 logmsg('warn','player ('+str(steamid64)+') has been kicked by auto-kick-high-ping')
                             else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by auto-kick-high-ping, but config says "no"')
                         else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
@@ -293,7 +295,7 @@ def run_praefectus(meta,config,srv):
                             logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
                                 msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - PLEASE FIX THIS'
-                                await rcon('Notify',{steamid64,msg},srv)
+                                await rcon('Notify',{'0':steamid64,'1':msg},srv)
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
                         else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
 
@@ -325,57 +327,59 @@ def run_praefectus(meta,config,srv):
 
     async def action_autobot(srv,mode):
         logmsg('debug','action_autobot called with mode: '+str(mode))
-        limit=int(config['autobot_limits'][srv])
-        if limit!=0:
-            data=await get_serverinfo(srv)
-            if data['Successful'] is True:
+        if config['rconplus_enabled'][srv]==True:
+            limit=int(config['autobot_limits'][srv])
+            if limit!=0:
+                data=await get_serverinfo(srv)
+                if data['Successful'] is True:
+                    gamemode=data['ServerInfo']['GameMode']
 
-                if mode=="init":
-                    if data['ServerInfo']['GameMode']=="TDM" or data['ServerInfo']['GameMode']=="TANKTDM" or data['ServerInfo']['GameMode']=="SND":
-                        await rcon('AddBot',{(limit//2),'RedTeam'},srv)
-                        logmsg('info','action_autobot added '+str(limit//2)+' bots to RedTeam')
-                        time.sleep(0.1)
-                        await rcon('AddBot',{(limit//2),'BlueTeam'},srv)
-                        logmsg('info','action_autobot added '+str(limit//2)+' bots to BlueTeam')
-                    else:
-                        await rcon('AddBot',{limit,'RedTeam'},srv)
-                        logmsg('info','action_autobot added '+str(limit)+' bots to RedTeam')
+                    if mode=="init":
+                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
+                            await rcon('AddBot',{'0':str(limit//2),'1':'0'},srv)
+                            logmsg('info','action_autobot added '+str(limit//2)+' bots to RedTeam')
 
-                elif mode=="add":
-                    if data['ServerInfo']['GameMode']=="TDM" or data['ServerInfo']['GameMode']=="TANKTDM" or data['ServerInfo']['GameMode']=="SND":
-                        await rcon('AddBot',{'1','RedTeam'},srv)
-                        logmsg('info','action_autobot added 1 bot to RedTeam')
-                        time.sleep(0.1)
-                        await rcon('AddBot',{'1','BlueTeam'},srv)
-                        logmsg('info','action_autobot added 1 bot to BlueTeam')
-                    else:
-                        await rcon('AddBot',{'1','RedTeam'},srv)
-                        logmsg('info','action_autobot added 1 bot to RedTeam')
+                            time.sleep(0.3)
+                            await rcon('AddBot',{'0':str(limit//2),'1':'1'},srv)
+                            logmsg('info','action_autobot added '+str(limit//2)+' bots to BlueTeam')
+                        else:
+                            await rcon('AddBot',{'0':str(limit),'1':'0'},srv)
+                            logmsg('info','action_autobot added '+str(limit)+' bots to RedTeam')
 
-                elif mode=="remove":
-                    if data['ServerInfo']['GameMode']=="TDM" or data['ServerInfo']['GameMode']=="TANKTDM" or data['ServerInfo']['GameMode']=="SND":
-                        await rcon('RemoveBot',{'1','RedTeam'},srv)
-                        logmsg('info','action_autobot removed 1 bot from RedTeam')
-                        time.sleep(0.1)
-                        await rcon('RemoveBot',{'1','BlueTeam'},srv)
-                        logmsg('info','action_autobot removed 1 bot from BlueTeam')
-                    else:
-                        await rcon('RemoveBot',{'1','RedTeam'},srv)
-                        logmsg('info','action_autobot removed 1 bot from RedTeam')
-                
-            else: logmsg('warn','action_autobot was unsuccessful because get_serverinfo failed for server '+str(srv))
+                    elif mode=="add":
+                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
+                            await rcon('AddBot',{'0':'1','1':'0'},srv)
+                            logmsg('info','action_autobot added 1 bot to RedTeam')
 
+                            time.sleep(0.3)
+                            await rcon('AddBot',{'0':'1','1':'1'},srv)
+                            logmsg('info','action_autobot added 1 bot to BlueTeam')
+                        else:
+                            await rcon('AddBot',{'0':'1','1':'0'},srv)
+                            logmsg('info','action_autobot added 1 bot to RedTeam')
 
-        else: logmsg('info','action_autobot is disabled for server '+str(srv))
+                    elif mode=="remove":
+                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
+                            await rcon('RemoveBot',{'0':'1','1':'0'},srv)
+                            logmsg('info','action_autobot removed 1 bot from RedTeam')
+
+                            time.sleep(0.3)
+                            await rcon('RemoveBot',{'0':'1','1':'1'},srv)
+                            logmsg('info','action_autobot removed 1 bot from BlueTeam')
+                        else:
+                            await rcon('RemoveBot',{'0':'1','1':'0'},srv)
+                            logmsg('info','action_autobot removed 1 bot from RedTeam')
+                    
+                else: logmsg('warn','action_autobot was unsuccessful because get_serverinfo failed for server '+str(srv))
+            else: logmsg('info','action_autobot is disabled for server '+str(srv))
+        else: logmsg('info','action_autobot canceled, because rconplus is disabled for server '+str(srv))
 
 
     async def action_enablerconplus(srv):
         logmsg('debug','action_enablerconplus called')
         if config['rconplus_enabled'][srv]==True:
-            command='UGCAddMod'
-            params={'UGC3462586'}
             data={}
-            data=await rcon(command,params,srv)
+            data=await rcon('UGCAddMod',{'0':'UGC3462586'},srv)
             if data['Successful'] is True: logmsg('info','rconplus has been enabled')
             else:
                 logmsg('warn','error when enabling rconplus - something went wrong')
@@ -386,7 +390,7 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','action_enableprone called')
         if config['rconplus_enabled'][srv]==True:
             if config['prone_enabled'][srv]==True:
-                await rcon('EnableProne',{'1'},srv)
+                await rcon('EnableProne',{'0':'1'},srv)
                 logmsg('info','prone has been enabled for server '+str(srv))
             else: logmsg('info','action_enableprone canceled, because prone is disabled for server '+str(srv))
         else: logmsg('info','action_enableprone canceled, because rconplus is disabled for server '+str(srv))
@@ -401,19 +405,16 @@ def run_praefectus(meta,config,srv):
                 for player in data['InspectList']:
                     if player['UniqueId']=="76561199476460201": # [SPQR] Agent
 
-                        await rcon('Notify',{player['UniqueId'],'HELLO SPQR AGENT'},srv)
+                        await rcon('Notify',{'0':player['UniqueId'],'1':'HELLO SPQR AGENT'},srv)
                         logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
-                        time.sleep(0.1)
 
-                        await rcon('Godmode',{player['UniqueId'],True},srv)
+                        await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
                         logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
-                        time.sleep(0.1)
 
-                        #await rcon('NoClip',{player['UniqueId'],True},srv)
+                        #await rcon('NoClip',{player['UniqueId'],'1'},srv)
                         #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
-                        #time.sleep(0.1)
 
-                        await rcon('GiveMenu',{player['UniqueId']},srv)
+                        await rcon('GiveMenu',{'0':player['UniqueId']},srv)
                         logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
             except Exception as e:
                 logmsg('warn','action_admin failed: '+str(e))
@@ -483,7 +484,7 @@ def run_praefectus(meta,config,srv):
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_admin(srv))
                 #asyncio.run(action_autopin(srv))
-                asyncio.run(action_autobot(srv,'remove'))
+                #asyncio.run(action_autobot(srv,'remove'))
 
             case 'LogNet: UChannel::Close':
                 leaveuser0=line.split('RemoteAddr: ',2)
@@ -491,7 +492,7 @@ def run_praefectus(meta,config,srv):
                 leaveuser=leaveuser1[0]
                 logmsg('info','user left the server: '+str(leaveuser).strip())
                 #asyncio.run(action_autopin(srv))
-                asyncio.run(action_autobot(srv,'add'))
+                #asyncio.run(action_autobot(srv,'add'))
 
             case '"KillData":':
                 logmsg('info','a player died...')
