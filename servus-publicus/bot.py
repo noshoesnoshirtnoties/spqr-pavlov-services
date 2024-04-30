@@ -180,7 +180,7 @@ def run_bot(meta,config):
                                 parts.append('(#'+str(i)+') '+str(data['ServerInfo']['ServerName']))
                                 parts.append(str(data['ServerInfo']['MapLabel'])+' '+str(data['ServerInfo']['GameMode']))
                                 parts.append('PlayerCount: '+str(data['ServerInfo']['PlayerCount'])+'\n')
-                            else: parts.append(user_message+': something went wrong for server '+str(i)+'\n')
+                            else: parts.append(user_message+': server '+str(i)+' is unreachable\n')
                             i+=1
 
                         for part in parts: response=response+'\n'+part
