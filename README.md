@@ -33,7 +33,7 @@ an example configuriation for 2 servers (0+1) can be found in "pavlov-server/pra
 ### servus-publicus
 the discord bot can be configured via its config file "servus-publicus/config.json".
 
-an example configuration can be found in "servus-publicus/config.json".
+an example configuration can be found in "servus-publicus/config.json.example".
 
 ## deployment
 ### pavlov-server-deploy.sh
@@ -49,12 +49,11 @@ this is an example for deploying multiple servers in one go (and without being a
 ./pavlov-server-deploy.sh -d spqr-server -s 2 -u root -y; \
 ./pavlov-server-deploy.sh -d spqr-server -s 3 -u root -y; \
 ./pavlov-server-deploy.sh -d spqr-server -s 4 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 5 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 6 -u root -y
+./pavlov-server-deploy.sh -d spqr-server -s 5 -u root -y;
 ```
 
 #### praefectus only
-to only deploy the praefectus service for a pavlov-server, use the "-p" flag like so:
+to only deploy the praefectus service, not touching the pavlov-server, use the "-p" flag like so:
 ```
 ./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -p
 ```
@@ -62,7 +61,7 @@ to only deploy the praefectus service for a pavlov-server, use the "-p" flag lik
 ### servus-publicus-deploy.sh
 the discord bot can be deployed to a target server like this:
 ```
-./servus-publicus-deploy.sh -d spqr-server -u root -v
+./servus-publicus-deploy.sh -d spqr-server -u root
 ```
 
 ## example commands for service handling

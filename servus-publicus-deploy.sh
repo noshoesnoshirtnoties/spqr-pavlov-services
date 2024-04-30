@@ -2,11 +2,10 @@
 
 VERSION=1.0
 USAGE="
-Usage: $0 -d <dsthost> -u <sshuser> -y -v\n
+Usage: $0 -d <dsthost> -u <sshuser> -y\n
 -d destination host\n
 -u ssh/scp user\n
--y dont ask\n
--v verbose output\n"
+-y dont ask\n"
 
 
 # --- options processing ---
@@ -15,13 +14,9 @@ if [ $# == 0 ] ; then
     echo -e $USAGE; exit 1;
 fi
 
-while getopts ":d:u:yv" optname
+while getopts ":d:u:y" optname
   do
     case "$optname" in
-      "v")
-        echo "[INFO] verbose mode active"
-        VERBOSE=true
-        ;;
       "d")
         DSTHOST=$OPTARG
         ;;
@@ -68,24 +63,24 @@ fi
 if [ "$DONT_ASK" != true ]; then
   read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
 fi
-if [ $VERBOSE ]; then echo "[INFO] starting deployment"; fi
+echo "[INFO] starting deployment"; fi
 
 
 # --- servus-publicus ---
 
-if [ $VERBOSE ]; then echo "[INFO] stopping running container..."; fi
+echo "[INFO] stopping running container..."; fi
 $SSHCMD $DSTHOST "docker stop servus-publicus"
 
-if [ $VERBOSE ]; then echo "[INFO] removing old container..."; fi
+echo "[INFO] removing old container..."; fi
 $SSHCMD $DSTHOST "docker container rm servus-publicus"
 
-if [ $VERBOSE ]; then echo "[INFO] copying files..."; fi
+echo "[INFO] copying files..."; fi
 $SCPCMD -r "servus-publicus" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
-if [ $VERBOSE ]; then echo "[INFO] building docker image..."; fi
+echo "[INFO] building docker image..."; fi
 $SSHCMD $DSTHOST "cd ${INSTALLDIR}/servus-publicus && docker build -t servus-publicus ."
 
-if [ $VERBOSE ]; then echo "[INFO] starting docker container..."; fi
+echo "[INFO] starting docker container..."; fi
 $SSHCMD $DSTHOST "docker run --name servus-publicus -d \
   --restart unless-stopped \
   --net=host \
@@ -94,5 +89,5 @@ $SSHCMD $DSTHOST "docker run --name servus-publicus -d \
 
 # --- done ---
 
-if [ $VERBOSE ]; then echo "[INFO] exiting successfully"; fi
+echo "[INFO] exiting successfully"; fi
 exit 0

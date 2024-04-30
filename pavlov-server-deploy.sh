@@ -2,13 +2,12 @@
 
 VERSION=1.0
 USAGE="
-Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -y -v\n
+Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -y\n
 -d destination host\n
 -s server number (0-9)\n
 -u ssh/scp user\n
 -p praefectus only\n
--y dont ask\n
--v verbose output\n"
+-y dont ask\n"
 
 
 # --- options processing ---
@@ -17,13 +16,9 @@ if [ $# == 0 ] ; then
     echo -e $USAGE; exit 1;
 fi
 
-while getopts ":d:s:u:ypv" optname
+while getopts ":d:s:u:yp" optname
   do
     case "$optname" in
-      "v")
-        echo "[INFO] verbose mode active"
-        VERBOSE=true
-        ;;
       "d")
         DSTHOST=$OPTARG
         ;;
@@ -85,41 +80,41 @@ PORTRCON=$((x=9100, y=$SRV, x+y))
 if [ "$DONT_ASK" != true ]; then
   read -s -n 1 -p "[WAIT] press any key to continue..." && echo ""
 fi
-if [ $VERBOSE ]; then echo "[INFO] starting deployment"; fi
+echo "[INFO] starting deployment"; fi
 
 
 # --- pavlov-server + praefectus ---
 
-if [ $VERBOSE ]; then echo "[INFO] copying files..."; fi
+echo "[INFO] copying files..."; fi
 $SCPCMD -r "pavlov-server" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
-if [ $VERBOSE ]; then echo "[INFO] creating data volumes..."; fi
+echo "[INFO] creating data volumes..."; fi
 $SSHCMD $DSTHOST "docker volume create pavlov-server-logs-${SRV}"
 $SSHCMD $DSTHOST "docker volume create pavlov-server-maps"
 
-if [ $VERBOSE ]; then echo "[INFO] stopping running containers..."; fi
+echo "[INFO] stopping running containers..."; fi
 if [ "$PRAEFECTUS_ONLY" != true ]; then $SSHCMD $DSTHOST "docker stop pavlov-server-${SRV}"; fi
 $SSHCMD $DSTHOST "docker stop pavlov-server-praefectus-${SRV}"
 
-if [ $VERBOSE ]; then echo "[INFO] removing old containers..."; fi
+echo "[INFO] removing old containers..."; fi
 if [ "$PRAEFECTUS_ONLY" != true ]; then $SSHCMD $DSTHOST "docker container rm pavlov-server-${SRV}"; fi
 $SSHCMD $DSTHOST "docker container rm pavlov-server-praefectus-${SRV}"
 
-if [ $VERBOSE ]; then echo "[INFO] checking if ufw is active"; fi
+echo "[INFO] checking if ufw is active"; fi
 RESPONSE=$($SSHCMD $DSTHOST "ufw status")
 if [[ $RESPONSE == *"active"* ]]; then
-  if [ $VERBOSE ]; then echo "[INFO] ufw is active - setting rules now"; fi
+  echo "[INFO] ufw is active - setting rules now"; fi
   $SSHCMD $DSTHOST "ufw allow ${PORT1}"
   $SSHCMD $DSTHOST "ufw allow ${PORT2}"
   $SSHCMD $DSTHOST "ufw allow ${PORTRCON}"
 else
-  if [ $VERBOSE ]; then echo "[WARN] ufw is inactive - please check if this is what you want"; fi
+  echo "[WARN] ufw is inactive - please check if this is what you want"; fi
 fi
 
-if [ $VERBOSE ]; then echo "[INFO] building docker image for praefectus..."; fi
+echo "[INFO] building docker image for praefectus..."; fi
 $SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server/praefectus && docker build -t pavlov-server-praefectus ."
 
-if [ $VERBOSE ]; then echo "[INFO] starting docker container..."; fi
+echo "[INFO] starting docker container..."; fi
 $SSHCMD $DSTHOST "docker run --name pavlov-server-praefectus-${SRV} -d \
   -v pavlov-server-logs-${SRV}:/opt/pavlov-server/praefectus/logs/ \
   -e SRV=${SRV} \
@@ -128,10 +123,10 @@ $SSHCMD $DSTHOST "docker run --name pavlov-server-praefectus-${SRV} -d \
   pavlov-server-praefectus"
 
 if [ "$PRAEFECTUS_ONLY" != true ]; then 
-  if [ $VERBOSE ]; then echo "[INFO] building docker image for pavlov-server..."; fi
+  echo "[INFO] building docker image for pavlov-server..."; fi
   $SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server && docker build -t pavlov-server ."
 
-  if [ $VERBOSE ]; then echo "[INFO] starting docker container..."; fi
+  echo "[INFO] starting docker container..."; fi
   $SSHCMD $DSTHOST "docker run --name pavlov-server-${SRV} -d \
     -p 0.0.0.0:${PORT1}:${PORT1}/udp \
     -p 0.0.0.0:${PORT2}:${PORT2}/udp \
@@ -149,5 +144,5 @@ fi
 
 # --- done ---
 
-if [ $VERBOSE ]; then echo "[INFO] exiting successfully"; fi
+echo "[INFO] exiting successfully"; fi
 exit 0
