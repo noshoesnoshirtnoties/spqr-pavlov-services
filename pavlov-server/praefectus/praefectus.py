@@ -333,26 +333,35 @@ def run_praefectus(meta,config,srv):
                 if mode=="init":
                     if data['ServerInfo']['GameMode']=="TDM" or data['ServerInfo']['GameMode']=="TANKTDM" or data['ServerInfo']['GameMode']=="SND":
                         await rcon('AddBot',{(limit//2),'RedTeam'},srv)
+                        logmsg('info','action_autobot added '+str(limit//2)+' bots to RedTeam')
                         time.sleep(0.1)
                         await rcon('AddBot',{(limit//2),'BlueTeam'},srv)
+                        logmsg('info','action_autobot added '+str(limit//2)+' bots to BlueTeam')
                     else:
                         await rcon('AddBot',{limit,'RedTeam'},srv)
+                        logmsg('info','action_autobot added '+str(limit)+' bots to RedTeam')
 
                 elif mode=="add":
                     if data['ServerInfo']['GameMode']=="TDM" or data['ServerInfo']['GameMode']=="TANKTDM" or data['ServerInfo']['GameMode']=="SND":
                         await rcon('AddBot',{'1','RedTeam'},srv)
+                        logmsg('info','action_autobot added 1 bot to RedTeam')
                         time.sleep(0.1)
                         await rcon('AddBot',{'1','BlueTeam'},srv)
+                        logmsg('info','action_autobot added 1 bot to BlueTeam')
                     else:
                         await rcon('AddBot',{'1','RedTeam'},srv)
+                        logmsg('info','action_autobot added 1 bot to RedTeam')
 
                 elif mode=="remove":
                     if data['ServerInfo']['GameMode']=="TDM" or data['ServerInfo']['GameMode']=="TANKTDM" or data['ServerInfo']['GameMode']=="SND":
                         await rcon('RemoveBot',{'1','RedTeam'},srv)
+                        logmsg('info','action_autobot removed 1 bot from RedTeam')
                         time.sleep(0.1)
                         await rcon('RemoveBot',{'1','BlueTeam'},srv)
+                        logmsg('info','action_autobot removed 1 bot from BlueTeam')
                     else:
                         await rcon('RemoveBot',{'1','RedTeam'},srv)
+                        logmsg('info','action_autobot removed 1 bot from RedTeam')
                 
             else: logmsg('warn','action_autobot was unsuccessful because get_serverinfo failed for server '+str(srv))
 
