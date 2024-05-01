@@ -55,6 +55,10 @@ def run_praefectus(meta,config,srv):
 
 
     async def rcon(rconcmd,rconparams,srv):
+        logmsg('debug','rcon called:')
+        logmsg('debug','rconcmd: '+str(rconcmd))
+        logmsg('debug','rconparams: '+str(rconparams))
+        logmsg('debug','srv: '+str(srv))
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         i=0
@@ -149,7 +153,7 @@ def run_praefectus(meta,config,srv):
                         data=await rcon('SetPin',{'0':config['autopin']},srv)
                     else:
                         logmsg('info','below limit ('+str(limit)+') - removing pin for server '+str(srv))
-                        data=await rcon('SetPin',{''},srv)
+                        data=await rcon('SetPin',{'0':' '},srv)
                 else: logmsg('warn','cant complete action_autopin because map is rotating for server '+str(srv))
             else: logmsg('warn','action_autopin was unsuccessful because get_serverinfo failed for server '+str(srv))
         else: logmsg('warn','action_autopin is disabled for server '+str(srv))
@@ -472,6 +476,8 @@ def run_praefectus(meta,config,srv):
                         asyncio.run(action_serverinfo(srv))
                         asyncio.run(action_enablerconplus(srv))
                         asyncio.run(action_enableprone(srv))
+                        asyncio.run(action_enablehardcore(srv))
+                        asyncio.run(action_autopin(srv))
                     case 'Started':
                         asyncio.run(action_autobot(srv,'init'))
                     #case 'StandBy':
@@ -483,16 +489,16 @@ def run_praefectus(meta,config,srv):
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
-                #asyncio.run(action_autopin(srv))
-                #asyncio.run(action_autobot(srv,'remove'))
+                asyncio.run(action_autopin(srv))
+                asyncio.run(action_autobot(srv,'remove'))
 
             case 'LogNet: UChannel::Close':
                 leaveuser0=line.split('RemoteAddr: ',2)
                 leaveuser1=leaveuser0[1].split(',',2)
                 leaveuser=leaveuser1[0]
                 logmsg('info','user left the server: '+str(leaveuser).strip())
-                #asyncio.run(action_autopin(srv))
-                #asyncio.run(action_autobot(srv,'add'))
+                asyncio.run(action_autopin(srv))
+                asyncio.run(action_autobot(srv,'add'))
 
             case '"KillData":':
                 logmsg('info','a player died...')
