@@ -33,6 +33,9 @@ def run_praefectus(meta,config,srv):
 
 
     def dbquery(query,values):
+        logmsg('debug','dbquery called')
+        logmsg('debug','query: '+str(query))
+        logmsg('debug','values: '+str(values))
         conn=mysql.connector.connect(
             host=config['mysql']['host'],
             port=config['mysql']['port'],
@@ -55,26 +58,33 @@ def run_praefectus(meta,config,srv):
 
 
     async def rcon(rconcmd,rconparams,srv):
+        logmsg('debug','rcon called')
+        logmsg('debug','rconcmd: '+str(rconcmd))
+        logmsg('debug','rconparams: '+str(rconparams))
+        logmsg('debug','srv: '+str(srv))
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         i=0
         while i<len(rconparams):
             rconcmd+=' '+str(rconparams[str(i)])
             i+=1
+        data={}
         try:
             data=await conn.send(rconcmd)
             data_json=json.dumps(data)
             data=json.loads(data_json)
             await conn.send('Disconnect')
         except:
-            data={}
             data['Successful']=False
         return data
 
 
     async def get_serverinfo(srv):
         logmsg('debug','get_serverinfo called')
+        logmsg('debug','srv: '+str(srv))
+        data={}
         data=await rcon('ServerInfo',{},srv)
+        logmsg('debug','type data: '+str(type(data)))
         if data['Successful'] is True:
             # unless during rotation, analyze and if necessary modify serverinfo before returning it
             if data['ServerInfo']['RoundState']!='Rotating':
@@ -120,6 +130,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_serverinfo(srv):
         logmsg('debug','action_serverinfo called')
+        logmsg('debug','srv: '+str(srv))
         data=await get_serverinfo(srv)
         if data['Successful'] is True:
             if data['ServerInfo']['RoundState']!='Rotating':
@@ -138,6 +149,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_autopin(srv):
         logmsg('debug','action_autopin called')
+        logmsg('debug','srv: '+str(srv))
         if config['autopin_limits'][srv]!=0:
             data=await get_serverinfo(srv)
             if data['Successful'] is True:
@@ -158,6 +170,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_pullstats(srv):
         logmsg('debug','action_pullstats called')
+        logmsg('debug','srv: '+str(srv))
         data=await get_serverinfo(srv)
         if data['Successful'] is True:
 
@@ -240,8 +253,9 @@ def run_praefectus(meta,config,srv):
 
     async def action_autokickhighping(srv):
         logmsg('debug','action_checkpings called')
-        data=[]
+        logmsg('debug','srv: '+str(srv))
         data=await rcon('InspectAll',{},srv)
+        logmsg('debug','type data: '+str(type(data)))
         if data['Successful'] is True:
             try:
                 for player in data['InspectList']:
@@ -328,6 +342,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enablerconplus(srv):
         logmsg('debug','action_enablerconplus called')
+        logmsg('debug','srv: '+str(srv))
         if config['rconplus_enabled'][srv]==True:
             await rcon('UGCAddMod',{'0':'UGC3462586'},srv)
             logmsg('info','rconplus has been enabled for server '+str(srv))
@@ -336,6 +351,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enableprone(srv):
         logmsg('debug','action_enableprone called')
+        logmsg('debug','srv: '+str(srv))
         if config['rconplus_enabled'][srv]==True:
             if config['prone_enabled'][srv]==True:
                 await rcon('EnableProne',{'0':'1'},srv)
@@ -346,6 +362,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enabletrails(srv):
         logmsg('debug','action_enabletrails called')
+        logmsg('debug','srv: '+str(srv))
         if config['rconplus_enabled'][srv]==True:
             if config['trails_enabled'][srv]==True:
                 await rcon('UtilityTrails',{'0':'1'},srv)
@@ -355,7 +372,9 @@ def run_praefectus(meta,config,srv):
 
 
     async def action_autobot(srv,mode):
-        logmsg('debug','action_autobot called with mode: '+str(mode))
+        logmsg('debug','action_autobot called')
+        logmsg('debug','srv: '+str(srv))
+        logmsg('debug','mode: '+str(mode))
         if config['rconplus_enabled'][srv]==True:
 
 
@@ -419,6 +438,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_autochicken(srv):
         logmsg('debug','action_autochicken called')
+        logmsg('debug','srv: '+str(srv))
         if config['rconplus_enabled'][srv]==True:
             limit=int(config['autochicken_limits'][srv])
             if limit!=0:
@@ -433,6 +453,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_autozombie(srv):
         logmsg('debug','action_autozombie called')
+        logmsg('debug','srv: '+str(srv))
         if config['rconplus_enabled'][srv]==True:
             limit=int(config['autozombie_limits'][srv])
             if limit!=0:
@@ -447,6 +468,8 @@ def run_praefectus(meta,config,srv):
 
     async def action_welcomeplayer(srv,joinuser):
         logmsg('debug','action_welcomeplayer called')
+        logmsg('debug','srv: '+str(srv))
+        logmsg('debug','joinuser: '+str(joinuser))
         if config['rconplus_enabled'][srv]==True:
             data={}
             data=await rcon('InspectAll',{},srv)
@@ -472,6 +495,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enablehardcore(srv):
         logmsg('debug','action_enablehardcore called')
+        logmsg('debug','srv: '+str(srv))
         if config['hardcore_enabled'][srv]==True:
             data={}
             data=await rcon('UGCAddMod',{'0':'UGC3951330'},srv)
@@ -482,6 +506,10 @@ def run_praefectus(meta,config,srv):
 
 
     def process_found_keyword(line,keyword,srv):
+        #logmsg('debug','process_found_keyword called')
+        #logmsg('debug','line: '+str(line))
+        #logmsg('debug','keyword: '+str(keyword))
+        #logmsg('debug','srv: '+str(srv))
         match keyword:
             case 'LogHAL':
                 logmsg('info','server is starting')
