@@ -88,6 +88,9 @@ echo "[INFO] starting deployment"
 echo "[INFO] copying files..."
 $SCPCMD -r "pavlov-server" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
+echo "[INFO] chmod-ing Game.ini files..."
+$SSHCMD $DSTHOST "find ${INSTALLDIR}pavlov-server/conf.d/ -type f -name 'Game.ini' -exec chmod 666 {} \;"
+
 echo "[INFO] creating data volumes..."
 $SSHCMD $DSTHOST "docker volume create pavlov-server-logs-${SRV}"
 $SSHCMD $DSTHOST "docker volume create pavlov-server-maps"
