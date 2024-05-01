@@ -400,7 +400,7 @@ def run_praefectus(meta,config,srv):
             if limit!=0:
                 data=await get_serverinfo(srv)
                 if data['Successful'] is True:
-                    gamemode=upper(data['ServerInfo']['GameMode'])
+                    gamemode=data['ServerInfo']['GameMode'].upper()
                     roundstate=data['ServerInfo']['RoundState']
                     if roundstate=='Starting' or roundstate!='Started' or roundstate!='Standby':
 
