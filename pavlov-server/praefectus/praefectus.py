@@ -254,6 +254,7 @@ def run_praefectus(meta,config,srv):
     async def action_autokickhighping(srv):
         logmsg('debug','action_checkpings called')
         logmsg('debug','srv: '+str(srv))
+        data={}
         data=await rcon('InspectAll',{},srv)
         logmsg('debug','type data: '+str(type(data)))
         if data['Successful'] is True:
@@ -291,7 +292,7 @@ def run_praefectus(meta,config,srv):
                         if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
                             logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
-                                msg='YOUR PING DELTA IS TOO HIGH: '+str(int(min_max_delta))
+                                msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH :( PLEASE FIX'
                                 notify_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
                         else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
@@ -300,7 +301,7 @@ def run_praefectus(meta,config,srv):
                         if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
                             logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
-                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH... PLEASE FIX'
+                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH :( PLEASE FIX'
                                 notify_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
                         else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
@@ -309,7 +310,7 @@ def run_praefectus(meta,config,srv):
                         if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
                             logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
-                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
+                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH :( YOU WILL BE KICKED AUTOMATICALLY...'
                                 notify_player=True
                                 kick_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by auto-kick-high-ping, but config says "no"')
@@ -512,16 +513,14 @@ def run_praefectus(meta,config,srv):
             case 'LogHAL':
                 logmsg('info','server is starting')
 
-            case 'Server Status Helper':
-                logmsg('info','server is now online')
+            case 'Server Status Helper': logmsg('info','server is now online') # useless?
 
             case 'Heart beat received':
                 logmsg('info','heartbeat received')
                 asyncio.run(action_autopin(srv))
                 asyncio.run(action_autokickhighping(srv))
 
-            case 'Rotating map':
-                logmsg('info','map rotation called')
+            case 'Rotating map': logmsg('info','map rotation called') # useless?
 
             case 'LogLoad: LoadMap':
                 if '/Game/Maps/ServerIdle' in line: logmsg('info','map switch called')
@@ -544,10 +543,9 @@ def run_praefectus(meta,config,srv):
                     gamemode=gamemode0[1]
                     logmsg('info','vrankrupt map is loading: '+str(mapugc).strip()+' as '+str(gamemode).strip())
 
-            case 'PavlovLog: StartPlay':
-                logmsg('info','map started')
+            case 'PavlovLog: StartPlay': logmsg('info','map started') # useless?
 
-            case '"State":':
+            case 'State':
                 roundstate0=line.split('": "',1)
                 roundstate1=roundstate0[1].split('"',1)
                 roundstate=roundstate1[0]
@@ -581,8 +579,7 @@ def run_praefectus(meta,config,srv):
                 logmsg('info','user left the server: '+str(leaveuser).strip())
                 #asyncio.run(action_autobot(srv,'add'))
 
-            case '"KillData":':
-                logmsg('info','a player died...')
+            case 'KillData': logmsg('info','a player died...')
 
             case 'LogTemp: Rcon: KickPlayer':
                 kickplayer0=line.split('KickPlayer ',2)
@@ -594,14 +591,11 @@ def run_praefectus(meta,config,srv):
                 banplayer=banplayer0[1]
                 logmsg('info','player banned: '+str(banplayer).strip())
                 
-            case 'Critical error:':
-                logmsg('error','server crashed: critical error')
+            case 'Critical error': logmsg('error','server crashed: critical error') # useless?
                 
-            case 'Fatal error!':
-                logmsg('error','server crashed: fatal error')
+            case 'Fatal error': logmsg('error','server crashed: fatal error') # useless?
 
-            case 'Preparing to exit':
-                logmsg('info','server is shutting down')
+            case 'Preparing to exit': logmsg('info','server is shutting down')
 
 
     def find_keyword_in_line(line,keywords):
@@ -636,17 +630,17 @@ def run_praefectus(meta,config,srv):
                 'Rotating map',
                 'LogLoad: LoadMap',
                 'StartPlay',
-                '"State":',
+                'State',
                 'Preparing to exit',
                 'LogHAL',
                 'Server Status Helper',
                 'Rcon: User',
                 'Join succeeded',
                 'LogNet: UChannel::Close',
-                '"KillData":',
+                'KillData',
                 'LogTemp: Rcon: KickPlayer',
                 'LogTemp: Rcon: BanPlayer',
                 'Heart beat received',
-                'Critical error:',
-                'Fatal error!'])
+                'Critical error',
+                'Fatal error'])
             if found_keyword!='': process_found_keyword(line,found_keyword,srv)
