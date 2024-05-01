@@ -31,13 +31,12 @@
 !resetsnd <srv> ............. resets snd
 !rotatemap <srv> ............ rotates map
 !setrandommap <srv> ......... sets random snd map
-!setmap <map> <mode> <srv> .. sets specific map and gamemode
+!setmap <srv> <map> <mode> .. sets specific map and gamemode
 
-!kick <steamid64> <srv> ..... kicks player with given steamid64
-!ban <steamid64> <svr> ...... bans player with given steamid64
-!unban <steamid64> <srv> .... unbans player with given steamid64
+!kick <srv> <steamid64> ..... kicks player with given steamid64
+!ban <srv> <steamid64> ...... bans player with given steamid64
+!unban <srv> <steamid64> .... unbans player with given steamid64
 
 !rcon <srv> <cmd> <params> .. executes rcon command on server
 
 ```
-*hint: <srv> is always optional; its default is 0*

@@ -94,14 +94,14 @@ def run_bot(meta,config):
         if data['Successful'] is True:
             # unless during rotation, analyze and if necessary modify serverinfo before returning it
             if data['ServerInfo']['RoundState']!='Rotating':
-                serverinfo=data['ServerInfo']
+                si=data['ServerInfo']
 
                 # make sure gamemode is uppercase
-                serverinfo['GameMode']=serverinfo['GameMode'].upper()
+                si['GameMode']=si['GameMode'].upper()
 
                 # demo rec counts as 1 player in SND
-                if serverinfo['GameMode']=="SND":
-                    numberofplayers0=serverinfo['PlayerCount'].split('/',2)
+                if si['GameMode']=="SND":
+                    numberofplayers0=si['PlayerCount'].split('/',2)
                     numberofplayers1=numberofplayers0[0]
                     if int(numberofplayers1)>0: # demo only exists if there is players
                         numberofplayers2=(int(numberofplayers1)-1)
@@ -109,35 +109,35 @@ def run_bot(meta,config):
                         numberofplayers2=(numberofplayers0[0])
                     maxplayers=numberofplayers0[1]
                     numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
-                else: numberofplayers=serverinfo['PlayerCount']
-                serverinfo['PlayerCount']=numberofplayers
+                else: numberofplayers=si['PlayerCount']
+                si['PlayerCount']=numberofplayers
 
                 # for SND get info if match has ended and which team won
-                serverinfo['MatchEnded']=False
-                serverinfo['WinningTeam']='none'
-                if serverinfo['GameMode']=="SND" and serverinfo['Teams'] is True:
-                    if int(serverinfo['Team0Score'])==10:
-                        serverinfo['MatchEnded']=True
-                        serverinfo['WinningTeam']='team0'
-                    elif int(serverinfo['Team1Score'])==10:
-                        serverinfo['MatchEnded']=True
-                        serverinfo['WinningTeam']='team1'
+                si['MatchEnded']=False
+                si['WinningTeam']='none'
+                if si['GameMode']=="SND" and si['Teams'] is True:
+                    if int(si['Team0Score'])==10:
+                        si['MatchEnded']=True
+                        si['WinningTeam']='team0'
+                    elif int(si['Team1Score'])==10:
+                        si['MatchEnded']=True
+                        si['WinningTeam']='team1'
                 else:
-                    serverinfo['Team0Score']=0
-                    serverinfo['Team1Score']=0
+                    si['Team0Score']=0
+                    si['Team1Score']=0
                 
-                data['ServerInfo']=serverinfo
-            else:
-                data['Successful']=False
-                data['ServerInfo']=False
-        else: data['ServerInfo']=False
+                data['ServerInfo']=si
+            else: data['Successful']=False
+        else: data['Successful']=False
         return data
 
 
     async def send_answer(client,message,user_message,is_private):
         response=''
-        user_message_split=user_message.split(' ',2)
-        command=user_message_split[0]
+        ums2=user_message.split(' ',2)
+        ums3=user_message.split(' ',3)
+        ums4=user_message.split(' ',4)
+        command=ums2[0]
         command_wo_excl=command[1:]
         if str(command)!='': # this seems to occur with system messages (in discord; like in new-arrivals)
 
@@ -189,215 +189,167 @@ def run_bot(meta,config):
                         for part in parts: response=response+'\n'+part
 
                     case '!serverinfo':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-                        
-                        serverinfo=await get_serverinfo(srv)
-                        if serverinfo['Successful'] is True:
-                            parts=[
-                                command+': successful\n',
-                                'ServerName: '+str(serverinfo['ServerInfo']['ServerName']),
-                                'PlayerCount: '+str(serverinfo['ServerInfo']['PlayerCount']),
-                                'MapLabel: '+str(serverinfo['ServerInfo']['MapLabel']),
-                                'GameMode: '+str(serverinfo['ServerInfo']['GameMode']),
-                                'RoundState: '+str(serverinfo['ServerInfo']['RoundState']),
-                                'Teams: '+str(serverinfo['ServerInfo']['Teams']),
-                                'Team0Score: '+str(serverinfo['ServerInfo']['Team0Score']),
-                                'Team1Score: '+str(serverinfo['ServerInfo']['Team1Score']),
-                                'MatchEnded: '+str(serverinfo['ServerInfo']['MatchEnded']),
-                                'WinningTeam: '+str(serverinfo['ServerInfo']['WinningTeam'])]
-                            for part in parts: response=response+'\n'+part
-                        else: response=command+': something went wrong'
+                        if len(ums2)>1:
+                            data=await get_serverinfo(ums2[1])
+                            if data['Successful'] is True:
+                                parts=[
+                                    command+': successful\n',
+                                    'ServerName: '+str(data['ServerInfo']['ServerName']),
+                                    'PlayerCount: '+str(data['ServerInfo']['PlayerCount']),
+                                    'MapLabel: '+str(data['ServerInfo']['MapLabel']),
+                                    'GameMode: '+str(data['ServerInfo']['GameMode']),
+                                    'RoundState: '+str(data['ServerInfo']['RoundState']),
+                                    'Teams: '+str(data['ServerInfo']['Teams']),
+                                    'Team0Score: '+str(data['ServerInfo']['Team0Score']),
+                                    'Team1Score: '+str(data['ServerInfo']['Team1Score']),
+                                    'MatchEnded: '+str(data['ServerInfo']['MatchEnded']),
+                                    'WinningTeam: '+str(data['ServerInfo']['WinningTeam'])]
+                                for part in parts: response=response+'\n'+part
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!maplist':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        maplist=await rcon('MapList',{},srv)
-                        if maplist['Successful'] is True:
-                            response=command+': successful'
-
-                            for part in maplist['MapList']: response=response+'\n'+str(part['MapId'])+' as '+str(part['GameMode'])
-                        else: response=command+': something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('MapList',{},ums2[1])
+                            if data['Successful'] is True:
+                                response=command+': successful'
+                                for part in data['MapList']: response=response+'\n'+str(part['MapId'])+' as '+str(part['GameMode'])
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!playerlist':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        inspectall=await rcon('InspectAll',{},srv)
-                        if inspectall['Successful'] is True:
-                            response=command+': successful'
-
-                            for player in inspectall['InspectList']: response=response+'\n'+str(player['PlayerName'])+' ('+str(player['UniqueId'])+')'
-                        else: response=command+': something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('InspectAll',{},ums2[1])
+                            if data['Successful'] is True:
+                                response=command+': successful'
+                                for player in data['InspectList']: response=response+'\n'+str(player['PlayerName'])+' ('+str(player['UniqueId'])+')'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!resetsnd':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        resetsnd=await rcon('ResetSND',{},srv)
-                        if resetsnd['Successful'] is True: response=command+' successful'
-                        else: response=command+' something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('ResetSND',{},ums2[1])
+                            if data['Successful'] is True: response=command+' successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!rotatemap':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        rotatemap=await rcon('RotateMap',{},srv)
-                        if rotatemap['Successful'] is True: response=command+' successful'
-                        else: response=command+' something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('RotateMap',{},ums2[1])
+                            if data['Successful'] is True: response=command+' successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!setmap':
-                        user_message_split=user_message.split(' ',4)
-                        if len(user_message_split)>2: srv=user_message_split[3]
-                        else: srv='0'
-
-                        if len(user_message_split)<2: response='SwitchMap is missing parameters'
-                        else:
-                            switchmap=await rcon('SwitchMap',{'0':user_message_split[1],'1':user_message_split[2]},srv)
-                            if switchmap['Successful'] is True: response=command+' successful'
-                            else: response=command+' something went wrong'
+                        if len(ums4)>2:
+                            if len(ums4)<2: response=command+' is missing parameters'
+                            else:
+                                data=await rcon('SwitchMap',{'0':ums4[2],'1':ums4[3]},ums4[1])
+                                if data['Successful'] is True: response=command+' successful'
+                                else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!setrandommap':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        maplist=await rcon('MapList',{},srv)
-                        poolofrandommaps={}
-                        i=0
-                        for mapentry in maplist['MapList']:
-                            if mapentry['GameMode'].upper()=='SND':
-                                if mapentry['MapId'] not in poolofrandommaps:
-                                    poolofrandommaps[i]=mapentry['MapId']
-                                    i+=1
-                        randommap=random.choice(poolofrandommaps)
-                        switchmap=await rcon('SwitchMap',{'0':randommap,'1':'SND'},srv)
-                        if switchmap['Successful'] is True: response=command+' successful'
-                        else: response=command+' something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('MapList',{},ums2[1])
+                            i=0
+                            poolofrandommaps={}
+                            for mapentry in data['MapList']:
+                                if mapentry['GameMode'].upper()=='SND':
+                                    if mapentry['MapId'] not in poolofrandommaps:
+                                        poolofrandommaps[i]=mapentry['MapId']
+                                        i+=1
+                            randommap=random.choice(poolofrandommaps)
+                            data=await rcon('SwitchMap',{'0':randommap,'1':'SND'},srv)
+                            if data['Successful'] is True: response=command+' successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!kick':
-                        user_message_split=user_message.split(' ',3)
-                        if len(user_message_split)>1: srv=user_message_split[2]
-                        else: srv='0'
-
-                        if len(user_message_split)<2: response='Kick is missing parameters'
-                        else:
-                            kick=await rcon('Kick',{'0':user_message_split[1]},srv)
-                            if kick['Successful'] is True: response=command+' successful'
-                            else: response=command+' something went wrong'
+                        if len(ums3)>1:
+                            data=await rcon('Kick',{'0':ums3[2]},ums3[1])
+                            if data['Successful'] is True: response=command+' successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!ban':
-                        user_message_split=user_message.split(' ',3)
-                        if len(user_message_split)>1: srv=user_message_split[2]
-                        else: srv='0'
-
-                        if len(user_message_split)<2: response='Ban is missing parameters'
-                        else:
-                            ban=await rcon('Ban',{'0':user_message_split[1]},srv)
-                            if ban['Successful'] is True: response=command+' successful'
-                            else: response=command+' something went wrong'
+                        if len(ums3)>1:
+                            data=await rcon('Ban',{'0':ums3[2]},ums3[2])
+                            if data['Successful'] is True: response=command+' successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!unban':
-                        user_message_split=user_message.split(' ',3)
-                        if len(user_message_split)>1: srv=user_message_split[2]
-                        else: srv='0'
-
-                        if len(user_message_split)<2: response='Unban is missing parameters'
-                        else:
-                            unban=await rcon('Unban',{'0':user_message_split[1]},srv)
-                            if unban['Successful'] is True: response=command+' successful'
-                            else: response=command+' something went wrong'
+                        if len(ums3)>1:
+                            data=await rcon('Unban',{'0':ums3[2]},ums3[1])
+                            if data['Successful'] is True: response=command+' successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!modlist':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        modlist=await rcon('ModeratorList',{},srv)
-                        if modlist['Successful'] is True:
-                            response=command+': successful'
-
-                            for part in modlist['ModeratorList']: response=response+'\n'+str(part)
-                        else: response=command+': something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('ModeratorList',{},ums2[1])
+                            if data['Successful'] is True:
+                                response=command+': successful'
+                                for part in data['ModeratorList']: response=response+'\n'+str(part)
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!blacklist':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
-
-                        banlist=await rcon('Banlist',{},srv)
-                        if banlist['Successful'] is True:
-                            response=command+': successful'
-
-                            for part in banlist['BanList']: response=response+'\n'+str(part)
-                        else: response=command+': something went wrong'
+                        if len(ums2)>1:
+                            data=await rcon('Banlist',{},ums2[1])
+                            if data['Successful'] is True:
+                                response=command+': successful'
+                                for part in data['BanList']: response=response+'\n'+str(part)
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!pings':
-                        user_message_split=user_message.split(' ',2)
-                        if len(user_message_split)>1: srv=user_message_split[1]
-                        else: srv='0'
+                        if len(ums2)>1:
+                            data=await rcon('InspectAll',{},ums2[1])
+                            if data['Successful'] is True:
+                                response=command+': successful'
+                                for player in data['InspectList']:
+                                    steamusers_id=player['UniqueId']
+                                    current_ping=player['Ping']
 
-                        inspectall=await rcon('InspectAll',{},srv)
-                        if inspectall['Successful'] is True:
-                            response=command+': successful'
+                                    # get averages for current player
+                                    query="SELECT steamid64,ping,"
+                                    query+="AVG(ping) as avg_ping "
+                                    query+="FROM pings "
+                                    query+="WHERE steamid64 = %s"
+                                    values=[]
+                                    values.append(steamusers_id)
+                                    pings=dbquery(query,values)
+                                    average_ping=pings['rows'][0]['avg_ping']
 
-                            for player in inspectall['InspectList']:
-                                steamusers_id=player['UniqueId']
-                                current_ping=player['Ping']
-
-                                # get averages for current player
-                                query="SELECT steamid64,ping,"
-                                query+="AVG(ping) as avg_ping "
-                                query+="FROM pings "
-                                query+="WHERE steamid64 = %s"
-                                values=[]
-                                values.append(steamusers_id)
-                                pings=dbquery(query,values)
-
-                                average_ping=pings['rows'][0]['avg_ping']
-
-                                response=response+'\n'+steamusers_id+': '+str(current_ping)+' (current), '+str(average_ping)+' (average)'
-                        else: response=command+': something went wrong'
+                                    response=response+'\n'+steamusers_id+': '+str(current_ping)+' (current), '+str(average_ping)+' (average)'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
 
                     case '!echo':
-                        if len(user_message_split)>1: # requires 1 param
-                            echo_user_message_split0=user_message.split(' ',2)
-                            echo_command=echo_user_message_split0[0]
-                            echo_user_message_split1=user_message.split(echo_command+' ',2)
-                            echo_param=echo_user_message_split1[1]
-                            response=echo_param
+                        if len(ums2)>1:
+                            response=ums2[1]
                         else:
-                            logmsg('warn','missing parameters')
-                            response='missing parameters - use !help for more info'
+                            logmsg('warn',command+' is missing parameters')
+                            response=command+' is missing parameters'
 
                     case '!writeas':
-                        if len(user_message_split)>2: # requires 2 params
-                            wa_user_message_split0=user_message.split(' ',3)
-                            wa_command=wa_user_message_split0[0]
-                            wa_channel=wa_user_message_split0[1]
-                            wa_user_message_split1=user_message.split(wa_command+' '+wa_channel+' ',2)
-                            wa_param=wa_user_message_split1[1]
-                            target_channel_id=config['discord']['bot-channel-ids'][wa_channel]
-                            target_message=wa_param
-                            target_channel=client.get_channel(int(target_channel_id))
+                        if len(ums3)>2:
+                            wa_channel=ums3[1]
+                            wa_ums=user_message.split(command+' '+wa_channel+' ',2)
+                            chn=client.get_channel(int(config['discord']['bot-channel-ids'][wa_channel]))
                             try:
-                                await target_channel.send(target_message)
+                                await chn.send(wa_ums[1])
                                 response='message sent successfully'
                             except Exception as e: response=str(e).strip()
                         else:
-                            logmsg('warn','missing parameters')
-                            response='missing parameters - use !help for more info'
+                            logmsg('warn',command+' is missing parameters')
+                            response=command+' is missing parameters'
 
                     case '!register':
-                        if len(user_message_split)>1:
-                            user_message_split=user_message.split(' ',2)
-                            steamid64=user_message_split[1]
+                        if len(ums2)>1:
+                            steamid64=ums2[1]
                             discordid=message.author.id
 
                             # check if steamuser exists
@@ -486,13 +438,12 @@ def run_bot(meta,config):
                                 logmsg('warn','entry found in register db for steamusers_id ('+str(steamusers_id)+') and discordusers_id ('+str(discordusers_id)+') with id ('+str(register_id)+')')
                                 response='already registered steamusers_id ('+str(steamusers_id)+') with discordusers_id ('+str(discordusers_id)+') as id ('+str(register_id)+')'
                         else: # missing parameters
-                            logmsg('warn','missing parameter')
-                            response='missing parameter - use !help for more info'
+                            logmsg('warn',command+' is missing parameter')
+                            response=command+' is missing parameter'
 
                     case '!unregister':
-                        if len(user_message_split)>1:
-                            user_message_split=user_message.split(' ',2)
-                            db_param=user_message_split[1]
+                        if len(ums2)>1:
+                            db_param=ums2[1]
                             steamid64=db_param
                             discordid=message.author.id
                             logmsg('debug','deleting entry in register for discorduser')
@@ -515,8 +466,8 @@ def run_bot(meta,config):
                                 logmsg('warn','could not find discorduser in discordusers db')
                                 response='could not find discorduser in discordusers db'
                         else: # missing parameters
-                            logmsg('warn','missing parameter')
-                            response='missing parameter - use !help for more info'
+                            logmsg('warn',command+' is missing parameter')
+                            response=command+' is missing parameter'
 
                     case '!getstats':
                         discordid=str(message.author.id)
@@ -528,7 +479,7 @@ def run_bot(meta,config):
                         discordusers=dbquery(query,values)
                         if discordusers['rowcount']==0: # discorduser does not exist
                             logmsg('warn','discordid not registered')
-                            response='discordid not registered - use !help for more info'
+                            response='discordid not registered'
                         else: # discorduser exists
                             discordusers_id=discordusers['rows'][0]['id']
 
@@ -606,7 +557,7 @@ def run_bot(meta,config):
                         if discordusers['rowcount']==0:
                             # discorduser does not exist
                             logmsg('warn','discordid not registered')
-                            response='discordid not registered - use !help for more info'
+                            response='discordid not registered'
                         else:
                             # discorduser exists
                             discordusers_id=discordusers['rows'][0]['id']
@@ -627,7 +578,7 @@ def run_bot(meta,config):
                             if ranks['rowcount']==0:
                                 # no rank found
                                 logmsg('warn','no rank found')
-                                response='no rank found - maybe because there are not enough stats to generate them - use !getstats to show your stats'
+                                response='no rank found'
                             else:
                                 rank=ranks['rows'][0]['rank']
                                 title=ranks['rows'][0]['title']
@@ -642,20 +593,16 @@ def run_bot(meta,config):
                                 for part in parts: response=response+'\n'+part
 
                     case '!genteams':
-                        if len(user_message_split)>1:
-                            user_message_split=user_message.split(' ',2)
-                            match_msg_id=user_message_split[1]
+                        if len(ums2)>1:
+                            match_msg_id=ums2[1]
 
-                            # get channel by id
+                            guild=await client.fetch_guild(config['discord']['guild-id'])
+
                             #chnid=config['discord']['bot-channel-ids']['g-matches']
                             chnid=config['discord']['bot-channel-ids']['g-matches-test']
+
                             chn=await client.fetch_channel(chnid)
-
-                            # get message by id
                             match_msg=await chn.fetch_message(match_msg_id)
-
-                            # get guild members for later...
-                            guild=await client.fetch_guild(config['discord']['guild-id'])
 
                             # iterate over reactions
                             count=0
@@ -747,22 +694,22 @@ def run_bot(meta,config):
                                 for part in parts: response=response+'\n'+part
 
                             else: # not enough players
-                                logmsg('warn','not enough players')
-                                response='not enough players to generate teams - need 10'
+                                logmsg('warn',command+' canceled because not enough players')
+                                response=command+' canceled because not enough players - need 10'
 
                         else: # missing parameters
-                            logmsg('warn','missing parameter(s)')
-                            response='missing parameter(s) - use !help for more info'
+                            logmsg('warn',command+' is missing parameters')
+                            response=command+' is missing parameters'
 
                     case '!rcon':
-                        user_message_split=user_message.split(' ')
-                        if len(user_message_split)>2:
-                            rconsrv=user_message_split[1]
-                            rconcommand=user_message_split[2]
+                        ums=user_message.split(' ')
+                        if len(ums)>2:
+                            rconsrv=ums[1]
+                            rconcommand=ums[2]
                             rconparams={}
                             i=0
                             j=0
-                            for part in user_message_split:
+                            for part in ums:
                                 if i>2:
                                     rconparams[str(j)]=part
                                     j+=1
@@ -772,8 +719,8 @@ def run_bot(meta,config):
                                 if data['Successful'] is True: response=command+' response: '+str(data)
                             else: response=command+' executed, but rconplus does not answer if calls worked or not...'
                         else: # missing parameters
-                            logmsg('warn','missing parameter(s)')
-                            response='missing parameter(s) - rtfm :P'
+                            logmsg('warn',command+' is missing parameter(s)')
+                            response=command+' is missing parameter(s) - rtfm :P'
                             
                     case _ : log_this=False
 
@@ -783,7 +730,7 @@ def run_bot(meta,config):
 
             else: # access denied
                 logmsg('warn','missing access rights for command: '+str(command))
-                response='missing access rights for command: '+str(command)+' - use !help for more info'
+                response='missing access rights for command: '+str(command)
 
         # check if there is a response and if there is, send it
         if int(len(response))<1: logmsg('debug','nothing to do - response was found empty')
