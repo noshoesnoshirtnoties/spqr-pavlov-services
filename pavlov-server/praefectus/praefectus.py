@@ -141,17 +141,18 @@ def run_praefectus(meta,config,srv):
         if config['autopin_limits'][srv]!=0:
             data=await get_serverinfo(srv)
             if data['Successful'] is True:
-                if data['ServerInfo']['RoundState']!='Rotating':
+                roundstate=data['ServerInfo']['RoundState']
+                if roundstate=='Starting' or roundstate!='Started' or roundstate!='Standby':
                     limit=config['autopin_limits'][srv]
                     playercount_split=data['ServerInfo']['PlayerCount'].split('/',2)
                     if (int(playercount_split[0]))>=limit:
-                        logmsg('info','limit ('+str(limit)+') reached - setting pin '+str(config['autopin'])+' for server '+str(srv))
+                        logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin'])+' for server '+str(srv))
                         data=await rcon('SetPin',{'0':config['autopin']},srv)
                     else:
-                        logmsg('info','below limit ('+str(limit)+') - removing pin for server '+str(srv))
+                        logmsg('debug','below limit ('+str(limit)+') - removing pin for server '+str(srv))
                         data=await rcon('SetPin',{'0':' '},srv)
-                else: logmsg('warn','cant complete action_autopin because map is rotating for server '+str(srv))
-            else: logmsg('warn','action_autopin was unsuccessful because get_serverinfo failed for server '+str(srv))
+                else: logmsg('warn','cant complete action_autopin because of roundstate '+str(roundstate)+' for server '+str(srv))
+            else: logmsg('warn','action_autopin canceled because get_serverinfo failed for server '+str(srv))
         else: logmsg('warn','action_autopin is disabled for server '+str(srv))
 
 
@@ -300,7 +301,7 @@ def run_praefectus(meta,config,srv):
                         else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
 
                         # delete accumulated entries, but keep some recent ones
-                        logmsg('info','deleting entries for player in pings db')
+                        logmsg('debug','deleting entries for player in pings db')
                         query="DELETE FROM pings WHERE steamid64 = %s ORDER BY id ASC LIMIT %s"
                         values=[]
                         values.append(steamid64)
@@ -356,44 +357,61 @@ def run_praefectus(meta,config,srv):
     async def action_autobot(srv,mode):
         logmsg('debug','action_autobot called with mode: '+str(mode))
         if config['rconplus_enabled'][srv]==True:
+
+
             limit=int(config['autobot_limits'][srv])
             if limit!=0:
                 data=await get_serverinfo(srv)
                 if data['Successful'] is True:
                     gamemode=data['ServerInfo']['GameMode']
+                    roundstate=data['ServerInfo']['RoundState']
+                    if roundstate=='Starting' or roundstate!='Started' or roundstate!='Standby':
 
-                    if mode=="init":
-                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
-                            add_red=limit//2
-                            add_blue=(limit//2)+1
-                            await rcon('AddBot',{'0':str(add_red),'1':'0'},srv)
-                            logmsg('info','action_autobot added '+str(add_red)+' bots to RedTeam')
-                            await rcon('AddBot',{'0':str(add_blue),'1':'1'},srv)
-                            logmsg('info','action_autobot added '+str(add_blue)+' bots to BlueTeam')
-                        else:
-                            await rcon('AddBot',{'0':str(limit),'1':'0'},srv)
-                            logmsg('info','action_autobot added '+str(limit)+' bots to RedTeam')
+                        if mode=="init":
+                            if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
+                                #add_red=limit//2
+                                #add_blue=(limit//2)+1
+                                #await rcon('AddBot',{'0':str(add_red),'1':'0'},srv)
+                                #logmsg('info','action_autobot added '+str(add_red)+' bots to RedTeam')
+                                #await rcon('AddBot',{'0':str(add_blue),'1':'1'},srv)
+                                #logmsg('info','action_autobot added '+str(add_blue)+' bots to BlueTeam')
 
-                    elif mode=="add":
-                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
-                            await rcon('AddBot',{'0':'1','1':'0'},srv)
-                            logmsg('info','action_autobot added 1 bot to RedTeam')
-                            await rcon('AddBot',{'0':'1','1':'1'},srv)
-                            logmsg('info','action_autobot added 1 bot to BlueTeam')
-                        else:
-                            await rcon('AddBot',{'0':'1','1':'0'},srv)
-                            logmsg('info','action_autobot added 1 bot to RedTeam')
+                                add_rnd=random.randint(0,1)
+                                await rcon('AddBot',{'0':str(limit),'1':str(add_rnd)},srv)
+                                logmsg('info','action_autobot added '+str(limit)+' bots to team: '+str(add_rnd))
+                            else:
+                                await rcon('AddBot',{'0':str(limit),'1':'0'},srv)
+                                logmsg('info','action_autobot added '+str(limit)+' bots to RedTeam')
 
-                    elif mode=="remove":
-                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
-                            await rcon('RemoveBot',{'0':'1','1':'0'},srv)
-                            logmsg('info','action_autobot removed 1 bot from RedTeam')
-                            await rcon('RemoveBot',{'0':'1','1':'1'},srv)
-                            logmsg('info','action_autobot removed 1 bot from BlueTeam')
-                        else:
-                            await rcon('RemoveBot',{'0':'1','1':'0'},srv)
-                            logmsg('info','action_autobot removed 1 bot from RedTeam')
+                        elif mode=="add":
+                            if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
+                                #await rcon('AddBot',{'0':'1','1':'0'},srv)
+                                #logmsg('info','action_autobot added 1 bot to RedTeam')
+                                #await rcon('AddBot',{'0':'1','1':'1'},srv)
+                                #logmsg('info','action_autobot added 1 bot to BlueTeam')
+
+                                add_rnd=random.randint(0,1)
+                                await rcon('AddBot',{'0':'1','1':str(add_rnd)},srv)
+                                logmsg('info','action_autobot added 1 bot to team: '+str(add_rnd))
+                            else:
+                                await rcon('AddBot',{'0':'1','1':'0'},srv)
+                                logmsg('info','action_autobot added 1 bot to RedTeam')
+
+                        elif mode=="remove":
+                            if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
+                                #await rcon('RemoveBot',{'0':'1','1':'0'},srv)
+                                #logmsg('info','action_autobot removed 1 bot from RedTeam')
+                                #await rcon('RemoveBot',{'0':'1','1':'1'},srv)
+                                #logmsg('info','action_autobot removed 1 bot from BlueTeam')
+
+                                add_rnd=random.randint(0,1)
+                                await rcon('RemoveBot',{'0':'1','1':str(add_rnd)},srv)
+                                logmsg('info','action_autobot removed 1 bot to team: '+str(add_rnd))
+                            else:
+                                await rcon('RemoveBot',{'0':'1','1':'0'},srv)
+                                logmsg('info','action_autobot removed 1 bot from RedTeam')
                     
+                    else: logmsg('warn','action_autobot canceled because of roundstate '+str(roundstate)+' for server '+str(srv))
                 else: logmsg('warn','action_autobot canceled because get_serverinfo failed for server '+str(srv))
             else: logmsg('debug','action_autobot is disabled for server '+str(srv))
         else: logmsg('debug','action_autobot canceled because rconplus is disabled for server '+str(srv))
@@ -473,6 +491,7 @@ def run_praefectus(meta,config,srv):
 
             case 'Heart beat received':
                 logmsg('info','heartbeat received')
+                asyncio.run(action_autopin(srv))
                 asyncio.run(action_autokickhighping(srv))
 
             case 'Rotating map':
@@ -517,8 +536,7 @@ def run_praefectus(meta,config,srv):
                         asyncio.run(action_autochicken(srv))
                         asyncio.run(action_autozombie(srv))
                         asyncio.run(action_enablehardcore(srv))
-                    case 'Started':
-                        asyncio.run(action_autopin(srv))
+                    #case 'Started':
                     #case 'StandBy':
                     case 'Ended':
                         asyncio.run(action_pullstats(srv))
@@ -528,15 +546,14 @@ def run_praefectus(meta,config,srv):
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
-                asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv,'remove'))
+                asyncio.run(action_autobot(srv,'add'))
 
             case 'LogNet: UChannel::Close':
                 leaveuser0=line.split('RemoteAddr: ',2)
                 leaveuser1=leaveuser0[1].split(',',2)
                 leaveuser=leaveuser1[0]
                 logmsg('info','user left the server: '+str(leaveuser).strip())
-                asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv,'add'))
 
             case '"KillData":':
