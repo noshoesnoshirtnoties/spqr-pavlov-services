@@ -18,9 +18,9 @@ RUN /home/steam/Steam/steamcmd.sh +login anonymous +force_install_dir /home/stea
 RUN cd ~/Steam && ~/Steam/steamcmd.sh +login anonymous +app_update 1007 +quit
 
 USER root
-#RUN mkdir -p /home/steam/.steam/sdk64
-#RUN cp /home/steam/Steam/steamapps/common/Steamworks\ SDK\ Redist/linux64/steamclient.so /home/steam/.steam/sdk64/steamclient.so
-#RUN cp /home/steam/Steam/steamapps/common/Steamworks\ SDK\ Redist/linux64/steamclient.so /home/steam/pavlovserver/Pavlov/Binaries/Linux/steamclient.so
+RUN mkdir -p /home/steam/.steam/sdk64
+RUN cp "/home/steam/Steam/steamapps/common/Steamworks SDK Redist/linux64/steamclient.so" /home/steam/.steam/sdk64/steamclient.so
+RUN cp "/home/steam/Steam/steamapps/common/Steamworks SDK Redist/linux64/steamclient.so" /home/steam/pavlovserver/Pavlov/Binaries/Linux/steamclient.so
 RUN mv /lib/x86_64-linux-gnu/libc++.so /lib/x86_64-linux-gnu/libc++.so.backup
 RUN ln -s /lib/x86_64-linux-gnu/libc++.so.1 /lib/x86_64-linux-gnu/libc++.so
 
