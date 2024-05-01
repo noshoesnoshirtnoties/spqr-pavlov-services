@@ -289,37 +289,31 @@ def run_praefectus(meta,config,srv):
                         # check min-max-delta
                         min_max_delta=int(max_ping)-int(min_ping)
                         if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
-                            logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit \
-                                ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
+                            logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
                                 msg='YOUR PING DELTA IS TOO HIGH: '+str(int(min_max_delta))
                                 notify_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
-                        else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit \
-                            ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
+                        else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
 
                         # check avg ping against soft limit
                         if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
-                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit \
-                                ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
+                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
                                 msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH... PLEASE FIX'
                                 notify_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
-                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit \
-                            ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
+                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
 
                         # check avg ping against hard limit
                         if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
-                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit \
-                                ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
+                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
                                 msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
                                 notify_player=True
                                 kick_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by auto-kick-high-ping, but config says "no"')
-                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit \
-                            ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
+                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
 
                         # notify
                         if notify_player is True:
@@ -406,7 +400,7 @@ def run_praefectus(meta,config,srv):
                         if mode=="init":
                             if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
                                 add_red=limit//2
-                                add_blue=(limit//2)+1
+                                add_blue=(limit//2)+2
                                 await rcon('AddBot',{'0':str(add_red),'1':'0'},srv)
                                 logmsg('info','action_autobot added '+str(add_red)+' bots to RedTeam')
                                 await rcon('AddBot',{'0':str(add_blue),'1':'1'},srv)
