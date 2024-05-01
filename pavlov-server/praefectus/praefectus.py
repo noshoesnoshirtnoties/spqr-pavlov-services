@@ -573,7 +573,6 @@ def run_praefectus(meta,config,srv):
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
                 #asyncio.run(action_autobot(srv,'remove'))
-                asyncio.run(action_autobot(srv,'add'))
 
             case 'LogNet: UChannel::Close':
                 leaveuser0=line.split('RemoteAddr: ',2)
