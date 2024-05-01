@@ -395,7 +395,6 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','mode: '+str(mode))
         if config['rconplus_enabled'][srv]==True:
 
-
             limit=int(config['autobot_limits'][srv])
             if limit!=0:
                 data=await get_serverinfo(srv)
@@ -408,10 +407,9 @@ def run_praefectus(meta,config,srv):
                             if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
                                 add_red=limit//2
                                 add_blue=(limit//2)+1
-                                rnd_team=random.randint(0,1)
-                                await rcon('AddBot',{'0':str(add_red),'1':str(rnd_team)},srv)
+                                await rcon('AddBot',{'0':str(add_red),'1':'0'},srv)
                                 logmsg('info','action_autobot added '+str(add_red)+' bots to RedTeam')
-                                await rcon('AddBot',{'0':str(add_blue),'1':str(rnd_team)},srv)
+                                await rcon('AddBot',{'0':str(add_blue),'1':'1'},srv)
                                 logmsg('info','action_autobot added '+str(add_blue)+' bots to BlueTeam')
                             else:
                                 await rcon('AddBot',{'0':str(limit),'1':'0'},srv)
