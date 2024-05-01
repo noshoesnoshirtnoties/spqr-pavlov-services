@@ -55,10 +55,6 @@ def run_praefectus(meta,config,srv):
 
 
     async def rcon(rconcmd,rconparams,srv):
-        logmsg('debug','rcon called:')
-        logmsg('debug','rconcmd: '+str(rconcmd))
-        logmsg('debug','rconparams: '+str(rconparams))
-        logmsg('debug','srv: '+str(srv))
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         i=0
@@ -326,7 +322,25 @@ def run_praefectus(meta,config,srv):
 
             except Exception as e:
                 logmsg('warn','action_autokickhighping failed: '+str(e))
-        else: logmsg('warn','action_autokickhighping was unsuccessful because InspectAll failed for server '+str(srv))
+        else: logmsg('warn','action_autokickhighping canceled because InspectAll failed for server '+str(srv))
+
+
+    async def action_enablerconplus(srv):
+        logmsg('debug','action_enablerconplus called')
+        if config['rconplus_enabled'][srv]==True:
+            await rcon('UGCAddMod',{'0':'UGC3462586'},srv)
+            logmsg('info','rconplus has been enabled for server '+str(srv))
+        else: logmsg('debug','action_enablerconplus canceled because rconplus is disabled for server '+str(srv))
+
+
+    async def action_enableprone(srv):
+        logmsg('debug','action_enableprone called')
+        if config['rconplus_enabled'][srv]==True:
+            if config['prone_enabled'][srv]==True:
+                await rcon('EnableProne',{'0':'1'},srv)
+                logmsg('info','prone has been enabled for server '+str(srv))
+            else: logmsg('debug','action_enableprone is disabled for server '+str(srv))
+        else: logmsg('debug','action_enableprone canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_autobot(srv,mode):
@@ -340,10 +354,12 @@ def run_praefectus(meta,config,srv):
 
                     if mode=="init":
                         if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND":
-                            await rcon('AddBot',{'0':str(limit//2),'1':'0'},srv)
-                            logmsg('info','action_autobot added '+str(limit//2)+' bots to RedTeam')
-                            await rcon('AddBot',{'0':str(limit//2),'1':'1'},srv)
-                            logmsg('info','action_autobot added '+str(limit//2)+' bots to BlueTeam')
+                            add_red=limit//2
+                            add_blue=(limit//2)+1
+                            await rcon('AddBot',{'0':str(add_red),'1':'0'},srv)
+                            logmsg('info','action_autobot added '+str(add_red)+' bots to RedTeam')
+                            await rcon('AddBot',{'0':str(add_blue),'1':'1'},srv)
+                            logmsg('info','action_autobot added '+str(add_blue)+' bots to BlueTeam')
                         else:
                             await rcon('AddBot',{'0':str(limit),'1':'0'},srv)
                             logmsg('info','action_autobot added '+str(limit)+' bots to RedTeam')
@@ -368,27 +384,9 @@ def run_praefectus(meta,config,srv):
                             await rcon('RemoveBot',{'0':'1','1':'0'},srv)
                             logmsg('info','action_autobot removed 1 bot from RedTeam')
                     
-                else: logmsg('warn','action_autobot was unsuccessful because get_serverinfo failed for server '+str(srv))
+                else: logmsg('warn','action_autobot canceled because get_serverinfo failed for server '+str(srv))
             else: logmsg('debug','action_autobot is disabled for server '+str(srv))
         else: logmsg('debug','action_autobot canceled because rconplus is disabled for server '+str(srv))
-
-
-    async def action_enablerconplus(srv):
-        logmsg('debug','action_enablerconplus called')
-        if config['rconplus_enabled'][srv]==True:
-            await rcon('UGCAddMod',{'0':'UGC3462586'},srv)
-            logmsg('info','rconplus has been for server '+str(srv))
-        else: logmsg('debug','action_enablerconplus canceled because rconplus is disabled for server '+str(srv))
-
-
-    async def action_enableprone(srv):
-        logmsg('debug','action_enableprone called')
-        if config['rconplus_enabled'][srv]==True:
-            if config['prone_enabled'][srv]==True:
-                await rcon('EnableProne',{'0':'1'},srv)
-                logmsg('info','prone has been enabled for server '+str(srv))
-            else: logmsg('debug','action_enableprone is disabled for server '+str(srv))
-        else: logmsg('debug','action_enableprone canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_welcomeplayer(srv,joinuser):
@@ -400,17 +398,17 @@ def run_praefectus(meta,config,srv):
                 for player in data['InspectList']:
                     if player['UniqueId']=="76561199476460201" and joinuser=="[EU][SPQR] Agent":
 
-                        await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
-                        logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
-
                         await rcon('GiveMenu',{'0':player['UniqueId']},srv)
                         logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
 
-                        await rcon('Notify',{'0':player['UniqueId'],'1':'WELCOME SPQR AGENT'},srv)
-                        logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
+                        await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
+                        logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
 
                         #await rcon('NoClip',{'0':player['UniqueId'],'1':'1'},srv)
                         #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
+
+                        await rcon('Notify',{'0':player['UniqueId'],'1':'WELCOME SPQR AGENT'},srv)
+                        logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
             except Exception as e:
                 logmsg('warn','action_welcomeplayer failed: '+str(e))
         else: logmsg('debug','action_welcomeplayer canceled because rconplus is disabled for server '+str(srv))
@@ -476,10 +474,10 @@ def run_praefectus(meta,config,srv):
                         asyncio.run(action_serverinfo(srv))
                         asyncio.run(action_enablerconplus(srv))
                         asyncio.run(action_enableprone(srv))
-                        asyncio.run(action_enablehardcore(srv))
-                        asyncio.run(action_autopin(srv))
-                    case 'Started':
                         asyncio.run(action_autobot(srv,'init'))
+                        asyncio.run(action_enablehardcore(srv))
+                    case 'Started':
+                        asyncio.run(action_autopin(srv))
                     #case 'StandBy':
                     case 'Ended':
                         asyncio.run(action_pullstats(srv))
@@ -490,7 +488,7 @@ def run_praefectus(meta,config,srv):
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
                 asyncio.run(action_autopin(srv))
-                asyncio.run(action_autobot(srv,'remove'))
+                #asyncio.run(action_autobot(srv,'remove'))
 
             case 'LogNet: UChannel::Close':
                 leaveuser0=line.split('RemoteAddr: ',2)
@@ -498,7 +496,7 @@ def run_praefectus(meta,config,srv):
                 leaveuser=leaveuser1[0]
                 logmsg('info','user left the server: '+str(leaveuser).strip())
                 asyncio.run(action_autopin(srv))
-                asyncio.run(action_autobot(srv,'add'))
+                #asyncio.run(action_autobot(srv,'add'))
 
             case '"KillData":':
                 logmsg('info','a player died...')
