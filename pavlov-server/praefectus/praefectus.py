@@ -365,19 +365,16 @@ def run_praefectus(meta,config,srv):
                             logmsg('info','action_autobot removed 1 bot from RedTeam')
                     
                 else: logmsg('warn','action_autobot was unsuccessful because get_serverinfo failed for server '+str(srv))
-            else: logmsg('info','action_autobot is disabled for server '+str(srv))
-        else: logmsg('info','action_autobot canceled, because rconplus is disabled for server '+str(srv))
+            else: logmsg('debug','action_autobot is disabled for server '+str(srv))
+        else: logmsg('debug','action_autobot canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_enablerconplus(srv):
         logmsg('debug','action_enablerconplus called')
         if config['rconplus_enabled'][srv]==True:
-            data={}
-            data=await rcon('UGCAddMod',{'0':'UGC3462586'},srv)
-            if data['Successful'] is True: logmsg('info','rconplus has been enabled')
-            else:
-                logmsg('warn','error when enabling rconplus - something went wrong')
-        else: logmsg('info','action_enablerconplus canceled, because rconplus is disabled for server '+str(srv))
+            await rcon('UGCAddMod',{'0':'UGC3462586'},srv)
+            logmsg('info','rconplus has been for server '+str(srv))
+        else: logmsg('debug','action_enablerconplus canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_enableprone(srv):
@@ -386,33 +383,44 @@ def run_praefectus(meta,config,srv):
             if config['prone_enabled'][srv]==True:
                 await rcon('EnableProne',{'0':'1'},srv)
                 logmsg('info','prone has been enabled for server '+str(srv))
-            else: logmsg('info','action_enableprone canceled, because prone is disabled for server '+str(srv))
-        else: logmsg('info','action_enableprone canceled, because rconplus is disabled for server '+str(srv))
+            else: logmsg('debug','action_enableprone is disabled for server '+str(srv))
+        else: logmsg('debug','action_enableprone canceled because rconplus is disabled for server '+str(srv))
 
 
-    async def action_admin(srv,user_who_just_joined):
-        logmsg('debug','action_admin called')
+    async def action_welcomeplayer(srv,joinuser):
+        logmsg('debug','action_welcomeplayer called')
         if config['rconplus_enabled'][srv]==True:
             data={}
             data=await rcon('InspectAll',{},srv)
             try:
                 for player in data['InspectList']:
-                    if player['UniqueId']=="76561199476460201" and user_who_just_joined=="[EU][SPQR] Agent":
-
-                        await rcon('Notify',{'0':player['UniqueId'],'1':'HELLO SPQR AGENT'},srv)
-                        logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
+                    if player['UniqueId']=="76561199476460201" and joinuser=="[EU][SPQR] Agent":
 
                         await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
                         logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
 
-                        #await rcon('NoClip',{'0':player['UniqueId'],'1':'1'},srv)
-                        #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
-
                         await rcon('GiveMenu',{'0':player['UniqueId']},srv)
                         logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
-                    else: logmsg('debug','action_admin hasnt been applied - user_who_just_joined: '+str(user_who_just_joined))
+
+                        await rcon('Notify',{'0':player['UniqueId'],'1':'WELCOME SPQR AGENT'},srv)
+                        logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
+
+                        #await rcon('NoClip',{'0':player['UniqueId'],'1':'1'},srv)
+                        #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
             except Exception as e:
-                logmsg('warn','action_admin failed: '+str(e))
+                logmsg('warn','action_welcomeplayer failed: '+str(e))
+        else: logmsg('debug','action_welcomeplayer canceled because rconplus is disabled for server '+str(srv))
+
+
+    async def action_enablehardcore(srv):
+        logmsg('debug','action_enablehardcore called')
+        if config['hardcore_enabled'][srv]==True:
+            data={}
+            data=await rcon('UGCAddMod',{'0':'UGC3951330'},srv)
+            if data['Successful'] is True: logmsg('info','hardcore has been enabled')
+            else:
+                logmsg('warn','error when enabling hardcore - something went wrong')
+        else: logmsg('debug','action_enablehardcore is disabled for server '+str(srv))
 
 
     def process_found_keyword(line,keyword,srv):
@@ -453,8 +461,6 @@ def run_praefectus(meta,config,srv):
 
             case 'PavlovLog: StartPlay':
                 logmsg('info','map started')
-                #asyncio.run(action_enablerconplus(srv))
-                #asyncio.run(action_enableprone(srv))
 
             case '"State":':
                 roundstate0=line.split('": "',1)
@@ -476,7 +482,7 @@ def run_praefectus(meta,config,srv):
                 joinuser0=line.split('succeeded: ',2)
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
-                asyncio.run(action_admin(srv,str(joinuser).strip()))
+                asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
                 #asyncio.run(action_autopin(srv))
                 #asyncio.run(action_autobot(srv,'remove'))
 
@@ -535,8 +541,7 @@ def run_praefectus(meta,config,srv):
 
 
     target_log='/opt/pavlov-server/praefectus/logs/Pavlov.log'
-    logmsg('info',str(meta['name'])+' '+str(meta['version'])+' is now active')
-    logmsg('debug','monitoring log file: '+target_log)
+    logmsg('info',str(meta['name'])+' '+str(meta['version'])+' is now active ('+target_log+')')
     loglines=follow_log(target_log)
     for line in loglines:
         if line!="":
