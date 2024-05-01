@@ -343,6 +343,16 @@ def run_praefectus(meta,config,srv):
         else: logmsg('debug','action_enableprone canceled because rconplus is disabled for server '+str(srv))
 
 
+    async def action_enabletrails(srv):
+        logmsg('debug','action_enabletrails called')
+        if config['rconplus_enabled'][srv]==True:
+            if config['trails_enabled'][srv]==True:
+                await rcon('UtilityTrails',{'0':'1'},srv)
+                logmsg('info','trails have been enabled for server '+str(srv))
+            else: logmsg('debug','action_enabletrails is disabled for server '+str(srv))
+        else: logmsg('debug','action_enabletrails canceled because rconplus is disabled for server '+str(srv))
+
+
     async def action_autobot(srv,mode):
         logmsg('debug','action_autobot called with mode: '+str(mode))
         if config['rconplus_enabled'][srv]==True:
@@ -389,6 +399,34 @@ def run_praefectus(meta,config,srv):
         else: logmsg('debug','action_autobot canceled because rconplus is disabled for server '+str(srv))
 
 
+    async def action_autochicken(srv):
+        logmsg('debug','action_autochicken called')
+        if config['rconplus_enabled'][srv]==True:
+            limit=int(config['autochicken_limits'][srv])
+            if limit!=0:
+                data=await get_serverinfo(srv)
+                if data['Successful'] is True:
+                    await rcon('SpawnChickens',{'0':str(limit)},srv)
+                    logmsg('info','action_autochicken added '+str(limit)+' chicken(s)')
+                else: logmsg('warn','action_autochicken canceled because get_serverinfo failed for server '+str(srv))
+            else: logmsg('debug','action_autochicken is disabled for server '+str(srv))
+        else: logmsg('debug','action_autochicken canceled because rconplus is disabled for server '+str(srv))
+
+
+    async def action_autozombie(srv):
+        logmsg('debug','action_autozombie called')
+        if config['rconplus_enabled'][srv]==True:
+            limit=int(config['autozombie_limits'][srv])
+            if limit!=0:
+                data=await get_serverinfo(srv)
+                if data['Successful'] is True:
+                    await rcon('SpawnZombies',{'0':str(limit)},srv)
+                    logmsg('info','action_autozombie added '+str(limit)+' zombie(s)')
+                else: logmsg('warn','action_autozombie canceled because get_serverinfo failed for server '+str(srv))
+            else: logmsg('debug','action_autozombie is disabled for server '+str(srv))
+        else: logmsg('debug','action_autozombie canceled because rconplus is disabled for server '+str(srv))
+
+
     async def action_welcomeplayer(srv,joinuser):
         logmsg('debug','action_welcomeplayer called')
         if config['rconplus_enabled'][srv]==True:
@@ -401,8 +439,8 @@ def run_praefectus(meta,config,srv):
                         await rcon('GiveMenu',{'0':player['UniqueId']},srv)
                         logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
 
-                        await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
-                        logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
+                        #await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
+                        #logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
 
                         #await rcon('NoClip',{'0':player['UniqueId'],'1':'1'},srv)
                         #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
@@ -474,7 +512,10 @@ def run_praefectus(meta,config,srv):
                         asyncio.run(action_serverinfo(srv))
                         asyncio.run(action_enablerconplus(srv))
                         asyncio.run(action_enableprone(srv))
+                        asyncio.run(action_enabletrails(srv))
                         asyncio.run(action_autobot(srv,'init'))
+                        asyncio.run(action_autochicken(srv))
+                        asyncio.run(action_autozombie(srv))
                         asyncio.run(action_enablehardcore(srv))
                     case 'Started':
                         asyncio.run(action_autopin(srv))
