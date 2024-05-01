@@ -104,3 +104,5 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
 * http://pavlovwiki.com/index.php/Rcon_Overview_and_Commands
 * https://mod.io/g/pavlov/m/rcon-plus
+* https://mod.io/g/pavlov/m/mod-hc-pavlov
+* https://github.com/noshoesnoshirtnoties/PavlovVRBalancingTable
