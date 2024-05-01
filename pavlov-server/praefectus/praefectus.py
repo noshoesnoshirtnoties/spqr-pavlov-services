@@ -259,6 +259,9 @@ def run_praefectus(meta,config,srv):
         if data['Successful'] is True:
             try:
                 for player in data['InspectList']:
+                    notify_player=False
+                    kick_player=False
+
                     steamid64=player['UniqueId']
                     current_ping=player['Ping']
 
@@ -283,36 +286,51 @@ def run_praefectus(meta,config,srv):
                     if cnt_ping>=config['pinglimit']['minentries']:
                         logmsg('debug','rowcount ('+str(cnt_ping)+') >= minentries ('+str(config['pinglimit']['minentries'])+')')
 
-                        # check avg ping against soft limit
-                        if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
-                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
-                            if config['pinglimit'][srv]['enabled'] is True:
-                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - PLEASE FIX THIS'
-                                await rcon('Notify',{'0':steamid64,'1':msg},srv)
-                            else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
-                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
-
-                        # check avg ping against hard limit
-                        if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
-                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
-                            if config['pinglimit'][srv]['enabled'] is True:
-                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
-                                await rcon('Notify',{'0':steamid64,'1':msg},srv)
-                                time.sleep(1)
-                                await rcon('Kick',{'0':steamid64},srv)
-                                logmsg('warn','player ('+str(steamid64)+') has been kicked by auto-kick-high-ping')
-                            else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by auto-kick-high-ping, but config says "no"')
-                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
-
                         # check min-max-delta
                         min_max_delta=int(max_ping)-int(min_ping)
                         if int(min_max_delta)>int(config['pinglimit'][srv]['delta']):
-                            logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
+                            logmsg('warn','ping min-max-delta ('+str(int(min_max_delta))+') exceeds the delta limit \
+                                ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
                             if config['pinglimit'][srv]['enabled'] is True:
-                                msg='YOUR PING DELTA ('+str(int(min_max_delta))+') IS TOO HIGH - PLEASE FIX THIS'
-                                await rcon('Notify',{'0':steamid64,'1':msg},srv)
+                                msg='YOUR PING DELTA IS TOO HIGH: '+str(int(min_max_delta))
+                                notify_player=True
                             else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
-                        else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
+                        else: logmsg('debug','ping min-max-delta ('+str(int(min_max_delta))+') is within the delta limit \
+                            ('+str(config['pinglimit'][srv]['delta'])+') for player: '+str(steamid64))
+
+                        # check avg ping against soft limit
+                        if int(avg_ping)>int(config['pinglimit'][srv]['soft']):
+                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the soft limit \
+                                ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
+                            if config['pinglimit'][srv]['enabled'] is True:
+                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH... PLEASE FIX'
+                                notify_player=True
+                            else: logmsg('warn','player ('+str(steamid64)+') would have been notified by auto-kick-high-ping, but config says "no"')
+                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the soft limit \
+                            ('+str(config['pinglimit'][srv]['soft'])+') for player: '+str(steamid64))
+
+                        # check avg ping against hard limit
+                        if int(avg_ping)>int(config['pinglimit'][srv]['hard']):
+                            logmsg('warn','ping avg ('+str(int(avg_ping))+') exceeds the hard limit \
+                                ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
+                            if config['pinglimit'][srv]['enabled'] is True:
+                                msg='YOUR PING ('+str(int(avg_ping))+') IS TOO HIGH - YOU WILL BE KICKED AUTOMATICALLY'
+                                notify_player=True
+                                kick_player=True
+                            else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by auto-kick-high-ping, but config says "no"')
+                        else: logmsg('debug','ping avg ('+str(int(avg_ping))+') is within the hard limit \
+                            ('+str(config['pinglimit'][srv]['hard'])+') for player: '+str(steamid64))
+
+                        # notify
+                        if notify_player is True:
+                            await rcon('Notify',{'0':steamid64,'1':msg},srv)
+                            logmsg('warn','player ('+str(steamid64)+') has been notified by auto-kick-high-ping')
+
+                        # kick
+                        if kick_player is True:
+                            time.sleep(2)
+                            await rcon('Kick',{'0':steamid64},srv)
+                            logmsg('warn','player ('+str(steamid64)+') has been kicked by auto-kick-high-ping')
 
                         # delete accumulated entries, but keep some recent ones
                         logmsg('debug','deleting entries for player in pings db')
@@ -323,10 +341,10 @@ def run_praefectus(meta,config,srv):
                         dbquery(query,values)
                     else: logmsg('debug','not enough data on pings yet')
 
-                    # add the current sample for the current player
+                    # add the current sample for the current player...
                     if str(current_ping)=='0': # not sure yet what these are
                         logmsg('warn','ping is 0 - simply gonna ignore this for now')
-                    else:
+                    elif kick_player==False: # ...unless kicked
                         logmsg('debug','adding entry in pings db for player: '+str(steamid64))
                         timestamp=datetime.now(timezone.utc)            
                         query="INSERT INTO pings ("
@@ -475,19 +493,20 @@ def run_praefectus(meta,config,srv):
             data=await rcon('InspectAll',{},srv)
             try:
                 for player in data['InspectList']:
-                    if player['UniqueId']=="76561199476460201" and joinuser=="[EU][SPQR] Agent":
+                    if (player['UniqueId']=="76561199476460201" and joinuser=="[EU][SPQR] Agent") or \
+                        (player['UniqueId']=="76561198863982867" and joinuser=="Jack"):
 
                         await rcon('GiveMenu',{'0':player['UniqueId']},srv)
-                        logmsg('info','givemenu has been set for [SPQR] Agent on server '+str(srv))
+                        logmsg('info','givemenu has been set for '+str(player['UniqueId'])+' ('+str(joinuser)+') on server '+str(srv))
 
                         #await rcon('GodMode',{'0':player['UniqueId'],'1':'1'},srv)
-                        #logmsg('info','godmode has been set for [SPQR] Agent on server '+str(srv))
+                        #logmsg('info','godmode has been set for '+str(player['UniqueId'])+' ('+str(joinuser)+') on server '+str(srv))
 
                         #await rcon('NoClip',{'0':player['UniqueId'],'1':'1'},srv)
-                        #logmsg('info','noclip has been set for [SPQR] Agent on server '+str(srv))
+                        #logmsg('info','noclip has been set for '+str(player['UniqueId'])+' ('+str(joinuser)+') on server '+str(srv))
 
-                        await rcon('Notify',{'0':player['UniqueId'],'1':'WELCOME SPQR AGENT'},srv)
-                        logmsg('info','[SPQR] Agent has been notified on server '+str(srv))
+                        await rcon('Notify',{'0':player['UniqueId'],'1':'WELCOME '+str(joinuser)},srv)
+                        logmsg('info','player '+str(player['UniqueId'])+' ('+str(joinuser)+') has been notified on server '+str(srv))
             except Exception as e:
                 logmsg('warn','action_welcomeplayer failed: '+str(e))
         else: logmsg('debug','action_welcomeplayer canceled because rconplus is disabled for server '+str(srv))
@@ -635,7 +654,7 @@ def run_praefectus(meta,config,srv):
     loglines=follow_log(target_log)
     for line in loglines:
         if line!="":
-            found_keyword=find_keyword_in_line(line,keywords=[
+            found_keyword=find_keyword_in_line(line,[
                 'Rotating map',
                 'LogLoad: LoadMap',
                 'StartPlay',
