@@ -57,7 +57,8 @@ this is an example for deploying multiple servers in one go (and without being a
 ./pavlov-server-deploy.sh -d spqr-server -s 3 -u root -y; \
 ./pavlov-server-deploy.sh -d spqr-server -s 4 -u root -y; \
 ./pavlov-server-deploy.sh -d spqr-server -s 5 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 6 -u root -y;
+./pavlov-server-deploy.sh -d spqr-server -s 6 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 7 -u root -y;
 ```
 
 #### praefectus only
