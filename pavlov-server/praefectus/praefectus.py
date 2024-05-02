@@ -545,7 +545,7 @@ def run_praefectus(meta,config,srv):
 
             case 'PavlovLog: StartPlay': logmsg('info','map started') # useless?
 
-            case 'State':
+            case '"State":':
                 roundstate0=line.split('": "',1)
                 roundstate1=roundstate0[1].split('"',1)
                 roundstate=roundstate1[0]
