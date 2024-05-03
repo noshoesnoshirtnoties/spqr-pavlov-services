@@ -14,7 +14,7 @@ from pathlib import Path
 from pavlov import PavlovRCON
 from datetime import datetime,timezone
 
-def run_bot(meta,config):
+def run_servuspublicus(meta,config):
 
 
     if bool(config['debug'])==True: level=logging.DEBUG

@@ -1,5 +1,5 @@
 import json
-import bot
+import servuspublicus
 
 if __name__ == '__main__':
     # read meta + config
@@ -7,4 +7,4 @@ if __name__ == '__main__':
     config=json.loads(open('config.json').read())
 
     # run
-    bot.run_bot(meta,config)
+    servuspublicus.run_servuspublicus(meta,config)
