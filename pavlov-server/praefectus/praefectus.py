@@ -88,7 +88,6 @@ def run_praefectus(meta,config,srv):
     async def get_serverinfo(srv):
         logmsg('debug','get_serverinfo called')
         logmsg('debug','srv: '+str(srv))
-        data={'Successful':False}
         data=await rcon('ServerInfo',{},srv)
         if data['Successful'] is True:
             # unless during rotation, analyze and if necessary modify serverinfo before returning it
@@ -127,15 +126,12 @@ def run_praefectus(meta,config,srv):
                     serverinfo['Team0Score']=0
                     serverinfo['Team1Score']=0    
                 data['ServerInfo']=serverinfo
-            else: data={'Successful':False}
-        else: data={'Successful':False}
         return data
 
 
     async def action_serverinfo(srv):
         logmsg('debug','action_serverinfo called')
         logmsg('debug','srv: '+str(srv))
-        data={'Successful':False}
         data=await get_serverinfo(srv)
         if data['Successful'] is True:
             roundstate=data['ServerInfo']['RoundState']
@@ -157,7 +153,6 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','action_autopin called')
         logmsg('debug','srv: '+str(srv))
         if config['autopin_limits'][srv]!=0:
-            data={'Successful':False}
             data=await get_serverinfo(srv)
             if data['Successful'] is True:
                 roundstate=data['ServerInfo']['RoundState']
@@ -166,13 +161,11 @@ def run_praefectus(meta,config,srv):
                     playercount_split=data['ServerInfo']['PlayerCount'].split('/',2)
                     if (int(playercount_split[0]))>=limit:
                         logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin'])+' for server '+str(srv))
-                        data={'Successful':False}
                         data=await rcon('SetPin',{'0':config['autopin']},srv)
                         if data['Successful'] is True: logmsg('debug','pin has been set for server '+str(srv))
                         else: logmsg('warn','action_autopin failed because rcon failed')
                     else:
                         logmsg('debug','below limit ('+str(limit)+') - removing pin for server '+str(srv))
-                        data={'Successful':False}
                         data=await rcon('SetPin',{'0':' '},srv)
                         if data['Successful'] is True: logmsg('debug','pin has been emptied for server '+str(srv))
                         else: logmsg('warn','action_autopin failed because rcon failed')
@@ -184,7 +177,6 @@ def run_praefectus(meta,config,srv):
     async def action_pullstats(srv):
         logmsg('debug','action_pullstats called')
         logmsg('debug','srv: '+str(srv))
-        data={'Successful':False}
         data=await get_serverinfo(srv)
         if data['Successful'] is True:
 
@@ -268,13 +260,11 @@ def run_praefectus(meta,config,srv):
     async def action_autokickhighping(srv):
         logmsg('debug','action_checkpings called')
         logmsg('debug','srv: '+str(srv))
-        data={'Successful':False}
         data=await get_serverinfo(srv)
         if data['Successful'] is True:
             roundstate=data['ServerInfo']['RoundState']
             if roundstate=='Starting' or roundstate!='Started' or roundstate!='Standby':
 
-                data={'Successful':False}
                 data=await rcon('InspectAll',{},srv)
                 if data['Successful'] is True:
                     for player in data['InspectList']:
@@ -415,7 +405,6 @@ def run_praefectus(meta,config,srv):
 
             amount=int(config['autobot'][srv]['amount'])
             if amount!=0:
-                data={'Successful':False}
                 data=await get_serverinfo(srv)
                 if data['Successful'] is True:
                     gamemode=data['ServerInfo']['GameMode'].upper()
@@ -446,7 +435,7 @@ def run_praefectus(meta,config,srv):
                                     if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND" or gamemode=="WW2TDM":
                                         rnd_team=random.randint(0,1)
                                         await rcon('RemoveBot',{'0':'1','1':str(rnd_team)},srv,True)
-                                        logmsg('info','action_autobot removed 1 bot to team: '+str(rnd_team))
+                                        logmsg('info','action_autobot removed 1 bot from team: '+str(rnd_team))
                                     else:
                                         await rcon('RemoveBot',{'0':'1'},srv,True)
                                         logmsg('info','action_autobot removed 1 bot')
@@ -486,7 +475,6 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','action_welcomeplayer called')
         logmsg('debug','srv: '+str(srv))
         logmsg('debug','joinuser: '+str(joinuser))
-        data={'Successful':False}
         data=await get_serverinfo(srv)
         if data['Successful'] is True:
             roundstate=data['ServerInfo']['RoundState']
@@ -534,7 +522,12 @@ def run_praefectus(meta,config,srv):
         match keyword:
             case 'LogHAL': logmsg('info','server is starting')
 
-            case 'Server Status Helper': logmsg('info','server is now online')
+            case 'Server Status Helper':
+                logmsg('info','server is now online')
+                asyncio.run(action_enablerconplus(srv))
+                asyncio.run(action_enableprone(srv))
+                asyncio.run(action_enabletrails(srv))
+                asyncio.run(action_enablehardcore(srv))
 
             case 'Rotating map': logmsg('info','map rotation called')
 
@@ -581,14 +574,10 @@ def run_praefectus(meta,config,srv):
                 match roundstate:
                     case 'Starting':
                         asyncio.run(action_serverinfo(srv))
-                        asyncio.run(action_enablerconplus(srv))
-                        asyncio.run(action_enableprone(srv))
-                        asyncio.run(action_enabletrails(srv))
-                        asyncio.run(action_enablehardcore(srv))
-                    case 'Started':
                         asyncio.run(action_autobot(srv,'init'))
                         asyncio.run(action_autochicken(srv))
                         asyncio.run(action_autozombie(srv))
+                    #case 'Started':
                     #case 'StandBy':
                     case 'Ended':
                         asyncio.run(action_pullstats(srv))
