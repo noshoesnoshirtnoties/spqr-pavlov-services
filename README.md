@@ -112,6 +112,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * logrotate
 * praefectus
   * logrotate
+  * keep rcon connection
   * welcome players via notify
 * servus-publicus
   * logrotate
