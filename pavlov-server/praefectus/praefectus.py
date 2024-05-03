@@ -65,23 +65,25 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','is_rconplus: '+str(is_rconplus))
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+
         i=0
         while i<len(rconparams):
             rconcmd+=' '+str(rconparams[str(i)])
             i+=1
-        data_return={'Successful':False}
+
         try:
             data_rcon=await conn.send(rconcmd)
             data_json=json.dumps(data_rcon)
             data_return=json.loads(data_json)
             await conn.send('Disconnect')
-            if str(type(data_return))=='String':
-                data_return={'Successful':False}
-                logmsg('error','why THE FUCK is the output a string')
-                logmsg('error','data_return: '+str(data_return))
-        except:
+        except Exception as e:
             if is_rconplus is True: data_return={'Successful':True}
-            else: data_return={'Successful':False}
+            else: data_return={'Successful':False,'Exception':str(e)}
+
+        if str(type(data_return))=='String':
+            logmsg('error','how THE FUCK is the output a string/empty!?')
+            logmsg('error','data_return: '+str(data_return))
+            data_return={'Successful':False}
         return data_return
 
 
@@ -574,10 +576,10 @@ def run_praefectus(meta,config,srv):
                 match roundstate:
                     case 'Starting':
                         asyncio.run(action_serverinfo(srv))
+                    case 'Started':
                         asyncio.run(action_autobot(srv,'init'))
                         asyncio.run(action_autochicken(srv))
                         asyncio.run(action_autozombie(srv))
-                    #case 'Started':
                     #case 'StandBy':
                     case 'Ended':
                         asyncio.run(action_pullstats(srv))
@@ -587,7 +589,7 @@ def run_praefectus(meta,config,srv):
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
-                asyncio.run(action_autobot(srv,'remove'))
+                #asyncio.run(action_autobot(srv,'remove'))
                 asyncio.run(action_autopin(srv))
 
             case 'LogNet: UChannel::Close':
