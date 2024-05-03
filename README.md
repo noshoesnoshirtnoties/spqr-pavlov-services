@@ -1,7 +1,7 @@
 # SPQR Pavlov Services
 
 ## description
-this repo contains everything needed to rollout and run pavlov vr custom servers for SPQR, as well as a discord bot, using docker.
+this repo contains everything needed to rollout and run pavlov vr custom servers for SPQR, as well as a discord bot, using docker. to get started, clone this repo to your system and keep reading :)
 
 * "pavlov-server" is the pavlov vr custom server
 * "praefectus" is the monitoring service for the game servers
