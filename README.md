@@ -13,11 +13,11 @@ this repo contains everything needed to rollout and run pavlov vr custom servers
 
 ## config
 ### pavlov-server
-before deployment, each server requires a folder named after its "server number" or "slot", which can be 0-9.
+before deployment, each server requires a folder named after its "server number" (#), which can be 0-9.
 
-an example configuriation for 1 server (0) can be found in "pavlov-server/conf.d.example/".
+an example configuriation for 1 server (#0) can be found in "pavlov-server/conf.d.example/".
 
-this is an example folder structure for 2 servers (0+1):
+this is an example folder structure for 2 servers (#0 + #1):
 ```
 pavlov-server
 ├── conf.d
