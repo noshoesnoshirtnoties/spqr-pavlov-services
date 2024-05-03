@@ -101,24 +101,21 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 ```
 
 ## todo
-### general
-* cron-triggered weekly container redeploy / image recreate / volume recreate
-* top ranks in #stats
-* extended playerstats (DM + TDM)
+* general
+ * cron-triggered weekly container redeploy / image recreate / volume recreate
+ * top ranks in #stats
+ * extended playerstats (DM + TDM)
   * pull steamusers details
   * ace-detection
-* add elo/mmr
-
-### pavlov-server
-* logrotate
-
-### praefectus
-* logrotate
-* welcome players via notify
-
-### servus-publicus
-* logrotate
-* !clear <dscrdchn>
+ * add elo/mmr
+* pavlov-server
+ * logrotate
+* praefectus
+ * logrotate
+ * welcome players via notify
+* servus-publicus
+ * logrotate
+ * !clear <dscrdchn>
 
 ## more info
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
