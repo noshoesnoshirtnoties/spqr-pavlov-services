@@ -97,11 +97,11 @@ $SSHCMD $DSTHOST "docker volume create pavlov-server-maps"
 
 echo "[INFO] stopping running containers..."
 if [ "$PRAEFECTUS_ONLY" != true ]; then $SSHCMD $DSTHOST "docker stop pavlov-server-${SRV}"; fi
-$SSHCMD $DSTHOST "docker stop pavlov-server-praefectus-${SRV}"
+$SSHCMD $DSTHOST "docker stop praefectus-pavlov-server-${SRV}"
 
 echo "[INFO] removing old containers..."
 if [ "$PRAEFECTUS_ONLY" != true ]; then $SSHCMD $DSTHOST "docker container rm pavlov-server-${SRV}"; fi
-$SSHCMD $DSTHOST "docker container rm pavlov-server-praefectus-${SRV}"
+$SSHCMD $DSTHOST "docker container rm praefectus-pavlov-server-${SRV}"
 
 echo "[INFO] checking if ufw is active"
 RESPONSE=$($SSHCMD $DSTHOST "ufw status")
@@ -115,15 +115,15 @@ else
 fi
 
 echo "[INFO] building docker image for praefectus..."
-$SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server/praefectus && docker build -t pavlov-server-praefectus ."
+$SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server/praefectus && docker build -t praefectus-pavlov-server ."
 
 echo "[INFO] starting docker container..."
-$SSHCMD $DSTHOST "docker run --name pavlov-server-praefectus-${SRV} -d \
+$SSHCMD $DSTHOST "docker run --name praefectus-pavlov-server-${SRV} -d \
   -v pavlov-server-logs-${SRV}:/opt/pavlov-server/praefectus/logs/ \
   -e SRV=${SRV} \
   --restart unless-stopped \
   --net=host \
-  pavlov-server-praefectus"
+  praefectus-pavlov-server"
 
 if [ "$PRAEFECTUS_ONLY" != true ]; then 
   echo "[INFO] building docker image for pavlov-server..."
@@ -137,7 +137,6 @@ if [ "$PRAEFECTUS_ONLY" != true ]; then
     -v ${INSTALLDIR}/pavlov-server/conf.d/$SRV/Game.ini:/home/steam/pavlovserver/Pavlov/Saved/Config/LinuxServer/Game.ini \
     -v ${INSTALLDIR}/pavlov-server/conf.d/$SRV/RconSettings.txt:/home/steam/pavlovserver/Pavlov/Saved/Config/RconSettings.txt \
     -v pavlov-server-logs-${SRV}:/home/steam/pavlovserver/Pavlov/Saved/Logs \
-    -v pavlov-server-maps:/home/steam/pavlovserver/Pavlov/Saved/maps \
     -e SRV=${SRV} \
     -e PORT=${PORT1} \
     --restart unless-stopped \
