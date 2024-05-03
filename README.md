@@ -35,7 +35,7 @@ pavlov-server
 ### praefectus
 the monitoring service can be configured via its config file "pavlov-server/praefectus/config.json".
 
-an example configuriation for 2 servers (0+1) can be found in "pavlov-server/praefectus/config.json.example".
+an example configuriation for 2 servers (#0 + #1) can be found in "pavlov-server/praefectus/config.json.example".
 
 ### servus-publicus
 the discord bot can be configured via its config file "servus-publicus/config.json".
@@ -44,7 +44,7 @@ an example configuration can be found in "servus-publicus/config.json.example".
 
 ## deployment
 ### pavlov-server-deploy.sh
-a server (0 in this example) and its monitoring service named "praefectus" can be deployed to a target server like this:
+a server - #0 in this example - and its monitoring service named "praefectus" can be deployed to a target server like this:
 ```
 ./pavlov-server-deploy.sh -d spqr-server -s 0 -u root
 ```
@@ -58,7 +58,9 @@ this is an example for deploying multiple servers in one go (and without being a
 ./pavlov-server-deploy.sh -d spqr-server -s 4 -u root -y; \
 ./pavlov-server-deploy.sh -d spqr-server -s 5 -u root -y; \
 ./pavlov-server-deploy.sh -d spqr-server -s 6 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 7 -u root -y;
+./pavlov-server-deploy.sh -d spqr-server -s 7 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 8 -u root -y; \
+./pavlov-server-deploy.sh -d spqr-server -s 9 -u root -y;
 ```
 
 #### praefectus only
@@ -86,10 +88,10 @@ docker exec -it pavlov-server-0 bash -c 'tail -f /home/steam/pavlovserver/Pavlov
 
 ```
 
-### pavlov-server-praefectus #0
+### praefectus-pavlov-server #0
 ```
-docker exec -it pavlov-server-praefectus-0 bash
-docker exec -it pavlov-server-praefectus-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus-0.log'
+docker exec -it praefectus-pavlov-server-0 bash
+docker exec -it praefectus-pavlov-server-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus-0.log'
 ```
 
 ### servus-publicus
@@ -99,9 +101,15 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 ```
 
 ## todo
+### pavlov-server
 * logrotate
-* cron-triggered pav-server update
 * cron-triggered weekly container redeploy / image recreate / volume recreate
+
+### praefectus
+
+### servus-publicus
+* !clear <dscrdchn>
+* 
 
 ## more info
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
