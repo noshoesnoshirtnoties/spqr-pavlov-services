@@ -46,39 +46,39 @@ an example configuration can be found in "servus-publicus/config.json.example".
 ### pavlov-server-deploy.sh
 a server - #0 in this example - and its monitoring service named "praefectus" can be deployed to a target server like this:
 ```
-./pavlov-server-deploy.sh -d spqr-server -s 0 -u root
+./pavlov-server-deploy.sh -d myfancyserver.com -s 0 -u root
 ```
 
 this is an example for deploying multiple servers in one go (and without being asked for confirmation each time):
 ```
-./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 1 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 2 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 3 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 4 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 5 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 6 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 7 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 8 -u root -y; \
-./pavlov-server-deploy.sh -d spqr-server -s 9 -u root -y;
+./pavlov-server-deploy.sh -d myfancyserver.com -s 0 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 1 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 2 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 3 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 4 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 5 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 6 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 7 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 8 -u root -y; \
+./pavlov-server-deploy.sh -d myfancyserver.com -s 9 -u root -y;
 ```
 
 #### praefectus only
 to only deploy the praefectus service, not touching the pavlov-server, use the "-p" flag like this:
 ```
-./pavlov-server-deploy.sh -d spqr-server -s 0 -u root -p
+./pavlov-server-deploy.sh -d myfancyserver.com -s 0 -u root -p
 ```
 
 ### servus-publicus-deploy.sh
 the discord bot can be deployed to a target server like this:
 ```
-./servus-publicus-deploy.sh -d spqr-server -u root
+./servus-publicus-deploy.sh -d myfancyserver.com -u root
 ```
 
 ## example commands for service handling
 ### general
 ```
-watch -n 1 'docker ps --format "{{.ID}} {{.Status}} {{.Names}}"'
+watch 'docker ps --format "{{.ID}} {{.Status}} {{.Names}}"'
 ```
 
 ### pavlov-server #0
@@ -101,15 +101,24 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 ```
 
 ## todo
+### general
+* cron-triggered weekly container redeploy / image recreate / volume recreate
+* top ranks in #stats
+* extended playerstats (DM + TDM)
+  * pull steamusers details
+  * ace-detection
+* add elo/mmr
+
 ### pavlov-server
 * logrotate
-* cron-triggered weekly container redeploy / image recreate / volume recreate
 
 ### praefectus
+* logrotate
+* welcome players via notify
 
 ### servus-publicus
+* logrotate
 * !clear <dscrdchn>
-* 
 
 ## more info
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
