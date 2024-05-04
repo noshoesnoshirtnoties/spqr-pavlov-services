@@ -422,7 +422,7 @@ def run_praefectus(meta,config,srv):
             except Exception as e:
                 logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
                 logmsg('error','str(type(data_addmod)).lower(): '+str(type(data_addmod)).lower())
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_enableprone(srv):
@@ -438,8 +438,8 @@ def run_praefectus(meta,config,srv):
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
                     logmsg('error','str(type(data_prone)).lower(): '+str(type(data_prone)).lower())
-            else: logmsg('debug',fx+' is disabled for server '+str(srv))
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+            else: logmsg('info',fx+' is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_enabletrails(srv):
@@ -455,8 +455,8 @@ def run_praefectus(meta,config,srv):
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
                     logmsg('error','str(type(data_trails)).lower(): '+str(type(data_trails)).lower())
-            else: logmsg('debug',fx+' is disabled for server '+str(srv))
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+            else: logmsg('info',fx+' is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_disablefalldamage(srv):
@@ -472,8 +472,8 @@ def run_praefectus(meta,config,srv):
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
                     logmsg('error','str(type(data_trails)).lower(): '+str(type(data_trails)).lower())
-            else: logmsg('debug',fx+' is disabled for server '+str(srv))
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+            else: logmsg('info',fx+' is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_autobot(srv,mode):
@@ -520,14 +520,14 @@ def run_praefectus(meta,config,srv):
                                         else:
                                             await rcon('RemoveBot',{'0':'1'},srv,True)
                                             logmsg('info',fx+' probably removed 1 bot')
-                                else: logmsg('debug',fx+' canceled because "managed" not set for server '+str(srv))
+                                else: logmsg('info',fx+' canceled because "managed" not set for server '+str(srv))
 
                         else: logmsg('warn',fx+' canceled because of roundstate '+str(roundstate)+' for server '+str(srv))
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
                     logmsg('error','str(type(data_serverinfo)).lower(): '+str(type(data_serverinfo)).lower())
-            else: logmsg('debug',fx+' is disabled for server '+str(srv))
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+            else: logmsg('info',fx+' is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_autochicken(srv):
@@ -540,8 +540,8 @@ def run_praefectus(meta,config,srv):
             if amount!=0:
                 await rcon('SpawnChickens',{'0':str(amount)},srv,True)
                 logmsg('info',fx+' probably added '+str(amount)+' chicken(s)')
-            else: logmsg('debug',fx+' is disabled for server '+str(srv))
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+            else: logmsg('info',fx+' is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_autozombie(srv):
@@ -554,8 +554,8 @@ def run_praefectus(meta,config,srv):
             if amount!=0:
                 await rcon('SpawnZombies',{'0':str(amount)},srv,True)
                 logmsg('info',fx+' probably added '+str(amount)+' zombie(s)')
-            else: logmsg('debug',fx+' is disabled for server '+str(srv))
-        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+            else: logmsg('info',fx+' is disabled for server '+str(srv))
+        else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
     async def action_welcomeplayer(srv,joinuser):
@@ -604,7 +604,7 @@ def run_praefectus(meta,config,srv):
                         except Exception as e:
                             logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
                             logmsg('error','str(type(data_inspectall)).lower(): '+str(type(data_inspectall)).lower())
-                    else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+                    else: logmsg('info',fx+' canceled because rconplus is disabled for server '+str(srv))
                 else: logmsg('warn',fx+' canceled because roundstate is '+str(roundstate)+' for server '+str(srv))
         except Exception as e:
             logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
