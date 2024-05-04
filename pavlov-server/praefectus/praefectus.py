@@ -630,15 +630,14 @@ def run_praefectus(meta,config,srv):
         match keyword:
             case 'LogHAL': logmsg('info','server is starting')
 
-            case 'Server Status Helper':
-                logmsg('info','server is now online')
-                asyncio.run(action_loadrconplus(srv))
-                asyncio.run(action_loadhardcore(srv))
+            case 'Server Status Helper': logmsg('info','server is now online')
 
             case 'Rotating map': logmsg('info','map rotation called')
 
             case 'PavlovLog: StartPlay':
                 logmsg('info','map started')
+                asyncio.run(action_loadrconplus(srv))
+                asyncio.run(action_loadhardcore(srv))
                 asyncio.run(action_enableprone(srv))
                 asyncio.run(action_enabletrails(srv))
                 asyncio.run(action_disablefalldamage(srv))
