@@ -120,6 +120,7 @@ $SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server/praefectus && docker build -t p
 echo "[INFO] starting docker container..."
 $SSHCMD $DSTHOST "docker run --name praefectus-pavlov-server-${SRV} -d \
   -v pavlov-server-logs-${SRV}:/opt/pavlov-server/praefectus/logs/ \
+  -v pavlov-server-maps:/home/steam/pavlovserver/Pavlov/Saved/maps \
   -e SRV=${SRV} \
   --restart unless-stopped \
   --net=host \

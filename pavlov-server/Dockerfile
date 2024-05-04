@@ -9,7 +9,7 @@ RUN useradd -m -N -s /bin/bash -u 1000 -p 'password' steam
 
 USER steam
 RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Config/LinuxServer
-RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/maps
+#RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/maps
 RUN mkdir -p /home/steam/pavlovserver/Pavlov/Saved/Logs
 
 USER steam
