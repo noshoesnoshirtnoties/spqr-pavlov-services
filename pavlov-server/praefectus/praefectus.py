@@ -90,6 +90,19 @@ def run_praefectus(meta,config,srv):
         return data
 
 
+    async def init_rotate(srv):
+        fx=inspect.stack()[0][3]
+        logmsg('debug',fx+' called')
+        #logmsg('debug','srv: '+str(srv))
+
+        try:
+            data_rotatemap=await rcon('RotateMap',{},srv)
+            if data_rotatemap['Successful'] is True: logmsg('debug','init map rotate successful for server '+str(srv))
+        except Exception as e:
+            logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            logmsg('error','str(type(data_rotatemap)).lower(): '+str(type(data_rotatemap)).lower())
+
+
     async def get_serverinfo(srv):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
@@ -169,7 +182,7 @@ def run_praefectus(meta,config,srv):
                 data_serverinfo=await get_serverinfo(srv)
                 if data_serverinfo['Successful'] is True:
                     roundstate=data_serverinfo['ServerInfo']['RoundState']
-                    if roundstate=='Starting' or roundstate=='Started' or roundstate=='Standby':
+                    if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
                         limit=config['autopin_limits'][srv]
                         playercount_split=data_serverinfo['ServerInfo']['PlayerCount'].split('/',2)
                         if (int(playercount_split[0]))>=limit:
@@ -296,7 +309,7 @@ def run_praefectus(meta,config,srv):
                 data_serverinfo=await get_serverinfo(srv)
                 if data_serverinfo['Successful'] is True:
                     roundstate=data_serverinfo['ServerInfo']['RoundState']
-                    if roundstate=='Starting' or roundstate=='Started' or roundstate=='Standby':
+                    if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
                         try:
                             data_inspectall=await rcon('InspectAll',{},srv)
                             if data_inspectall['Successful'] is True:
@@ -490,37 +503,38 @@ def run_praefectus(meta,config,srv):
                     if data_serverinfo['Successful'] is True:
                         gamemode=data_serverinfo['ServerInfo']['GameMode'].upper()
                         roundstate=data_serverinfo['ServerInfo']['RoundState']
-                        if roundstate=='Starting' or roundstate=='Started' or roundstate=='Standby':
-
-                            if mode=="init":
-                                if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND" or gamemode=="WW2TDM":
-                                    await rcon('AddBot',{'0':str(amount//2),'1':'RedTeam'},srv,True)
-                                    logmsg('info',fx+' probably added '+str(amount//2)+' bots to RedTeam')
-                                    await rcon('AddBot',{'0':str(amount//2),'1':'BlueTeam'},srv,True)
-                                    logmsg('info',fx+' probably added '+str(amount//2)+' bots to BlueTeam')
+                        if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
+                            if gamemode!="SND":
+                                if mode=="init":
+                                    if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
+                                        await rcon('AddBot',{'0':str(amount//2),'1':'RedTeam'},srv,True)
+                                        logmsg('info',fx+' probably added '+str(amount//2)+' bots to RedTeam')
+                                        await rcon('AddBot',{'0':str(amount//2),'1':'BlueTeam'},srv,True)
+                                        logmsg('info',fx+' probably added '+str(amount//2)+' bots to BlueTeam')
+                                    else:
+                                        await rcon('AddBot',{'0':str(amount)},srv,True)
+                                        logmsg('info',fx+' probably added '+str(amount)+' bots')
                                 else:
-                                    await rcon('AddBot',{'0':str(amount)},srv,True)
-                                    logmsg('info',fx+' probably added '+str(amount)+' bots')
-                            else:
-                                if config['autobot'][srv]['managed'] is True:
-                                    if mode=="add":
-                                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND" or gamemode=="WW2TDM":
-                                            rnd_team=random.randint(0,1)
-                                            await rcon('AddBot',{'0':'1','1':str(rnd_team)},srv,True)
-                                            logmsg('info',fx+' probably added 1 bot to team: '+str(rnd_team))
-                                        else:
-                                            await rcon('AddBot',{'0':'1'},srv,True)
-                                            logmsg('info',fx+' probably added 1 bot')
+                                    if config['autobot'][srv]['managed'] is True:
+                                        if mode=="add":
+                                            if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
+                                                rnd_team=random.randint(0,1)
+                                                await rcon('AddBot',{'0':'1','1':str(rnd_team)},srv,True)
+                                                logmsg('info',fx+' probably added 1 bot to team: '+str(rnd_team))
+                                            elif gamemode=="DM" or gamemode=="CUSTOM":
+                                                await rcon('AddBot',{'0':'1'},srv,True)
+                                                logmsg('info',fx+' probably added 1 bot')
 
-                                    elif mode=="remove":
-                                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="SND" or gamemode=="WW2TDM":
-                                            rnd_team=random.randint(0,1)
-                                            await rcon('RemoveBot',{'0':'1','1':str(rnd_team)},srv,True)
-                                            logmsg('info',fx+' probably removed 1 bot from team: '+str(rnd_team))
-                                        else:
-                                            await rcon('RemoveBot',{'0':'1'},srv,True)
-                                            logmsg('info',fx+' probably removed 1 bot')
-                                else: logmsg('info',fx+' canceled because "managed" not set for server '+str(srv))
+                                        elif mode=="remove":
+                                            if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
+                                                rnd_team=random.randint(0,1)
+                                                await rcon('RemoveBot',{'0':'1','1':str(rnd_team)},srv,True)
+                                                logmsg('info',fx+' probably removed 1 bot from team: '+str(rnd_team))
+                                            elif gamemode=="DM" or gamemode=="CUSTOM":
+                                                await rcon('RemoveBot',{'0':'1'},srv,True)
+                                                logmsg('info',fx+' probably removed 1 bot')
+                                    else: logmsg('info',fx+' canceled because "managed" not set for server '+str(srv))
+                            else: logmsg('info',fx+' canceled because gamemode is "SND" for server '+str(srv))
 
                         else: logmsg('warn',fx+' canceled because of roundstate '+str(roundstate)+' for server '+str(srv))
                 except Exception as e:
@@ -568,7 +582,7 @@ def run_praefectus(meta,config,srv):
             data_serverinfo=await get_serverinfo(srv)
             if data_serverinfo['Successful'] is True:
                 roundstate=data_serverinfo['ServerInfo']['RoundState']
-                if roundstate=='Starting' or roundstate=='Started' or roundstate=='Standby':
+                if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
                     if config['rconplus'][srv] is True:
                         try:
                             data_inspectall=await rcon('InspectAll',{},srv)
@@ -630,14 +644,15 @@ def run_praefectus(meta,config,srv):
         match keyword:
             case 'LogHAL': logmsg('info','server is starting')
 
-            case 'Server Status Helper': logmsg('info','server is now online')
+            case 'Server Status Helper':
+                logmsg('info','server is now online')
+                asyncio.run(action_loadrconplus(srv))
+                asyncio.run(action_loadhardcore(srv))
 
             case 'Rotating map': logmsg('info','map rotation called')
 
             case 'PavlovLog: StartPlay':
                 logmsg('info','map started')
-                asyncio.run(action_loadrconplus(srv))
-                asyncio.run(action_loadhardcore(srv))
                 asyncio.run(action_enableprone(srv))
                 asyncio.run(action_enabletrails(srv))
                 asyncio.run(action_disablefalldamage(srv))
@@ -688,12 +703,13 @@ def run_praefectus(meta,config,srv):
                         asyncio.run(action_serverinfo(srv))
                         asyncio.run(action_pinglimit(srv))
                         asyncio.run(action_autopin(srv))
-                    case 'Started':
-                        asyncio.run(action_autobot(srv,'init'))
                         asyncio.run(action_autochicken(srv))
                         asyncio.run(action_autozombie(srv))
+                        asyncio.run(action_autobot(srv,'init'))
+                    #case 'Started':
                     #case 'StandBy':
                     case 'Ended':
+                        asyncio.run(action_autopin(srv))
                         asyncio.run(action_pullstats(srv))
 
             case 'Join succeeded':
@@ -701,7 +717,6 @@ def run_praefectus(meta,config,srv):
                 joinuser=joinuser0[1]
                 logmsg('info','join successful for user: '+str(joinuser).strip())
                 asyncio.run(action_welcomeplayer(srv,str(joinuser).strip()))
-                asyncio.run(action_pinglimit(srv))
                 asyncio.run(action_autopin(srv))
 
             case 'LogNet: UChannel::Close':

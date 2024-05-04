@@ -115,6 +115,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * keep rcon connection
   * welcome players via notify
   * read admins from rcon
+  * map-specific settings (like playermodel)
 * servus-publicus
   * logrotate
   * !clear <dscrdchn>
