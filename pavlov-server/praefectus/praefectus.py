@@ -139,7 +139,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_serverinfo(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         try:
@@ -161,7 +161,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_autopin(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['autopin_limits'][srv]!=0:
@@ -197,7 +197,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_pullstats(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info','action_pullstats called')
+        logmsg('debug','action_pullstats called')
         logmsg('debug','srv: '+str(srv))
 
         try:
@@ -288,7 +288,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_pinglimit(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info','action_pinglimit called')
+        logmsg('debug','action_pinglimit called')
         logmsg('debug','srv: '+str(srv))
 
         if config['pinglimit'][srv]['enabled'] is True:
@@ -412,7 +412,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enablerconplus(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['rconplus'][srv] is True:
@@ -427,7 +427,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enableprone(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['rconplus'][srv] is True:
@@ -444,7 +444,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enabletrails(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['rconplus'][srv] is True:
@@ -459,9 +459,26 @@ def run_praefectus(meta,config,srv):
         else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
 
 
+    async def action_disablefalldamage(srv):
+        fx=inspect.stack()[0][3]
+        logmsg('debug',fx+' called')
+        logmsg('debug','srv: '+str(srv))
+
+        if config['rconplus'][srv] is True:
+            if config['disable_falldamage'][srv] is True:
+                try:
+                    await rcon('FallDamage',{'0':False},srv,True)
+                    logmsg('info','falldamage has probably been disabled for server '+str(srv))
+                except Exception as e:
+                    logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                    logmsg('error','str(type(data_trails)).lower(): '+str(type(data_trails)).lower())
+            else: logmsg('debug',fx+' is disabled for server '+str(srv))
+        else: logmsg('debug',fx+' canceled because rconplus is disabled for server '+str(srv))
+
+
     async def action_autobot(srv,mode):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
         logmsg('debug','mode: '+str(mode))
 
@@ -515,7 +532,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_autochicken(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['rconplus'][srv] is True:
@@ -529,7 +546,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_autozombie(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['rconplus'][srv] is True:
@@ -543,7 +560,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_welcomeplayer(srv,joinuser):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
         logmsg('debug','joinuser: '+str(joinuser))
 
@@ -596,7 +613,7 @@ def run_praefectus(meta,config,srv):
 
     async def action_enablehardcore(srv):
         fx=inspect.stack()[0][3]
-        logmsg('info',fx+' called')
+        logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
 
         if config['hardcore'][srv] is True:
@@ -618,6 +635,7 @@ def run_praefectus(meta,config,srv):
                 asyncio.run(action_enablerconplus(srv))
                 asyncio.run(action_enableprone(srv))
                 asyncio.run(action_enabletrails(srv))
+                asyncio.run(action_disablefalldamage(srv))
                 asyncio.run(action_enablehardcore(srv))
 
             case 'Rotating map': logmsg('info','map rotation called')
@@ -632,7 +650,7 @@ def run_praefectus(meta,config,srv):
                 
             case 'Fatal error': logmsg('error','server crashed: fatal error')
 
-            case 'Preparing to exit': logmsg('info','server is shutting down')
+            case 'Preparing to exit': logmsg('warn','server is shutting down')
 
             case 'Heart beat received':
                 logmsg('info','heartbeat received') # doesnt appear anymore in Pavlov.log since the update...
