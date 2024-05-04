@@ -15,132 +15,95 @@
   "discord":{
     "bot_token":"supersecurediscordbottoken"
   },
+  "target_log":"/opt/pavlov-server/praefectus/logs/Pavlov.log",
   "autopin":"9678",
   "autopin_limits":{
     "0": 0,
     "1": 0,
-    "2": 0,
-    "3": 0,
-    "4": 0,
-    "5": 0,
-    "6": 0,
-    "7": 0,
+    "2": 9,
+    "3": 5,
+    "4": 30,
+    "5": 22,
+    "6": 22,
+    "7": 30,
     "8": 0,
     "9": 0
   },
   "pinglimit":{
-    "minentries":10,
-    "keepentries":2,
+    "minentries":50,
+    "keepentries":4,
     "0": {
       "enabled":true,
-      "hard":150,
-      "soft":100,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     },
     "1":{
       "enabled":true,
-      "hard":75,
-      "soft":65,
+      "kick":true,
+      "hard":80,
+      "soft":70,
       "delta":15
     },
     "2": {
       "enabled":true,
-      "hard":150,
-      "soft":100,
-      "delta":25
+      "kick":false,
+      "hard":100,
+      "soft":75,
+      "delta":20
     },
     "3": {
       "enabled":true,
-      "hard":150,
-      "soft":100,
-      "delta":25
+      "kick":false,
+      "hard":100,
+      "soft":75,
+      "delta":20
     },
     "4": {
       "enabled":true,
-      "hard":150,
-      "soft":100,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     },
     "5": {
       "enabled":true,
-      "hard":150,
-      "soft":100,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     },
     "6": {
       "enabled":true,
-      "hard":150,
-      "soft":100,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     },
     "7": {
-      "enabled":true,
-      "hard":150,
-      "soft":100,
+      "enabled":false,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     },
     "8": {
-      "enabled":true,
-      "hard":150,
-      "soft":100,
+      "enabled":false,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     },
     "9": {
-      "enabled":true,
-      "hard":150,
-      "soft":100,
+      "enabled":false,
+      "kick":false,
+      "hard":300,
+      "soft":250,
       "delta":25
     }
   },
-  "rconplus_enabled":{
-    "0": false,
-    "1": false,
-    "2": false,
-    "3": false,
-    "4": false,
-    "5": false,
-    "6": false,
-    "7": false,
-    "8": false,
-    "9": false
-  },
-  "autobot_limits":{
-    "0": 0,
-    "1": 0,
-    "2": 0,
-    "3": 0,
-    "4": 0,
-    "5": 0,
-    "6": 0,
-    "7": 0,
-    "8": 0,
-    "9": 0
-  },
-  "autochicken_limits":{
-    "0": 2,
-    "1": 0,
-    "2": 0,
-    "3": 0,
-    "4": 0,
-    "5": 0,
-    "6": 0,
-    "7": 0,
-    "8": 0,
-    "9": 0
-  },
-  "autozombie_limits":{
-    "0": 2,
-    "1": 0,
-    "2": 0,
-    "3": 0,
-    "4": 0,
-    "5": 0,
-    "6": 0,
-    "7": 0,
-    "8": 0,
-    "9": 0
-  },
-  "trails_enabled":{
+  "rconplus":{
     "0": true,
     "1": false,
     "2": false,
@@ -152,8 +115,74 @@
     "8": false,
     "9": false
   },
-  "prone_enabled":{
-    "0": false,
+  "autobot":{
+    "0": {
+      "managed": false,
+      "amount": 3
+    },
+    "1": {
+      "managed": false,
+      "amount": 0
+    },
+    "2": {
+      "managed": false,
+      "amount": 0
+    },
+    "3": {
+      "managed": true,
+      "amount": 4
+    },
+    "4": {
+      "managed": true,
+      "amount": 20
+    },
+    "5": {
+      "managed": true,
+      "amount": 10
+    },
+    "6": {
+      "managed": true,
+      "amount": 10
+    },
+    "7": {
+      "managed": false,
+      "amount": 0
+    },
+    "8": {
+      "managed": false,
+      "amount": 0
+    },
+    "9": {
+      "managed": false,
+      "amount": 0
+    }
+  },
+  "autochicken":{
+    "0": 3,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "autozombie":{
+    "0": 3,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "trails":{
+    "0": true,
     "1": false,
     "2": false,
     "3": false,
@@ -164,7 +193,31 @@
     "8": false,
     "9": false
   },
-  "hardcore_enabled":{
+  "prone":{
+    "0": true,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false,
+    "8": false,
+    "9": false
+  },
+  "disable_falldamage":{
+    "0": true,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false,
+    "8": false,
+    "9": false
+  },
+  "hardcore":{
     "0": false,
     "1": false,
     "2": false,
