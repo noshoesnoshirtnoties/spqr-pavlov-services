@@ -710,18 +710,21 @@ def run_praefectus(meta,config,srv):
                 leaveuser=leaveuser1[0]
                 logmsg('info','user left the server: '+str(leaveuser).strip())
                 asyncio.run(action_autopin(srv))
+                asyncio.run(action_autobot(srv,'add'))
 
             case 'LogTemp: Rcon: KickPlayer':
                 kickplayer0=line.split('KickPlayer ',2)
                 kickplayer=kickplayer0[1]
                 logmsg('info','player kicked: '+str(kickplayer).strip())
                 asyncio.run(action_autopin(srv))
+                asyncio.run(action_autobot(srv,'add'))
 
             case 'LogTemp: Rcon: BanPlayer':
                 banplayer0=line.split('BanPlayer ',2)
                 banplayer=banplayer0[1]
                 logmsg('info','player banned: '+str(banplayer).strip())
                 asyncio.run(action_autopin(srv))
+                asyncio.run(action_autobot(srv,'add'))
 
 
     def find_keyword_in_line(line,keywords):
