@@ -410,7 +410,7 @@ def run_praefectus(meta,config,srv):
         else: logmsg('debug',fx+' canceled because pinglimit is disabled')
 
 
-    async def action_enablerconplus(srv):
+    async def action_loadrconplus(srv):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
@@ -611,7 +611,7 @@ def run_praefectus(meta,config,srv):
             logmsg('error','str(type(data_serverinfo)).lower(): '+str(type(data_serverinfo)).lower())
 
 
-    async def action_enablehardcore(srv):
+    async def action_loadhardcore(srv):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
         logmsg('debug','srv: '+str(srv))
@@ -632,15 +632,16 @@ def run_praefectus(meta,config,srv):
 
             case 'Server Status Helper':
                 logmsg('info','server is now online')
-                asyncio.run(action_enablerconplus(srv))
-                asyncio.run(action_enableprone(srv))
-                asyncio.run(action_enabletrails(srv))
-                asyncio.run(action_disablefalldamage(srv))
-                asyncio.run(action_enablehardcore(srv))
+                asyncio.run(action_loadrconplus(srv))
+                asyncio.run(action_loadhardcore(srv))
 
             case 'Rotating map': logmsg('info','map rotation called')
 
-            case 'PavlovLog: StartPlay': logmsg('info','map started')
+            case 'PavlovLog: StartPlay':
+                logmsg('info','map started')
+                asyncio.run(action_enableprone(srv))
+                asyncio.run(action_enabletrails(srv))
+                asyncio.run(action_disablefalldamage(srv))
 
             case 'KillData':
                 logmsg('info','a player died...')
