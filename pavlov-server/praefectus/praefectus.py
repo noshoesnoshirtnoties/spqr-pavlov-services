@@ -89,7 +89,7 @@ def run_praefectus(meta,config,srv):
         return data
 
 
-    async def notify_player(steamid64,msg):
+    async def send_notification(steamid64,msg):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
         #logmsg('debug','steamid64: '+str(steamid64))
@@ -381,7 +381,7 @@ def run_praefectus(meta,config,srv):
 
                                 # notify
                                 if notify_player is True:
-                                    await notify_player(steamid64,msg)
+                                    await send_notification(steamid64,msg)
 
                                 # kick
                                 if kick_player is True:
@@ -603,7 +603,7 @@ def run_praefectus(meta,config,srv):
 
                             msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
                             msg+='WELCOME :)\n\n'+str(joinuser)
-                            await notify_player(steamid64,msg)
+                            await send_notification(steamid64,msg)
 
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
