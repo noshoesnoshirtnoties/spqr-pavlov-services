@@ -211,15 +211,17 @@ def run_servuspublicus(meta,config):
                                 si['GameMode']=si['GameMode'].upper() # make sure gamemode is uppercase
 
                                 # demo rec counts as 1 player
-                                numberofplayers0=si['PlayerCount'].split('/',2)
-                                numberofplayers1=numberofplayers0[0]
+                                if si['GameMode']=="SND":
+                                    numberofplayers0=si['PlayerCount'].split('/',2)
+                                    numberofplayers1=numberofplayers0[0]
 
-                                # demo only exists if there is players
-                                if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
-                                else: numberofplayers2=(numberofplayers0[0])
+                                    # demo only exists if there is players
+                                    if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
+                                    else: numberofplayers2=(numberofplayers0[0])
 
-                                maxplayers=numberofplayers0[1]
-                                numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
+                                    maxplayers=numberofplayers0[1]
+                                    numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
+                                else: numberofplayers=si['PlayerCount']
                                 si['PlayerCount']=numberofplayers
 
                                 parts=[
