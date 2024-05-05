@@ -181,20 +181,6 @@ def run_servuspublicus(meta,config):
                             data=await get_serverinfo(i)
                             if data['Successful'] is True:
                                 si=data['ServerInfo']
-                                si['GameMode']=si['GameMode'].upper() # make sure gamemode is uppercase
-
-                                # demo rec counts as 1 player
-                                numberofplayers0=si['PlayerCount'].split('/',2)
-                                numberofplayers1=numberofplayers0[0]
-
-                                # demo only exists if there is players
-                                if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
-                                else: numberofplayers2=(numberofplayers0[0])
-
-                                maxplayers=numberofplayers0[1]
-                                numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
-                                si['PlayerCount']=numberofplayers
-
                                 parts.append('(#'+str(i)+') '+str(si['ServerName']))
                                 parts.append(str(si['MapLabel'])+' '+str(si['GameMode']))
                                 parts.append('PlayerCount: '+str(si['PlayerCount'])+'\n')
@@ -208,22 +194,6 @@ def run_servuspublicus(meta,config):
                             data=await get_serverinfo(ums2[1])
                             if data['Successful'] is True:
                                 si=data['ServerInfo']
-                                si['GameMode']=si['GameMode'].upper() # make sure gamemode is uppercase
-
-                                # demo rec counts as 1 player
-                                if si['GameMode']=="SND":
-                                    numberofplayers0=si['PlayerCount'].split('/',2)
-                                    numberofplayers1=numberofplayers0[0]
-
-                                    # demo only exists if there is players
-                                    if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
-                                    else: numberofplayers2=(numberofplayers0[0])
-
-                                    maxplayers=numberofplayers0[1]
-                                    numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
-                                else: numberofplayers=si['PlayerCount']
-                                si['PlayerCount']=numberofplayers
-
                                 parts=[
                                     command+': successful\n',
                                     'ServerName: '+str(si['ServerName']),
