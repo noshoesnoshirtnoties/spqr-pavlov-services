@@ -714,10 +714,10 @@ def run_servuspublicus(meta,config):
                                     rconparams[str(j)]=part
                                     j+=1
                                 i+=1
-                            data=await rcon(rconcommand,rconparams,rconsrv)
-                            if type(data)=='tuple':
-                                if data['Successful'] is True: response=command+' response: '+str(data)
-                            else: response=command+' executed, but rconplus does not answer if calls worked or not...'
+                            try:
+                                data=await rcon(rconcommand,rconparams,rconsrv)
+                                response=command+' response: '+str(data)
+                            except Exception as e: logmsg('debug',str(e))
                         else: # missing parameters
                             logmsg('warn',command+' is missing parameter(s)')
                             response=command+' is missing parameter(s) - rtfm :P'
