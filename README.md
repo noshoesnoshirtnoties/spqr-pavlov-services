@@ -111,6 +111,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 * pavlov-server
   * logrotate
 * praefectus
+  * check for updated log messages
   * logrotate
   * keep rcon connection
   * welcome players via notify
