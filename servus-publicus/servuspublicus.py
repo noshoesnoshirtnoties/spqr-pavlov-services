@@ -192,18 +192,35 @@ def run_servuspublicus(meta,config):
                         if len(ums2)>1:
                             data=await get_serverinfo(ums2[1])
                             if data['Successful'] is True:
+                                si=data['ServerInfo']
+                                si['GameMode']=si['GameMode'].upper() # make sure gamemode is uppercase
+
+                                # demo rec counts as 1 player in SND
+                                if si['GameMode']=="SND":
+                                    numberofplayers0=si['PlayerCount'].split('/',2)
+                                    numberofplayers1=numberofplayers0[0]
+
+                                    # demo only exists if there is players
+                                    if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
+                                    else: numberofplayers2=(numberofplayers0[0])
+
+                                    maxplayers=numberofplayers0[1]
+                                    numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
+                                else: numberofplayers=si['PlayerCount']
+                                si['PlayerCount']=numberofplayers
+
                                 parts=[
                                     command+': successful\n',
-                                    'ServerName: '+str(data['ServerInfo']['ServerName']),
-                                    'PlayerCount: '+str(data['ServerInfo']['PlayerCount']),
-                                    'MapLabel: '+str(data['ServerInfo']['MapLabel']),
-                                    'GameMode: '+str(data['ServerInfo']['GameMode']),
-                                    'RoundState: '+str(data['ServerInfo']['RoundState']),
-                                    'Teams: '+str(data['ServerInfo']['Teams']),
-                                    'Team0Score: '+str(data['ServerInfo']['Team0Score']),
-                                    'Team1Score: '+str(data['ServerInfo']['Team1Score']),
-                                    'MatchEnded: '+str(data['ServerInfo']['MatchEnded']),
-                                    'WinningTeam: '+str(data['ServerInfo']['WinningTeam'])]
+                                    'ServerName: '+str(si['ServerName']),
+                                    'PlayerCount: '+str(si['PlayerCount']),
+                                    'MapLabel: '+str(si['MapLabel']),
+                                    'GameMode: '+str(si['GameMode']),
+                                    'RoundState: '+str(si['RoundState']),
+                                    'Teams: '+str(si['Teams']),
+                                    'Team0Score: '+str(si['Team0Score']),
+                                    'Team1Score: '+str(si['Team1Score']),
+                                    'MatchEnded: '+str(si['MatchEnded']),
+                                    'WinningTeam: '+str(si['WinningTeam'])]
                                 for part in parts: response=response+'\n'+part
                             else: response=command+' failed - something went wrong'
                         else: response=command+' is missing parameters'
