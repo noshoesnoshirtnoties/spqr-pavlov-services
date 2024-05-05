@@ -93,8 +93,8 @@ def run_praefectus(meta,config,srv):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
 
+        data_serverinfo=await rcon('ServerInfo',{})
         try:
-            data_serverinfo=await rcon('ServerInfo',{})
             if data_serverinfo['Successful'] is True:
                 si=data_serverinfo['ServerInfo']
                 si['GameMode']=si['GameMode'].upper() # make sure gamemode is uppercase
@@ -128,8 +128,10 @@ def run_praefectus(meta,config,srv):
                     si['Team1Score']=0    
                 data_serverinfo['ServerInfo']=si
             return data_serverinfo
+
         except Exception as e:
             logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            logmsg('error','data_serverinfo: '+str(data_serverinfo))
             return data_serverinfo
 
 
@@ -137,31 +139,33 @@ def run_praefectus(meta,config,srv):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
         
+        data_serverinfo=await get_serverinfo()
         try:
-            data_serverinfo=await get_serverinfo()
             if data_serverinfo['Successful'] is True:
                 if str(data_serverinfo['ServerInfo']['MapLabel']).lower()=='datacenter' and \
                     str(data_serverinfo['ServerInfo']['GameMode']).upper()=='CUSTOM':
 
+                    data_rotatemap=await rcon('RotateMap',{})
                     try:
-                        data_rotatemap=await rcon('RotateMap',{})
                         if data_rotatemap['Successful'] is True: logmsg('debug',fx+' RotateMap successful')
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
+                        logmsg('error','data_rotatemap: '+str(data_rotatemap))
                 else:
                     logmsg('debug','this didnt work')
                     logmsg('debug','maplabel: '+str(data_serverinfo['ServerInfo']['MapLabel']).lower())
                     logmsg('debug','gamemode: '+str(data_serverinfo['ServerInfo']['GameMode']).upper())
         except Exception as e:
             logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            logmsg('error','data_serverinfo: '+str(data_serverinfo))
 
 
     async def log_serverinfo():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
 
+        data_serverinfo=await get_serverinfo()
         try:
-            data_serverinfo=await get_serverinfo()
             if data_serverinfo['Successful'] is True:
                 logmsg('info','srvname:     '+str(data_serverinfo['ServerInfo']['ServerName']))
                 logmsg('info','playercount: '+str(data_serverinfo['ServerInfo']['PlayerCount']))
@@ -174,14 +178,15 @@ def run_praefectus(meta,config,srv):
                     logmsg('info','team1score:  '+str(data_serverinfo['ServerInfo']['Team1Score']))
         except Exception as e:
             logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            logmsg('error','data_serverinfo: '+str(data_serverinfo))
 
 
     async def pullstats():
         fx=inspect.stack()[0][3]
         logmsg('debug','pullstats called')
 
+        data_serverinfo=await get_serverinfo()
         try:
-            data_serverinfo=await get_serverinfo()
 
             # drop maxplayers from playercount
             numberofplayers0=data_serverinfo['ServerInfo']['PlayerCount'].split('/',2)
@@ -194,9 +199,9 @@ def run_praefectus(meta,config,srv):
                     logmsg('debug','actually pulling stats now')
 
                     # pull scoreboard
+                    data_inspectall=await rcon('InspectAll',{})
                     try:
-                        data_serverinfo=await rcon('InspectAll',{})
-                        for player in data_serverinfo['InspectList']:
+                        for player in data_inspectall['InspectList']:
                             kda=player['KDA'].split('/',3)
                             kills=kda[0]
                             deaths=kda[1]
@@ -255,11 +260,13 @@ def run_praefectus(meta,config,srv):
                             dbquery(query,values)
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
+                        logmsg('error','data_inspectall: '+str(data_serverinfo))
                     logmsg('info','processed all current players')
                 else: logmsg('info','not pulling stats because gamemode is not SND')
             else: logmsg('debug','not pulling stats because matchend is not True')
         except Exception as e:
             logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            logmsg('error','data_serverinfo: '+str(data_serverinfo))
 
 
     async def autopin():
@@ -267,8 +274,8 @@ def run_praefectus(meta,config,srv):
         logmsg('debug',fx+' called')
 
         if config['autopin_limits'][srv]!=0:
+            data_serverinfo=await get_serverinfo()
             try:
-                data_serverinfo=await get_serverinfo()
                 if data_serverinfo['Successful'] is True:
                     roundstate=data_serverinfo['ServerInfo']['RoundState']
                     if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
@@ -276,21 +283,24 @@ def run_praefectus(meta,config,srv):
                         playercount_split=data_serverinfo['ServerInfo']['PlayerCount'].split('/',2)
                         if (int(playercount_split[0]))>=limit:
                             logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin']))
+                            data_setpin=await rcon('SetPin',{'0':config['autopin']})
                             try:
-                                data_setpin=await rcon('SetPin',{'0':config['autopin']})
                                 if data_setpin['Successful'] is True: logmsg('debug','pin has been set')
                             except Exception as e:
                                 logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
+                                logmsg('error','data_setpin: '+str(data_setpin))
                         else:
                             logmsg('debug','below limit ('+str(limit)+') - removing pin')
+                            data_setpin=await rcon('SetPin',{'0':' '})
                             try:
-                                data_setpin=await rcon('SetPin',{'0':' '})
                                 if data_setpin['Successful'] is True: logmsg('debug','pin has been emptied')
                             except Exception as e:
                                 logmsg('error','EXCEPTION[2] in '+fx+': '+str(e))
+                                logmsg('error','data_setpin: '+str(data_setpin))
                     else: logmsg('warn',fx+' canceled because of roundstate '+str(roundstate))
             except Exception as e:
                 logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                logmsg('error','data_serverinfo: '+str(data_serverinfo))
         else: logmsg('warn',fx+' canceled because autopin is disabled')
 
 
@@ -299,12 +309,12 @@ def run_praefectus(meta,config,srv):
         logmsg('debug','pinglimit called')
 
         if config['pinglimit'][srv]['enabled'] is True:
+            data_serverinfo=await get_serverinfo()
             try:
-                data_serverinfo=await get_serverinfo()
                 roundstate=data_serverinfo['ServerInfo']['RoundState']
                 if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
+                    data_inspectall=await rcon('InspectAll',{})
                     try:
-                        data_inspectall=await rcon('InspectAll',{})
                         for player in data_inspectall['InspectList']:
                             steamid64=player['UniqueId']
                             current_ping=player['Ping']
@@ -318,7 +328,7 @@ def run_praefectus(meta,config,srv):
                                 logmsg('warn','ping is >500 - simply gonna ignore this for now')
                             else:
                                 logmsg('debug','adding entry in pings db for player: '+str(steamid64))
-                                timestamp=datetime.now(timezone.utc)            
+                                timestamp=datetime.now(timezone.utc)
                                 query="INSERT INTO pings ("
                                 query+="steamid64,ping,timestamp"
                                 query+=") VALUES (%s,%s,%s)"
@@ -355,21 +365,21 @@ def run_praefectus(meta,config,srv):
                                 if delta>limit_delta:
                                     logmsg('warn','ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
                                     msg='ping delta warning :('
-                                    notify_player=True
+                                    #notify_player=True
                                 else: logmsg('debug','ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
 
                                 # check avg ping against soft limit
                                 if avg>limit_soft:
                                     logmsg('warn','ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
                                     msg='ping exceeds soft limit ('+str(limit_soft)+') :('
-                                    notify_player=True
+                                    #notify_player=True
                                 else: logmsg('debug','ping avg ('+str(avg)+') is within soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
 
                                 # check avg ping against hard limit
                                 if avg>limit_hard:
                                     logmsg('warn','ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
                                     msg='ping exceeds hard limit ('+str(limit_hard)+') :('
-                                    notify_player=True
+                                    #notify_player=True
                                     if config['pinglimit'][srv]['kick'] is True:
                                         logmsg('warn','player will be kicked: '+str(steamid64))
                                         msg+='\nauto-kick is enabled'
@@ -379,7 +389,7 @@ def run_praefectus(meta,config,srv):
 
                                 # notify
                                 if notify_player is True:
-                                    await rcon('Notify',{'0':str(steamid64),'1':msg.lower()},True)
+                                    await rcon('Notify',{'0':str(steamid64),'1':msg},True)
                                     logmsg('info','player '+steamid64+' has been notified by '+str(fx))
 
                                 # kick
@@ -399,12 +409,11 @@ def run_praefectus(meta,config,srv):
 
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
-
+                        logmsg('error','data_inspectall: '+str(data_inspectall))
                 else: logmsg('warn',fx+' canceled because of roundstate '+str(roundstate))
-
             except Exception as e:
                 logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
-
+                logmsg('error','data_serverinfo: '+str(data_serverinfo))
         else: logmsg('debug',fx+' canceled because pinglimit is disabled')
 
 
@@ -413,11 +422,12 @@ def run_praefectus(meta,config,srv):
         logmsg('debug',fx+' called')
 
         if config['rconplus'][srv] is True:
+            data_addmod=await rcon('UGCAddMod',{'0':'UGC3462586'})
             try:
-                data_addmod=await rcon('UGCAddMod',{'0':'UGC3462586'})
                 if data_addmod['Successful'] is True: logmsg('info','rconplus has been enabled')
             except Exception as e:
                 logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                logmsg('error','data_addmod: '+str(data_addmod))
         else: logmsg('info',fx+' canceled because rconplus is disabled')
 
 
@@ -474,8 +484,8 @@ def run_praefectus(meta,config,srv):
         if config['rconplus'][srv] is True:
             amount=int(config['autobot'][srv]['amount'])
             if amount!=0:
+                data_serverinfo=await get_serverinfo()
                 try:
-                    data_serverinfo=await get_serverinfo()
                     gamemode=data_serverinfo['ServerInfo']['GameMode'].upper()
                     roundstate=data_serverinfo['ServerInfo']['RoundState']
 
@@ -517,6 +527,7 @@ def run_praefectus(meta,config,srv):
                     else: logmsg('info',fx+' canceled because of datacenter custom init workaround')
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                    logmsg('error','data_serverinfo: '+str(data_serverinfo))
             else: logmsg('info',fx+' canceled because bots are disabled')
         else: logmsg('info',fx+' canceled because rconplus is disabled')
 
@@ -528,8 +539,8 @@ def run_praefectus(meta,config,srv):
         if config['rconplus'][srv] is True:
             amount=int(config['autochicken'][srv])
             if amount!=0:
+                data_serverinfo=await get_serverinfo()
                 try:
-                    data_serverinfo=await get_serverinfo()
                     if not (str(data_serverinfo['ServerInfo']['MapLabel']).lower()=='datacenter' and \
                         str(data_serverinfo['ServerInfo']['GameMode']).upper()=='CUSTOM'):
 
@@ -538,6 +549,7 @@ def run_praefectus(meta,config,srv):
                     else: logmsg('info',fx+' canceled because of datacenter custom init workaround')
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                    logmsg('error','data_serverinfo: '+str(data_serverinfo))
             else: logmsg('info',fx+' canceled because chickens are disabled')
         else: logmsg('info',fx+' canceled because rconplus is disabled')
 
@@ -549,8 +561,8 @@ def run_praefectus(meta,config,srv):
         if config['rconplus'][srv] is True:
             amount=int(config['autozombie'][srv])
             if amount!=0:
+                data_serverinfo=await get_serverinfo()
                 try:
-                    data_serverinfo=await get_serverinfo()
                     if not (str(data_serverinfo['ServerInfo']['MapLabel']).lower()=='datacenter' and \
                         str(data_serverinfo['ServerInfo']['GameMode']).upper()=='CUSTOM'):
 
@@ -559,6 +571,7 @@ def run_praefectus(meta,config,srv):
                     else: logmsg('info',fx+' canceled because of datacenter custom init workaround')
                 except Exception as e:
                     logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                    logmsg('error','data_serverinfo: '+str(data_serverinfo))
             else: logmsg('info',fx+' canceled because rconplus is disabled')
         else: logmsg('info',fx+' canceled because rconplus is disabled')
 
@@ -568,36 +581,42 @@ def run_praefectus(meta,config,srv):
         logmsg('debug',fx+' called')
         logmsg('debug','joinuser: '+str(joinuser))
 
+        data_serverinfo=await get_serverinfo()
         try:
-            data_serverinfo=await get_serverinfo()
             roundstate=data_serverinfo['ServerInfo']['RoundState']
             if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
                 if config['rconplus'][srv] is True:
+                    data_inspectall=await rcon('InspectAll',{})
                     try:
-                        data_inspectall=await rcon('InspectAll',{})
                         for player in data_inspectall['InspectList']:
                             steamid64=player['UniqueId']
 
                             if joinuser==player['PlayerName']:
                                 data_modlist=await rcon('ModeratorList',{})
-                                for mod in data_modlist['ModeratorList']:
-                                    if str(steamid64)==str(mod['ModeratorList']):
-                                        await rcon('GiveMenu',{'0':steamid64},True)
-                                        logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
-                                    else:
-                                        logmsg('info','newly joined user is not found in modlist')
+                                try:
+                                    for mod in data_modlist['ModeratorList']:
+                                        mod0=mod.split('#',2)
+                                        mod1=mod0[0].strip()
+                                        if str(steamid64)==str(mod1):
+                                            await rcon('GiveMenu',{'0':steamid64},True)
+                                            logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
 
-                                msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
-                                msg+='WELCOME :)\n\n'+str(joinuser)
-                                await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                logmsg('info','player '+steamid64+' has been notified')
+                                    msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
+                                    msg+='WELCOME, '+str(joinuser)+' :)'
+                                    await rcon('Notify',{'0':str(steamid64),'1':msg},True)
+                                    logmsg('info','player '+steamid64+' has been notified')
 
+                                except Exception as e:
+                                    logmsg('error','EXCEPTION[2] in '+fx+': '+str(e))
+                                    logmsg('error','data_modlist: '+str(data_modlist))
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
+                        logmsg('error','data_inspectall: '+str(data_inspectall))
                 else: logmsg('info',fx+' canceled because rconplus is disabled')
             else: logmsg('warn',fx+' canceled because roundstate is '+str(roundstate))
         except Exception as e:
             logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            logmsg('error','data_serverinfo: '+str(data_serverinfo))
 
 
     async def load_hardcore():
@@ -605,11 +624,12 @@ def run_praefectus(meta,config,srv):
         logmsg('debug',fx+' called')
 
         if config['hardcore'][srv] is True:
+            data_addmod=await rcon('UGCAddMod',{'0':'UGC3951330'})
             try:
-                data_addmod=await rcon('UGCAddMod',{'0':'UGC3951330'})
                 if data_addmod['Successful'] is True: logmsg('info','hardcore has been enabled')
             except Exception as e:
                 logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                logmsg('error','data_addmod: '+str(data_addmod))
         else: logmsg('info',fx+' canceled because hardcore is disabled')
 
 
