@@ -89,21 +89,6 @@ def run_praefectus(meta,config,srv):
         return data
 
 
-    async def send_notification(steamid64,msg):
-        fx=inspect.stack()[0][3]
-        logmsg('debug',fx+' called')
-        #logmsg('debug','steamid64: '+str(steamid64))
-        #logmsg('debug','msg: '+str(msg))
-
-        if config['rconplus'][srv] is True:
-            try:
-                await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                logmsg('info','player '+steamid64+' has been notified')
-            except Exception as e:
-                logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
-        else: logmsg('info',fx+' canceled because rconplus is disabled')
-
-
     async def get_serverinfo():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
@@ -321,11 +306,24 @@ def run_praefectus(meta,config,srv):
                     try:
                         data_inspectall=await rcon('InspectAll',{})
                         for player in data_inspectall['InspectList']:
+                            steamid64=player['UniqueId']
+                            current_ping=player['Ping']
                             notify_player=False
                             kick_player=False
 
-                            steamid64=player['UniqueId']
-                            current_ping=player['Ping']
+                            # add the current sample for the current player...
+                            if int(current_ping)==0:
+                                logmsg('warn','ping is 0 - simply gonna ignore this for now')
+                            elif int(current_ping)>500:
+                                logmsg('warn','ping is >500 - simply gonna ignore this for now')
+                            else:
+                                logmsg('debug','adding entry in pings db for player: '+str(steamid64))
+                                timestamp=datetime.now(timezone.utc)            
+                                query="INSERT INTO pings ("
+                                query+="steamid64,ping,timestamp"
+                                query+=") VALUES (%s,%s,%s)"
+                                values=[steamid64,current_ping,timestamp]
+                                dbquery(query,values)
 
                             # get averages for current player
                             query="SELECT steamid64,ping,"
@@ -356,37 +354,43 @@ def run_praefectus(meta,config,srv):
                                 # check delta
                                 if delta>limit_delta:
                                     logmsg('warn','ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
-                                    msg='CONNECTION UNSTABLE\n\nDELTA '+str(delta)+' EXCEEDS DELTA LIMIT '+str(limit_delta)+' :('
+                                    msg='CONN UNSTABLE\n\nDELTA '+str(delta)+' EXCEEDS LIMIT '+str(limit_delta)
+                                    #msg='ping delta warning :('
                                     notify_player=True
                                 else: logmsg('debug','ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
 
                                 # check avg ping against soft limit
                                 if avg>limit_soft:
                                     logmsg('warn','ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
-                                    msg='PING AVG '+str(avg)+' EXCEEDS SOFT LIMIT '+str(limit_soft)+' :('
+                                    msg='PING AVG '+str(avg)+' EXCEEDS SOFT LIMIT '+str(limit_soft)
+                                    #msg='ping exceeds soft limit :('
                                     notify_player=True
                                 else: logmsg('debug','ping avg ('+str(avg)+') is within soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
 
                                 # check avg ping against hard limit
                                 if avg>limit_hard:
                                     logmsg('warn','ping avg (AVG: '+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
-                                    msg='PING AVG '+str(avg)+' EXCEEDS HARD LIMIT '+str(limit_hard)+' :('
+                                    msg='PING AVG '+str(avg)+' EXCEEDS HARD LIMIT '+str(limit_hard)
+                                    #msg='ping exceeds hard limit :('
                                     notify_player=True
                                     if config['pinglimit'][srv]['kick'] is True:
                                         logmsg('warn','player will be kicked: '+str(steamid64))
-                                        msg='PING AVG '+str(avg)+' EXCEEDS HARD LIMIT '+str(limit_hard)+' :(\n\nYOU WILL BE KICKED AUTOMATICALLY...'
+                                        msg='PING AVG '+str(avg)+' EXCEEDS HARD LIMIT '+str(limit_hard)+' - YOU WILL BE KICKED AUTOMATICALLY...'
+                                        #msg='ping exceeds hard limit :(\n'
+                                        #msg+='auto-kick is active'
                                         kick_player=True
                                     else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by '+str(fx)+', but kick is disabled')
                                 else: logmsg('debug','ping avg ('+str(avg)+') is within hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
 
                                 # notify
                                 if notify_player is True:
-                                    await send_notification(steamid64,msg)
+                                    await rcon('Notify',{'0':str(steamid64),'1':msg.lower()},True)
+                                    logmsg('info','player '+steamid64+' has been notified')
 
                                 # kick
                                 if kick_player is True:
                                     time.sleep(2)
-                                    await rcon('Kick',{'0':steamid64})
+                                    await rcon('Kick',{'0':str(steamid64)})
                                     logmsg('warn','player ('+str(steamid64)+') has been kicked by '+str(fx))
 
                                 # delete accumulated entries, but keep some recent ones
@@ -397,22 +401,6 @@ def run_praefectus(meta,config,srv):
                                 values.append(cnt_ping - int(config['pinglimit']['keepentries']))
                                 dbquery(query,values)
                             else: logmsg('debug','not enough data on pings yet')
-
-                            # add the current sample for the current player...
-                            if int(current_ping)==0: # not sure yet what these are
-                                logmsg('warn','ping is 0 - simply gonna ignore this for now')
-                            elif int(current_ping)>1000:
-                                logmsg('warn','ping is >1000 - simply gonna ignore this for now')
-                            elif int(current_ping)>600:
-                                logmsg('warn','ping is >600 - simply gonna ignore this for now')
-                            else:
-                                logmsg('debug','adding entry in pings db for player: '+str(steamid64))
-                                timestamp=datetime.now(timezone.utc)            
-                                query="INSERT INTO pings ("
-                                query+="steamid64,ping,timestamp"
-                                query+=") VALUES (%s,%s,%s)"
-                                values=[steamid64,current_ping,timestamp]
-                                dbquery(query,values)
 
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
@@ -603,7 +591,8 @@ def run_praefectus(meta,config,srv):
 
                             msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
                             msg+='WELCOME :)\n\n'+str(joinuser)
-                            await send_notification(steamid64,msg)
+                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
+                            logmsg('info','player '+steamid64+' has been notified')
 
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
