@@ -587,10 +587,10 @@ def run_praefectus(meta,config,srv):
                                     else:
                                         logmsg('info','newly joined user is not found in modlist')
 
-                            msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
-                            msg+='WELCOME :)\n\n'+str(joinuser)
-                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                            logmsg('info','player '+steamid64+' has been notified')
+                                msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
+                                msg+='WELCOME :)\n\n'+str(joinuser)
+                                await rcon('Notify',{'0':str(steamid64),'1':msg},True)
+                                logmsg('info','player '+steamid64+' has been notified')
 
                     except Exception as e:
                         logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
