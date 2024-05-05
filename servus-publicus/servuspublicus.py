@@ -725,7 +725,7 @@ def run_servuspublicus(meta,config):
                     case _ : log_this=False
 
                 if log_this:
-                    logmsg('info','[servus-publicus] '+str(command)+' called by '+str(message.author.name)+' ('+str(message.author.id)+')')
+                    logmsg('info',str(command)+' called by '+str(message.author.name)+' ('+str(message.author.id)+')')
                     await log_discord('[servus-publicus] '+str(command)+' called by '+str(message.author.name)+' ('+str(message.author.id)+')')
 
             else: # access denied
