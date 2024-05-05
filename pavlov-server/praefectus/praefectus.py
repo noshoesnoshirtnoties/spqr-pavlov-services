@@ -354,30 +354,25 @@ def run_praefectus(meta,config,srv):
                                 # check delta
                                 if delta>limit_delta:
                                     logmsg('warn','ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
-                                    msg='CONN UNSTABLE\n\nDELTA '+str(delta)+' EXCEEDS LIMIT '+str(limit_delta)
-                                    #msg='ping delta warning :('
+                                    msg='ping delta warning :('
                                     notify_player=True
                                 else: logmsg('debug','ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
 
                                 # check avg ping against soft limit
                                 if avg>limit_soft:
                                     logmsg('warn','ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
-                                    msg='PING AVG '+str(avg)+' EXCEEDS SOFT LIMIT '+str(limit_soft)
-                                    #msg='ping exceeds soft limit :('
+                                    msg='ping exceeds soft limit ('+str(limit_soft)+') :('
                                     notify_player=True
                                 else: logmsg('debug','ping avg ('+str(avg)+') is within soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
 
                                 # check avg ping against hard limit
                                 if avg>limit_hard:
-                                    logmsg('warn','ping avg (AVG: '+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
-                                    msg='PING AVG '+str(avg)+' EXCEEDS HARD LIMIT '+str(limit_hard)
-                                    #msg='ping exceeds hard limit :('
+                                    logmsg('warn','ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
+                                    msg='ping exceeds hard limit ('+str(limit_hard)+') :('
                                     notify_player=True
                                     if config['pinglimit'][srv]['kick'] is True:
                                         logmsg('warn','player will be kicked: '+str(steamid64))
-                                        msg='PING AVG '+str(avg)+' EXCEEDS HARD LIMIT '+str(limit_hard)+' - YOU WILL BE KICKED AUTOMATICALLY...'
-                                        #msg='ping exceeds hard limit :(\n'
-                                        #msg+='auto-kick is active'
+                                        msg+='\nauto-kick is enabled'
                                         kick_player=True
                                     else: logmsg('warn','player ('+str(steamid64)+') would have been kicked by '+str(fx)+', but kick is disabled')
                                 else: logmsg('debug','ping avg ('+str(avg)+') is within hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
@@ -385,7 +380,7 @@ def run_praefectus(meta,config,srv):
                                 # notify
                                 if notify_player is True:
                                     await rcon('Notify',{'0':str(steamid64),'1':msg.lower()},True)
-                                    logmsg('info','player '+steamid64+' has been notified')
+                                    logmsg('info','player '+steamid64+' has been notified by '+str(fx))
 
                                 # kick
                                 if kick_player is True:
@@ -585,9 +580,12 @@ def run_praefectus(meta,config,srv):
 
                             if joinuser==player['PlayerName']:
                                 data_modlist=await rcon('ModeratorList',{})
-                                if steamid64 in data_modlist['ModeratorList']:
-                                    await rcon('GiveMenu',{'0':steamid64},True)
-                                    logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
+                                for mod in data_modlist['ModeratorList']:
+                                    if str(steamid64)==str(mod['ModeratorList']):
+                                        await rcon('GiveMenu',{'0':steamid64},True)
+                                        logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
+                                    else:
+                                        logmsg('info','newly joined user is not found in modlist')
 
                             msg=str(data_serverinfo['ServerInfo']['ServerName'])+'\n\n'
                             msg+='WELCOME :)\n\n'+str(joinuser)
