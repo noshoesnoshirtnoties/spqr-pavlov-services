@@ -211,7 +211,7 @@ if __name__ == '__main__':
         i=0
         while i<=config['pinglimit']['minentries']:
             asyncio.run(pinglimit())
-            time.sleep(1)
+            time.sleep(2)
             i+=1
     except Exception as e:
         print('[EXCEPTION]: '+str(e))

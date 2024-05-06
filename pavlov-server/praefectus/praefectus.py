@@ -497,38 +497,6 @@ def run_praefectus(meta,config,srv):
                                             await rcon('GiveMenu',{'0':steamid64},True)
                                             logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
 
-                                            time.sleep(1)
-                                            msg='\nautopin limit: '+str(config['autopin_limits'][srv])
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            logmsg('info','admin '+steamid64+' has been notified about autopin')
-
-                                            time.sleep(1)
-                                            msg='\npinglimit hard: '+str(config['pinglimit'][srv]['hard'])
-                                            msg+='\npinglimit soft: '+str(config['pinglimit'][srv]['soft'])
-                                            msg+='\npinglimit delta: '+str(config['pinglimit'][srv]['delta'])
-                                            msg+='\npinglimit kick: '+str(config['pinglimit'][srv]['kick'])
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            logmsg('info','admin '+steamid64+' has been notified about pinglimit')
-
-                                            time.sleep(1)
-                                            msg='\nrconplus: '+str(config['rconplus'][srv])
-                                            msg+='\nprone: '+str(config['prone'][srv])
-                                            msg+='\ntrails: '+str(config['trails'][srv])
-                                            msg+='\nnofalldmg: '+str(config['nofalldmg'][srv])
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            logmsg('info','admin '+steamid64+' has been notified about rconplus')
-
-                                            time.sleep(1)
-                                            msg='\nbots amount: '+str(config['autobot'][srv]['amount'])
-                                            msg+='\nbots managed: '+str(config['autobot'][srv]['managed'])
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            logmsg('info','admin '+steamid64+' has been notified about bots')
-
-                                            time.sleep(1)
-                                            msg='\nhardcore: '+str(config['hardcore'][srv])
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            logmsg('info','admin '+steamid64+' has been notified about hardcore')
-
                                 except Exception as e:
                                     logmsg('error','EXCEPTION[2] in '+fx+': '+str(e))
                                     logmsg('error','modlist: '+str(modlist))
