@@ -16,95 +16,85 @@
     "bot_token":"supersecurediscordbottoken"
   },
   "target_log":"/opt/pavlov-server/praefectus/logs/Pavlov.log",
-  "autopin":"9678",
+  "autopin":"1234",
   "autopin_limits":{
     "0": 0,
     "1": 0,
-    "2": 9,
-    "3": 5,
-    "4": 30,
-    "5": 22,
-    "6": 22,
-    "7": 30,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
     "8": 0,
     "9": 0
   },
   "pinglimit":{
-    "minentries":50,
-    "keepentries":4,
+    "minentries":30,
+    "keepentries":2,
     "0": {
-      "enabled":true,
-      "kick":false,
-      "hard":300,
-      "soft":250,
-      "delta":25
-    },
-    "1":{
-      "enabled":true,
       "kick":true,
-      "hard":80,
-      "soft":70,
+      "hard":70,
+      "soft":60,
       "delta":15
     },
-    "2": {
-      "enabled":true,
+    "1":{
       "kick":false,
       "hard":100,
-      "soft":75,
+      "soft":80,
       "delta":20
+    },
+    "2": {
+      "kick":false,
+      "hard":300,
+      "soft":250,
+      "delta":30
     },
     "3": {
-      "enabled":true,
       "kick":false,
-      "hard":100,
-      "soft":75,
-      "delta":20
+      "hard":300,
+      "soft":250,
+      "delta":30
     },
     "4": {
-      "enabled":true,
       "kick":false,
       "hard":300,
       "soft":250,
-      "delta":25
+      "delta":30
     },
     "5": {
-      "enabled":true,
       "kick":false,
       "hard":300,
       "soft":250,
-      "delta":25
+      "delta":30
     },
     "6": {
-      "enabled":true,
       "kick":false,
       "hard":300,
       "soft":250,
-      "delta":25
+      "delta":30
     },
     "7": {
-      "enabled":false,
       "kick":false,
       "hard":300,
       "soft":250,
-      "delta":25
+      "delta":30
     },
     "8": {
-      "enabled":false,
       "kick":false,
       "hard":300,
       "soft":250,
-      "delta":25
+      "delta":30
     },
     "9": {
-      "enabled":false,
       "kick":false,
       "hard":300,
       "soft":250,
-      "delta":25
+      "delta":30
     }
   },
   "rconplus":{
-    "0": true,
+    "0": false,
     "1": false,
     "2": false,
     "3": false,
@@ -118,7 +108,7 @@
   "autobot":{
     "0": {
       "managed": false,
-      "amount": 3
+      "amount": 0
     },
     "1": {
       "managed": false,
@@ -129,28 +119,28 @@
       "amount": 0
     },
     "3": {
-      "managed": true,
-      "amount": 4
+      "managed": false,
+      "amount": 0
     },
     "4": {
-      "managed": true,
-      "amount": 20
+      "managed": false,
+      "amount": 0
     },
     "5": {
-      "managed": true,
-      "amount": 10
+      "managed": false,
+      "amount": 0
     },
     "6": {
-      "managed": true,
-      "amount": 10
+      "managed": false,
+      "amount": 0
     },
     "7": {
       "managed": false,
       "amount": 0
     },
     "8": {
-      "managed": false,
-      "amount": 0
+      "managed": true,
+      "amount": 16
     },
     "9": {
       "managed": false,
@@ -158,7 +148,7 @@
     }
   },
   "autochicken":{
-    "0": 3,
+    "0": 0,
     "1": 0,
     "2": 0,
     "3": 0,
@@ -170,7 +160,7 @@
     "9": 0
   },
   "autozombie":{
-    "0": 3,
+    "0": 0,
     "1": 0,
     "2": 0,
     "3": 0,
@@ -182,7 +172,7 @@
     "9": 0
   },
   "trails":{
-    "0": true,
+    "0": false,
     "1": false,
     "2": false,
     "3": false,
@@ -194,7 +184,7 @@
     "9": false
   },
   "prone":{
-    "0": true,
+    "0": false,
     "1": false,
     "2": false,
     "3": false,
@@ -205,8 +195,8 @@
     "8": false,
     "9": false
   },
-  "disable_falldamage":{
-    "0": true,
+  "nofalldmg":{
+    "0": false,
     "1": false,
     "2": false,
     "3": false,
