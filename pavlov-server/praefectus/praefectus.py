@@ -67,6 +67,7 @@ def run_praefectus(meta,config,srv):
         #logmsg('debug','rconparams: '+str(rconparams))
         #logmsg('debug','is_rconplus: '+str(is_rconplus))
 
+        time.sleep(1)
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         i=0
@@ -146,6 +147,7 @@ def run_praefectus(meta,config,srv):
                 if str(si['MapLabel']).lower()=='datacenter' and \
                     str(si['GameMode']).upper()=='CUSTOM':
 
+                    time.sleep(10)
                     rotatemap=await rcon('RotateMap',{})
                     try:
                         if rotatemap['Successful'] is True: logmsg('debug',fx+' RotateMap successful')
@@ -379,6 +381,7 @@ def run_praefectus(meta,config,srv):
 
                         if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
                             if gamemode!="SND":
+
                                 if mode=="init":
                                     if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
                                         await rcon('AddBot',{'0':str(amount//2),'1':'RedTeam'},True)
@@ -388,24 +391,36 @@ def run_praefectus(meta,config,srv):
                                     else:
                                         await rcon('AddBot',{'0':str(amount)},True)
                                         logmsg('info',fx+' probably added '+str(amount)+' bot(s)')
+
                                 else:
                                     if config['autobot'][srv]['managed'] is True:
+
                                         if mode=="add":
                                             if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
-                                                rnd_team=random.randint(0,1)
-                                                await rcon('AddBot',{'0':'1','1':str(rnd_team)},True)
-                                                logmsg('info',fx+' probably added 1 bot to team '+str(rnd_team))
+                                                #rnd_team=random.randint(0,1)
+                                                #await rcon('AddBot',{'0':'1','1':str(rnd_team)},True)
+                                                #logmsg('info',fx+' probably added 1 bot to team '+str(rnd_team))
+                                                await rcon('AddBot',{'0':'1','1':'RedTeam'},True)
+                                                logmsg('info',fx+' probably added 1 bot to RedTeam')
+                                                await rcon('AddBot',{'0':'1','1':'BlueTeam'},True)
+                                                logmsg('info',fx+' probably added 1 bot to BlueTeam')
                                             elif gamemode=="DM" or gamemode=="CUSTOM":
                                                 await rcon('AddBot',{'0':'1'},True)
                                                 logmsg('info',fx+' probably added 1 bot')
+
                                         elif mode=="remove":
                                             if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
-                                                rnd_team=random.randint(0,1)
-                                                await rcon('RemoveBot',{'0':'1','1':str(rnd_team)},True)
-                                                logmsg('info',fx+' probably removed 1 bot from team: '+str(rnd_team))
+                                                #rnd_team=random.randint(0,1)
+                                                #await rcon('RemoveBot',{'0':'1','1':str(rnd_team)},True)
+                                                #logmsg('info',fx+' probably removed 1 bot from team: '+str(rnd_team))
+                                                await rcon('RemoveBot',{'0':'1','1':'RedTeam'},True)
+                                                logmsg('info',RemoveBot+' probably removed 1 bot to RedTeam')
+                                                await rcon('AddBot',{'0':'1','1':'BlueTeam'},True)
+                                                logmsg('info',fx+' probably removed 1 bot to BlueTeam')
                                             elif gamemode=="DM" or gamemode=="CUSTOM":
                                                 await rcon('RemoveBot',{'0':'1'},True)
                                                 logmsg('info',fx+' probably removed 1 bot')
+
                                     else: logmsg('info',fx+' canceled because "managed" not set')
                             else: logmsg('info',fx+' canceled because gamemode is "SND"')
                         else: logmsg('warn',fx+' canceled because of roundstate '+str(roundstate))
@@ -480,7 +495,7 @@ def run_praefectus(meta,config,srv):
                                 if joinuser==player['PlayerName']:
                                     modlist=await rcon('ModeratorList',{})
                                     try:
-                                        time.sleep(3)
+                                        time.sleep(5)
                                         msg=str(serverinfo['ServerInfo']['ServerName'])+'\n\n'
                                         msg+='WELCOME, '+str(joinuser)+' :)'
                                         await rcon('Notify',{'0':str(steamid64),'1':msg},True)
@@ -537,7 +552,7 @@ def run_praefectus(meta,config,srv):
 
             case 'PavlovLog: StartPlay': logmsg('info','map started')
 
-            case 'KillData': logmsg('info','a player died...')
+            case 'KillData': logmsg('debug','a player died...')
 
             case 'LogLoad: LoadMap':
                 if '/Game/Maps/ServerIdle' in line: logmsg('info','map switch called')
@@ -572,7 +587,6 @@ def run_praefectus(meta,config,srv):
                         asyncio.run(add_zombie())
                         asyncio.run(add_bot('init'))
                     case 'Started':
-                        asyncio.run(autopin())
                         asyncio.run(log_serverinfo())
                     #case 'StandBy':
                     case 'Ended':
