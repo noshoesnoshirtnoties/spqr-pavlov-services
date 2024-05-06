@@ -1,9 +1,9 @@
-FROM python:3
+FROM ubuntu:22.04
 
 ENV SRV 0
 
 RUN apt-get update
-RUN apt-get install -y --no-install-recommends
+RUN apt-get install -y --no-install-recommends python3 python3-pip
 
 WORKDIR /opt/pavlov-server/praefectus/
 
@@ -14,4 +14,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["python","./main.py"]
+CMD ["python3","./main.py"]
