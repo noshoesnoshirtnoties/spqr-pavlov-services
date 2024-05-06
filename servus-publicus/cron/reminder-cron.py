@@ -6,12 +6,8 @@ import random
 from pathlib import Path
 
 if __name__ == '__main__':
-    # get params
-    if str(sys.argv[1])!='': env=str(sys.argv[1])
-    else: env='live'
-
     # read config
-    config = json.loads(open('../config.json').read())[env]
+    config = json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
 
     # init discord
     intents=discord.Intents.default()

@@ -6,12 +6,8 @@ import datetime
 import time
 
 if __name__ == '__main__':
-    # get params
-    if str(sys.argv[1])!='': env=str(sys.argv[1])
-    else: env='live'
-
     # read config
-    config = json.loads(open('../config.json').read())[env]
+    config = json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
 
     # create new events
     current=datetime.datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0)

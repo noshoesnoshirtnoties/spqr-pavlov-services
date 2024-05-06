@@ -6,4 +6,4 @@
 #| | | | |
 #* * * * *
 
-10 * * * * root cd /opt/servus-publicus && python3 ./cron/generate-ranks-cron.py >/dev/null 2>&1
+10 * * * * root cd /opt/servus-publicus && python3 ./cron/ranks-cron.py >/dev/null 2>&1

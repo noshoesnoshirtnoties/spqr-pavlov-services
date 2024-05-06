@@ -8,6 +8,7 @@ import discord
 import random
 import asyncio
 import operator
+import inspect
 from pavlov import PavlovRCON
 import mysql.connector
 from pathlib import Path
@@ -72,6 +73,11 @@ def run_servuspublicus(meta,config):
 
 
     async def rcon(rconcmd,rconparams,srv):
+        fx=inspect.stack()[0][3]
+        logmsg('debug',fx+' called')
+        logmsg('debug','rconcmd: '+str(rconcmd))
+        logmsg('debug','rconparams: '+str(rconparams))
+        logmsg('debug','srv: '+str(srv))
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
         i=0
@@ -716,8 +722,8 @@ def run_servuspublicus(meta,config):
                                     rconparams[str(j)]=part
                                     j+=1
                                 i+=1
+                            data=await rcon(rconcommand,rconparams,rconsrv)
                             try:
-                                data=await rcon(rconcommand,rconparams,rconsrv)
                                 response=command+' response: '+str(data)
                             except Exception as e: logmsg('debug',str(e))
                         else: # missing parameters

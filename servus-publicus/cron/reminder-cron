@@ -6,4 +6,4 @@
 #| | | | |
 #* * * * *
 
-0 12 * * 1 root cd /opt/servus-publicus && python3 ./cron/generate-reminder-cron.py >/dev/null 2>&1
+0 12 * * 1 root cd /opt/servus-publicus && python3 ./cron/reminder-cron.py >/dev/null 2>&1

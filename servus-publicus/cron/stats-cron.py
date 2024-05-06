@@ -7,12 +7,8 @@ import time
 import mysql.connector
 
 if __name__ == '__main__':
-    # get params
-    if str(sys.argv[1])!='': env=str(sys.argv[1])
-    else: env='live'
-
     # read config
-    config = json.loads(open('../config.json').read())[env]
+    config = json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
 
     # function: query mysqldb
     def dbquery(query,values):

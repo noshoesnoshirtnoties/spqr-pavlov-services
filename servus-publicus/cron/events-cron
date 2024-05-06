@@ -6,4 +6,4 @@
 #| | | | |
 #* * * * *
 
-0 3 * * 7 root cd /opt/servus-publicus && python3 ./cron/generate-events-cron.py >/dev/null 2>&1
+0 3 * * 7 root cd /opt/servus-publicus && python3 ./cron/events-cron.py >/dev/null 2>&1
