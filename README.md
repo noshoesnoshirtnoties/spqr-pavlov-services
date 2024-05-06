@@ -8,8 +8,10 @@ this repo contains everything needed to rollout and run pavlov vr custom servers
 * "servus-publicus" is the discord bot
 
 ## requirements
-* a debian or ubuntu server with docker, accessible as root or with root privs
+* a debian or ubuntu server, accessible as root or with root privs
 * a mysqldb (see database_template.sql)
+* docker
+* python3
 
 ## config
 ### pavlov-server
@@ -108,6 +110,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
     * pull steamusers details
     * ace-detection
   * add elo/mmr
+  * use docker-compose / new builder
 * pavlov-server
   * logrotate
 * praefectus
