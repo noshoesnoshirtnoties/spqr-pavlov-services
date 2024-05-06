@@ -466,48 +466,45 @@ def run_praefectus(meta,config,srv):
         logmsg('debug',fx+' called')
         logmsg('debug','joinuser: '+str(joinuser))
 
-        serverinfo=await get_serverinfo()
-        try:
-            roundstate=serverinfo['ServerInfo']['RoundState']
-            if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
-                if config['rconplus'][srv] is True:
-                    inspectall=await rcon('InspectAll',{})
-                    try:
-                        for player in inspectall['InspectList']:
-                            steamid64=player['UniqueId']
+        if config['rconplus'][srv] is True:
+            serverinfo=await get_serverinfo()
+            try:
+                roundstate=serverinfo['ServerInfo']['RoundState']
+                if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
+                    if config['rconplus'][srv] is True:
+                        inspectall=await rcon('InspectAll',{})
+                        try:
+                            for player in inspectall['InspectList']:
+                                steamid64=player['UniqueId']
 
-                            if joinuser==player['PlayerName']:
-                                modlist=await rcon('ModeratorList',{})
-                                try:
-                                    time.sleep(3)
-                                    msg=str(serverinfo['ServerInfo']['ServerName'])+'\n\n'
-                                    msg+='WELCOME, '+str(joinuser)+' :)'
-                                    await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                    logmsg('info','player '+steamid64+' has been welcomed')
+                                if joinuser==player['PlayerName']:
+                                    modlist=await rcon('ModeratorList',{})
+                                    try:
+                                        time.sleep(3)
+                                        msg=str(serverinfo['ServerInfo']['ServerName'])+'\n\n'
+                                        msg+='WELCOME, '+str(joinuser)+' :)'
+                                        await rcon('Notify',{'0':str(steamid64),'1':msg},True)
+                                        logmsg('info','player '+steamid64+' has been welcomed')
 
-                                    for mod in modlist['ModeratorList']:
-                                        mod0=mod.split('#',2)
-                                        mod1=mod0[0].strip()
-                                        if str(steamid64)==str(mod1):
-                                            msg=str(serverinfo['ServerInfo']['ServerName'])+'\n\n'
-                                            msg+='WELCOME, '+str(joinuser)+' :)'
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            logmsg('info','admin '+steamid64+' has been welcomed')
+                                        for mod in modlist['ModeratorList']:
+                                            mod0=mod.split('#',2)
+                                            mod1=mod0[0].strip()
+                                            if str(steamid64)==str(mod1):
+                                                await rcon('GiveMenu',{'0':steamid64},True)
+                                                logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
 
-                                            await rcon('GiveMenu',{'0':steamid64},True)
-                                            logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
-
-                                except Exception as e:
-                                    logmsg('error','EXCEPTION[2] in '+fx+': '+str(e))
-                                    logmsg('error','modlist: '+str(modlist))
-                    except Exception as e:
-                        logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
-                        logmsg('error','inspectall: '+str(inspectall))
-                else: logmsg('info',fx+' canceled because rconplus is disabled')
-            else: logmsg('warn',fx+' canceled because roundstate is '+str(roundstate))
-        except Exception as e:
-            logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
-            logmsg('error','serverinfo: '+str(serverinfo))
+                                    except Exception as e:
+                                        logmsg('error','EXCEPTION[2] in '+fx+': '+str(e))
+                                        logmsg('error','modlist: '+str(modlist))
+                        except Exception as e:
+                            logmsg('error','EXCEPTION[1] in '+fx+': '+str(e))
+                            logmsg('error','inspectall: '+str(inspectall))
+                    else: logmsg('info',fx+' canceled because rconplus is disabled')
+                else: logmsg('warn',fx+' canceled because roundstate is '+str(roundstate))
+            except Exception as e:
+                logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                logmsg('error','serverinfo: '+str(serverinfo))
+        else: logmsg('info',fx+' canceled because rconplus is disabled')
 
 
     async def load_hardcore():
