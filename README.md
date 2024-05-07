@@ -115,6 +115,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * logrotate
 * praefectus
   * check for updated log messages
+  * pinglimit vs pinglimiter
   * logrotate
   * keep rcon connection
   * welcome players via notify
@@ -130,3 +131,4 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 * https://mod.io/g/pavlov/m/rcon-plus
 * https://mod.io/g/pavlov/m/mod-hc-pavlov
 * https://github.com/noshoesnoshirtnoties/PavlovVRBalancingTable
+* https://mod.io/g/pavlov/m/ping-limiter
