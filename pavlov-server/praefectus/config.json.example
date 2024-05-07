@@ -30,19 +30,19 @@
     "9": 0
   },
   "pinglimit":{
-    "minentries":30,
-    "keepentries":2,
+    "minentries":3,
+    "keepentries":1,
     "0": {
-      "kick":true,
-      "hard":70,
-      "soft":60,
-      "delta":15
+      "kick":false,
+      "hard":250,
+      "soft":200,
+      "delta":30
     },
     "1":{
       "kick":false,
-      "hard":100,
-      "soft":80,
-      "delta":20
+      "hard":250,
+      "soft":200,
+      "delta":30
     },
     "2": {
       "kick":false,
@@ -139,8 +139,8 @@
       "amount": 0
     },
     "8": {
-      "managed": true,
-      "amount": 16
+      "managed": false,
+      "amount": 0
     },
     "9": {
       "managed": false,
@@ -218,5 +218,67 @@
     "7": false,
     "8": false,
     "9": false
+  },
+  "pinglimiter":{
+    "0": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "1": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "2": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "3": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "4": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "5": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "6": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "7": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "8": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    },
+    "9": {
+      "enabled":false,
+      "timer":10,
+      "hard":250,
+      "soft":200
+    }
   }
 }
