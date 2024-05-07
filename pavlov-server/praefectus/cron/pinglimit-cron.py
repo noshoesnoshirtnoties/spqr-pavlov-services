@@ -1,6 +1,7 @@
 import sys
 import json
 import time
+import random
 import asyncio
 import datetime
 import mysql.connector
@@ -12,6 +13,10 @@ if __name__ == '__main__':
     if str(sys.argv[1])!='': srv=str(sys.argv[1])
     else: srv='0'
     print('[DEBUG] srv: '+str(srv))
+
+    rnd_sleep=random.randint(1,29)
+    print('[DEBUG] gonna sleep for '+str(rnd_sleep)+' seconds to prevent all crons from running at the exact same time')
+    time.sleep(rnd_sleep)
 
     config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
 
@@ -56,6 +61,7 @@ if __name__ == '__main__':
             data={}
             data['Successful']=True
         return data
+
 
     async def pinglimit():
         print('[DEBUG] pinglimit called')
@@ -153,8 +159,7 @@ if __name__ == '__main__':
                                         if delta>limit_delta:
                                             print('[WARN] ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
                                             msg='ping delta warning :('
-                                            notify_player=True
-                                            #kick_player=True
+                                            notify_player=False
                                         else: print('[DEBUG] ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
 
                                         # check avg ping against soft limit
@@ -178,13 +183,11 @@ if __name__ == '__main__':
 
                                         # notify
                                         if notify_player is True:
-                                            time.sleep(3)
                                             await rcon('Notify',{'0':str(steamid64),'1':msg},True)
                                             print('[INFO] player '+steamid64+' has been notified by pinglimit')
 
                                         # kick
                                         if kick_player is True:
-                                            time.sleep(3)
                                             await rcon('Kick',{'0':str(steamid64)})
                                             print('[WARN] player ('+str(steamid64)+') has been kicked by pinglimit')
 
