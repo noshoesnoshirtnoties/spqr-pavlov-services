@@ -115,11 +115,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * logrotate
 * praefectus
   * check for updated log messages
-  * pinglimit vs pinglimiter
   * logrotate
-  * keep rcon connection
-  * welcome players via notify
-  * read admins from rcon
   * map-specific settings (like playermodel)
 * servus-publicus
   * logrotate
