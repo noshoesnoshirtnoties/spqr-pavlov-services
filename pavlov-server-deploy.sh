@@ -117,7 +117,7 @@ fi
 echo "[INFO] creating cronjob for pinglimit..."
 PINGCRONCMD0='echo "'
 PINGCRONCMD1='" > /etc/cron.d/pinglimit-cron-'
-PINGCRON="*/2 * * * * root cd /opt/pavlov-server/praefectus && python3 cron/pinglimit-cron.py ${SRV} >/dev/null 2>&1"
+PINGCRON="*/3 * * * * root cd /opt/pavlov-server/praefectus && python3 cron/pinglimit-cron.py ${SRV} >/dev/null 2>&1"
 $SSHCMD $DSTHOST "${PINGCRONCMD0}${PINGCRON}${PINGCRONCMD1}${SRV}"
 
 echo "[INFO] building docker image for praefectus..."
