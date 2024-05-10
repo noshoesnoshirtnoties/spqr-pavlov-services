@@ -1,9 +1,12 @@
+import os
+import re
 import sys
 import json
 import time
+import logging
+import inspect
 import random
 import asyncio
-import datetime
 import mysql.connector
 from pathlib import Path
 from pavlov import PavlovRCON
@@ -12,6 +15,30 @@ from datetime import datetime,timezone
 if __name__ == '__main__':
     if str(sys.argv[1])!='': srv=str(sys.argv[1])
     else: srv='0'
+
+    rnd_sleep=random.randint(1,10)
+    print('[DEBUG] gonna sleep for '+str(rnd_sleep)+' seconds to prevent all crons from running at the exact same time')
+    time.sleep(rnd_sleep)
+
+    config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
+
+    if bool(config['debug'])==True: level=logging.DEBUG
+    else: level=logging.INFO
+    logging.basicConfig(
+        filename='/opt/pavlov-server/praefectus/cron/pinglimit-cron-'+str(srv)+'.log',
+        filemode='a',
+        format='%(asctime)s,%(msecs)d [%(levelname)s] %(message)s',
+        datefmt='%m/%d/%Y %H:%M:%S',
+        level=level)
+    logfile=logging.getLogger('logfile')
+
+
+    def logmsg(lvl,msg):
+        match lvl.lower():
+            case 'debug': logfile.debug(msg)
+            case 'info': logfile.info(msg)
+            case 'warn': logfile.warning(msg)
+            case _: logfile.debug(msg)
 
 
     def dbquery(query,values):
@@ -112,7 +139,7 @@ if __name__ == '__main__':
                                         if delta>limit_delta:
                                             print('[WARN] ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
                                             msg='ping delta warning :('
-                                            notify_player=False
+                                            notify_player=True
                                         else: print('[DEBUG] ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
 
                                         # check avg ping against soft limit
@@ -187,13 +214,6 @@ if __name__ == '__main__':
 
         await conn.send('Disconnect')
         print('[INFO] rcon disconnected ')
-
-
-    rnd_sleep=random.randint(1,10)
-    print('[DEBUG] gonna sleep for '+str(rnd_sleep)+' seconds to prevent all crons from running at the exact same time')
-    time.sleep(rnd_sleep)
-
-    config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
     
     asyncio.run(pinglimit())
     print('[INFO] end of cron reached')
