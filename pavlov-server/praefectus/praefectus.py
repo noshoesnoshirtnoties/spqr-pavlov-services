@@ -61,6 +61,8 @@ def run_praefectus(meta,config,srv):
     async def init_server():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
+
+        time.sleep(1)
         
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
@@ -77,7 +79,8 @@ def run_praefectus(meta,config,srv):
                 data=await conn.send(cmd)
                 if data['Successful'] is True: logmsg('info','rconplus has been loaded')
                 else: logmsg('error','rconplus has NOT been loaded for some reason')
-            except Exception as e: logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            except Exception as e:
+                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
         else: logmsg('info','rconplus is disabled')
 
         # LOAD HARDCORE
@@ -92,7 +95,8 @@ def run_praefectus(meta,config,srv):
                 data=await conn.send(cmd)
                 if data['Successful'] is True: logmsg('info','hardcore has been loaded')
                 else: logmsg('error','hardcore has NOT been loaded for some reason')
-            except Exception as e: logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+            except Exception as e:
+                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
         else: logmsg('info','hardcore is disabled')
 
         await conn.send('Disconnect')
@@ -112,19 +116,23 @@ def run_praefectus(meta,config,srv):
             si=serverinfo['ServerInfo']
             maplabel=str(si['MapLabel'].lower()).strip()
             gamemode=str(si['GameMode'].upper()).strip()
-            is_map_init=False
+            is_first_round=False # for snd
             if 'Team0Score' in si or 'Team1Score' in si:
-                if int(si['Team0Score'])==0 and int(si['Team1Score'])==0: is_map_init=True
+                if int(si['Team0Score'])==0 and int(si['Team1Score'])==0: is_first_round=True
 
             # INIT WORKAROUND
-            if maplabel=='datacenter' and gamemode=='CUSTOM': 
+            if maplabel=='datacenter' and gamemode=='CUSTOM':
+                logmsg('info','init workaround detected')
+                logmsg('debug','maplabel: '+maplabel)
+                logmsg('debug','gamemode: '+gamemode)
                 try: # immediately rotate to next map
                     data=await conn.send('RotateMap')
                     data_json=json.dumps(data)
                     rotatemap=json.loads(data_json)
                     if rotatemap['Successful'] is True: logmsg('info','rotatemap has been successful')
                     else: logmsg('error','rotatemap has NOT been successful for some reason')
-                except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                except Exception as e:
+                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when rotating map: '+str(e))
                 time.sleep(1)
                 try: # remove datacenter custom from the pool
                     cmd='RemoveMapRotation'
@@ -138,11 +146,18 @@ def run_praefectus(meta,config,srv):
                     removemap=json.loads(data_json)
                     if removemap['Successful'] is True: logmsg('info','removemap has been successful')
                     else: logmsg('error','removemap has NOT been successful for some reason')
-                except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                except Exception as e:
+                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when removing map: '+str(e))
 
-            else: # map init
+            # MAP INIT
+            else:
+                logmsg('info','map init reached')
+                logmsg('debug','maplabel: '+maplabel)
+                logmsg('debug','gamemode: '+gamemode)
+                logmsg('debug','is_first_round: '+str(is_first_round))
 
                 if config['rconplus'][srv] is True:
+                    time.sleep(1)
 
                     # ADD BOTS
                     amount=int(config['bots'][srv]['amount'])
@@ -158,7 +173,8 @@ def run_praefectus(meta,config,srv):
                                 i+=1
                             try:
                                 await conn.send(cmd)
-                            except Exception as e: logmsg('error','EXCEPTION in '+fx+' when adding bots to RedTeam: '+str(e))
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots to RedTeam: '+str(e))
                             logmsg('info','probably added '+str(amount//2)+' bot(s) to RedTeam')
 
                             # blue team
@@ -169,7 +185,8 @@ def run_praefectus(meta,config,srv):
                                 i+=1
                             try:
                                 await conn.send(cmd)
-                            except Exception as e: logmsg('error','EXCEPTION in '+fx+' when adding bots to BlueTeam: '+str(e))
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots to BlueTeam: '+str(e))
                             logmsg('info','probably added '+str(amount//2)+' bot(s) to BlueTeam')
 
                         elif gamemode=="DM" or gamemode=="CUSTOM":
@@ -183,11 +200,12 @@ def run_praefectus(meta,config,srv):
                                 i+=1
                             try:
                                 await conn.send(cmd)
-                            except Exception as e: logmsg('error','EXCEPTION in '+fx+' when adding bots: '+str(e))
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots: '+str(e))
                             logmsg('info','probably added '+str(amount)+' bot(s)')
 
                         elif gamemode=="SND":
-                            #if is_map_init is True:
+                            #if is_first_round is True:
                             logmsg('warn','not adding bots because gamemode is SND')
                         else:
                             logmsg('warn','not adding bots because gamemode "'+gamemode+'" is not supported atm')
@@ -205,7 +223,8 @@ def run_praefectus(meta,config,srv):
                             j+=1
                         try:
                             await conn.send(cmd)
-                        except Exception as e: logmsg('error','EXCEPTION in '+fx+' when adding chickens: '+str(e))
+                        except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding chickens: '+str(e))
                         logmsg('info','probably added '+str(amount)+' chicken(s)')
 
                     else: logmsg('info','chickens amount is 0')
@@ -221,7 +240,8 @@ def run_praefectus(meta,config,srv):
                             j+=1
                         try:
                             await conn.send(cmd)
-                        except Exception as e: logmsg('error','EXCEPTION in '+fx+' when adding zombies: '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding zombies: '+str(e))
                         logmsg('info','probably added '+str(amount)+' zombie(s)')
 
                     else: logmsg('info','zombies amount is 0')
@@ -236,7 +256,8 @@ def run_praefectus(meta,config,srv):
                             j+=1
                         try:
                             await conn.send(cmd)
-                        except Exception as e: logmsg('error','EXCEPTION in '+fx+' when enabling prone: '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when enabling prone: '+str(e))
                         logmsg('info','prone has probably been enabled')
                     else: logmsg('info','prone is disabled')
 
@@ -250,7 +271,8 @@ def run_praefectus(meta,config,srv):
                             j+=1
                         try:
                             await conn.send(cmd)
-                        except Exception as e: logmsg('error','EXCEPTION in '+fx+' when enabling trails: '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when enabling trails: '+str(e))
                         logmsg('info','trails have probably been enabled')
                     else: logmsg('info','trails are disabled')
 
@@ -264,19 +286,23 @@ def run_praefectus(meta,config,srv):
                             j+=1
                         try:
                             await conn.send(cmd)
-                        except Exception as e: logmsg('error','EXCEPTION in '+fx+' when enabling nofalldmg: '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when enabling nofalldmg: '+str(e))
                         logmsg('info','nofalldamage has probably been enabled')
                     else: logmsg('info','nofalldamage is disabled')
 
                 else: logmsg('warn','not doing stuff (bots, zombies, chicken, prone, trails, nofalldamage, etc.) because rconplus is disabled')
 
-        except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
         await conn.send('Disconnect')
 
 
     async def player_joined(joinuser):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
+
+        time.sleep(5)
 
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
@@ -316,7 +342,7 @@ def run_praefectus(meta,config,srv):
                         data_json=json.dumps(data)
                         modlist=json.loads(data_json)
                         for player in inspectall['InspectList']:
-                            steamid64=player['UniqueId']
+                            steamid64=str(player['UniqueId'])
                             if str(joinuser)==str(player['PlayerName']):
                                 for mod in modlist['ModeratorList']:
                                     mod0=mod.split('#',2)
@@ -328,31 +354,41 @@ def run_praefectus(meta,config,srv):
                                         while j<len(params):
                                             cmd+=' '+str(params[str(j)])
                                             j+=1
-                                        await conn.send(cmd)
-                                        logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(joinuser)+')')
+                                        try:
+                                            await conn.send(cmd)
+                                        except Exception as e:
+                                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when giving menu to spqr agent: '+str(e))
+                                        logmsg('info','givemenu has probably been set for '+steamid64+' ('+joinuser+')')
 
-                                    if str(steamid64)=='76561199476460201':
-                                        cmd='Visibility'
-                                        params={'0':steamid64,'1':False}
-                                        j=0
-                                        while j<len(params):
-                                            cmd+=' '+str(params[str(j)])
-                                            j+=1
-                                        await conn.send(cmd)
-                                        logmsg('info','visibility has probably been set to false for '+str(steamid64)+' ('+str(joinuser)+')')
-                                
+                                        #if str(mod1)=='76561199476460201':
+                                        #    cmd='Visibility'
+                                        #    params={'0':steamid64,'1':False}
+                                        #    j=0
+                                        #    while j<len(params):
+                                        #        cmd+=' '+str(params[str(j)])
+                                        #        j+=1
+                                        #    try:
+                                        #        await conn.send(cmd)
+                                        #    except Exception as e:
+                                        #        if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting visibility for spqr agent: '+str(e))
+                                        #    logmsg('info','visibility has probably been set to false for '+steamid64+' ('+joinuser+')')
+
                                 msg=str(si['ServerName'])+'\n\n'
-                                msg+='WELCOME, '+str(joinuser)+' :)'
+                                msg+='WELCOME, '+joinuser+' :)'
                                 cmd='Notify'
-                                params={'0':str(steamid64),'1':msg}
+                                params={'0':steamid64,'1':msg}
                                 j=0
                                 while j<len(params):
                                     cmd+=' '+str(params[str(j)])
                                     j+=1
-                                await conn.send(cmd)
+                                try:
+                                    await conn.send(cmd)
+                                except Exception as e:
+                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when welcoming player: '+str(e))
                                 logmsg('info','player '+steamid64+' has been welcomed')
-                    except Exception as e: logmsg('error','EXCEPTION when welcoming player: '+str(e))
-                else: logmsg('warn','not welcoming player because roundstate is '+str(roundstate))
+                    except Exception as e:
+                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                else: logmsg('warn','not welcoming player because roundstate is '+roundstate)
             else: logmsg('info','not welcoming player because rconplus is disabled')
 
             # CHECK AUTOPIN
@@ -372,7 +408,8 @@ def run_praefectus(meta,config,srv):
                             data=await conn.send(cmd)
                             if data['Successful'] is True: logmsg('debug','setpin has set the pin')
                             else: logmsg('error','setpin has NOT set the pin for some reason')
-                        except Exception as e: logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting pin: '+str(e))
                     else: # below limit
                         logmsg('debug','below limit ('+str(limit)+') - removing pin')
                         cmd='SetPin'
@@ -385,7 +422,8 @@ def run_praefectus(meta,config,srv):
                             data=await conn.send(cmd)
                             if data['Successful'] is True: logmsg('debug','setpin has emptied the pin')
                             else: logmsg('error','setpin has NOT emptied the pin for some reason')
-                        except Exception as e: logmsg('error','EXCEPTION when setting pin: '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting pin: '+str(e))
                 else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
             else: logmsg('info','not touching pin because autopin is disabled')
 
@@ -396,7 +434,7 @@ def run_praefectus(meta,config,srv):
                     if amount!=0:
                         if roundstate=='Started':
 
-                            logmsg('info','this is the time to manage bots... but that code is missing atm')
+                            logmsg('debug','this is the time to manage bots... but that code is missing atm')
 
                             #elif mode=="remove":
                             #    if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
@@ -415,13 +453,16 @@ def run_praefectus(meta,config,srv):
                 else: logmsg('info','not managing bots because "managed" is not true')
             else: logmsg('info','not managing bots because rconplus is disabled')
 
-        except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
         await conn.send('Disconnect')
 
 
     async def player_left():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
+
+        time.sleep(1)
 
         port=config['rcon']['port']+int(srv)
         conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
@@ -466,7 +507,8 @@ def run_praefectus(meta,config,srv):
                             data=await conn.send(cmd)
                             if data['Successful'] is True: logmsg('debug','setpin has set the pin')
                             else: logmsg('error','setpin has NOT set the pin for some reason')
-                        except Exception as e: logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                     else: # below limit
                         logmsg('debug','below limit ('+str(limit)+') - removing pin')
                         cmd='SetPin'
@@ -479,7 +521,8 @@ def run_praefectus(meta,config,srv):
                             data=await conn.send(cmd)
                             if data['Successful'] is True: logmsg('debug','setpin has emptied the pin')
                             else: logmsg('error','setpin has NOT emptied the pin for some reason')
-                        except Exception as e: logmsg('error','EXCEPTION[0] in '+fx+': '+str(e))
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when emptying pin: '+str(e))
                 else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
             else: logmsg('info','not touching pin because autopin is disabled')
 
@@ -490,7 +533,7 @@ def run_praefectus(meta,config,srv):
                     if amount!=0:
                         if roundstate=='Started':
 
-                            logmsg('info','this is the time to manage bots... but that code is missing atm')
+                            logmsg('debug','this is the time to manage bots... but that code is missing atm')
 
                             #if mode=="add":
                             #    if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
@@ -507,7 +550,8 @@ def run_praefectus(meta,config,srv):
                 else: logmsg('info','not managing bots because "managed" is not true')
             else: logmsg('info','not managing bots because rconplus is disabled')
 
-        except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
         await conn.send('Disconnect')
 
 
@@ -616,14 +660,16 @@ def run_praefectus(meta,config,srv):
                         query+="gamemode,matchended,teams,team0score,team1score,timestamp"
                         query+=") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
                         values=[
-                            steamuser_id,kills,deaths,assists,score,ping,serverinfo['ServerInfo']['ServerName'],serverinfo['ServerInfo']['PlayerCount'],
-                            erverinfo['ServerInfo']['MapLabel'],serverinfo['ServerInfo']['GameMode'],serverinfo['ServerInfo']['MatchEnded'],
-                            serverinfo['ServerInfo']['Teams'],serverinfo['ServerInfo']['Team0Score'],serverinfo['ServerInfo']['Team1Score'],timestamp]
+                            steamuser_id,kills,deaths,assists,score,ping,si['ServerName'],si['PlayerCount'],
+                            si['MapLabel'],si['GameMode'],si['MatchEnded'],
+                            si['Teams'],si['Team0Score'],si['Team1Score'],timestamp]
                         dbquery(query,values)
-                except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                except Exception as e:
+                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                 logmsg('info',fx+' has processed all current players')
             else: logmsg('info','not pulling stats because either gamemode is not SND or the match did not end yet')
-        except Exception as e: logmsg('error','EXCEPTION in '+fx+': '+str(e))
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
         await conn.send('Disconnect')
 
 
