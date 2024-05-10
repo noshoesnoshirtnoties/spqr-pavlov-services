@@ -12,13 +12,7 @@ from datetime import datetime,timezone
 if __name__ == '__main__':
     if str(sys.argv[1])!='': srv=str(sys.argv[1])
     else: srv='0'
-    print('[DEBUG] srv: '+str(srv))
 
-    rnd_sleep=random.randint(1,29)
-    print('[DEBUG] gonna sleep for '+str(rnd_sleep)+' seconds to prevent all crons from running at the exact same time')
-    time.sleep(rnd_sleep)
-
-    config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
 
     def dbquery(query,values):
         print('[DEBUG] dbquery called')
@@ -41,70 +35,29 @@ if __name__ == '__main__':
         conn.close()
         return data
 
-    async def rcon(rconcmd,rconparams,is_rconplus=False):
-        print('[DEBUG] rcon called called')
-        port=config['rcon']['port']+int(srv)
-        conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-        i=0
-        while i<len(rconparams):
-            rconcmd+=' '+str(rconparams[str(i)])
-            i+=1
-        try:
-            data=await conn.send(rconcmd)
-            data_json=json.dumps(data)
-            data=json.loads(data_json)
-            await conn.send('Disconnect')
-        except:
-            data={}
-            data['Successful']=False
-        if is_rconplus is True:
-            data={}
-            data['Successful']=True
-        return data
-
 
     async def pinglimit():
         print('[DEBUG] pinglimit called')
         if config['rconplus'][srv] is True:
-            serverinfo=await rcon('ServerInfo',{})
-            try:
-                if serverinfo['Successful'] is True:
-                    si=serverinfo['ServerInfo']
-                    si['GameMode']=si['GameMode'].upper() # make sure gamemode is uppercase
-
-                    # demo rec counts as 1 player in SND
-                    if si['GameMode']=="SND":
-                        numberofplayers0=si['PlayerCount'].split('/',2)
-                        numberofplayers1=numberofplayers0[0]
-
-                        # demo only exists if there is players
-                        if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
-                        else: numberofplayers2=(numberofplayers0[0])
-
-                        maxplayers=numberofplayers0[1]
-                        numberofplayers=str(numberofplayers2)+'/'+str(maxplayers)
-                    else: numberofplayers=si['PlayerCount']
-                    si['PlayerCount']=numberofplayers
-
-                    # for SND get info if match has ended and which team won
-                    si['MatchEnded']=False
-                    si['WinningTeam']='none'
-                    if si['GameMode']=="SND" and si['Teams'] is True:
-                        if int(si['Team0Score'])==10:
-                            si['MatchEnded']=True
-                            si['WinningTeam']='team0'
-                        elif int(si['Team1Score'])==10:
-                            si['MatchEnded']=True
-                            si['WinningTeam']='team1'
-                    else:
-                        si['Team0Score']=0
-                        si['Team1Score']=0    
-                    serverinfo['ServerInfo']=si
-
-                    roundstate=serverinfo['ServerInfo']['RoundState']
-                    if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy' or roundstate=='Ended':
-                        inspectall=await rcon('InspectAll',{})
-                        try:
+            print('[DEBUG] rconplus is enabled')
+            if config['pinglimit'][srv]['enabled'] is True:
+                print('[DEBUG] pinglimit is enabled')
+                try:
+                    port=config['rcon']['port']+int(srv)
+                    conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+                    i=0
+                    while i<config['pinglimit']['minentries']:
+                        print('[DEBUG] pinglimit run #: '+str(i))
+                        data=await conn.send('ServerInfo')
+                        data_json=json.dumps(data)
+                        serverinfo=json.loads(data_json)
+                        si=serverinfo['ServerInfo']
+                        roundstate=si['RoundState']
+                        if roundstate=='Started':
+                            print('[DEBUG] roundstate is matching (Started)')
+                            data=await conn.send('InspectAll')
+                            data_json=json.dumps(data)
+                            inspectall=json.loads(data_json)
                             for player in inspectall['InspectList']:
                                 kda=player['KDA'].split('/',3)
                                 kills=kda[0]
@@ -174,47 +127,73 @@ if __name__ == '__main__':
                                             print('[WARN] ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
                                             msg='ping exceeds hard limit ('+str(limit_hard)+') :('
                                             notify_player=True
-                                            if config['pinglimit'][srv]['kick'] is True:
-                                                print('[WARN] player will be kicked: '+str(steamid64))
-                                                msg+='\nauto-kick is enabled'
-                                                kick_player=True
-                                            else: print('[WARN] player ('+str(steamid64)+') would have been kicked by pinglimit, but kick is disabled')
+                                            kick_player=True
                                         else: print('[DEBUG] ping avg ('+str(avg)+') is within hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
 
                                         # notify
                                         if notify_player is True:
-                                            await rcon('Notify',{'0':str(steamid64),'1':msg},True)
-                                            print('[INFO] player '+steamid64+' has been notified by pinglimit')
+                                            if config['pinglimit'][srv]['notify'] is True:
+                                                if config['pinglimit'][srv]['kick'] is True: msg+='\n\nauto-kick is enabled'
+                                                cmd='Notify'
+                                                params={'0':str(steamid64),'1':msg}
+                                                j=0
+                                                while j<len(params):
+                                                    cmd+=' '+str(params[str(j)])
+                                                    j+=1
+                                                try:
+                                                    await conn.send(cmd)
+                                                    print('[INFO] player '+steamid64+' has been notified by pinglimit')
+                                                except Exception as e:
+                                                    if str(e)!='': print('[EXCEPTION] while trying to notify: '+str(e))
+                                                    else: print('[DEBUG]: there was an empty exception - probably rconplus')
+                                            else: print('[WARN] player ('+str(steamid64)+') would have been notified, but notify is disabled')
 
                                         # kick
                                         if kick_player is True:
-                                            await rcon('Kick',{'0':str(steamid64)})
-                                            print('[WARN] player ('+str(steamid64)+') has been kicked by pinglimit')
+                                            if config['pinglimit'][srv]['kick'] is True:
+                                                cmd='Kick'
+                                                params={'0':str(steamid64)}
+                                                j=0
+                                                while j<len(params):
+                                                    cmd+=' '+str(params[str(j)])
+                                                    j+=1
+                                                try:
+                                                    await conn.send(cmd)
+                                                    print('[INFO] player ('+str(steamid64)+') has been kicked by pinglimit')
+                                                except Exception as e:
+                                                    if str(e)!='': print('[EXCEPTION] while trying to kick: '+str(e))
+                                                    else: print('[DEBUG]: there was an empty exception - probably rconplus')
+                                            else: print('[WARN] player ('+str(steamid64)+') would have been kicked, but kick is disabled')
 
                                         # delete accumulated entries, but keep some recent ones
-                                        print('[DEBUG] deleting entries for player in pings db')
+                                        print('[INFO] deleting entries for player in pings db')
                                         query="DELETE FROM pings WHERE steamid64 = %s ORDER BY id ASC LIMIT %s"
                                         values=[]
                                         values.append(steamid64)
                                         values.append(cnt_ping - int(config['pinglimit']['keepentries']))
                                         dbquery(query,values)
 
-                                    else: print('[DEBUG] canceled because there is not enough data on pings yet')
-                                else: print('[DEBUG] canceled because player doesnt seem to be in the server yet')
-                        except Exception as e:
-                            print('[EXCEPTION]: '+str(e))
-                            print('[EXCEPTION] inspectall: '+str(inspectall))
-                    else: print('[WARN] canceled because of roundstate '+str(roundstate))
-            except Exception as e:
-                print('[EXCEPTION]: '+str(e))
-                print('[EXCEPTION] serverinfo: '+str(serverinfo))
-        else: logmsg('info','pinglimit canceled because rconplus is disabled')
+                                    else: print('[INFO] canceled because there is not enough data on pings yet')
+                                else: print('[INFO] canceled because player doesnt seem to be in the server yet')
+                        else: print('[INFO] canceled because of roundstate '+str(roundstate))
 
-    try:
-        i=0
-        while i<=config['pinglimit']['minentries']:
-            asyncio.run(pinglimit())
-            time.sleep(5)
-            i+=1
-    except Exception as e:
-        print('[EXCEPTION]: '+str(e))
+                        time.sleep(3)
+                        i+=1
+                except Exception as e:
+                    if str(e)!='': print('[EXCEPTION]: '+str(e))
+                    else: print('[DEBUG]: there was an empty exception - probably rconplus')
+            else: print('[INFO] pinglimit canceled because pinglimit is disabled')
+        else: print('[INFO] pinglimit canceled because rconplus is disabled')
+
+        await conn.send('Disconnect')
+        print('[INFO] rcon disconnected ')
+
+
+    rnd_sleep=random.randint(1,10)
+    print('[DEBUG] gonna sleep for '+str(rnd_sleep)+' seconds to prevent all crons from running at the exact same time')
+    time.sleep(rnd_sleep)
+
+    config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
+    
+    asyncio.run(pinglimit())
+    print('[INFO] end of cron reached')
