@@ -62,108 +62,105 @@ def run_praefectus(meta,config,srv):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
 
-        time.sleep(1)
-        
-        port=config['rcon']['port']+int(srv)
-        conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-
-        # LOAD RCONPLUS
         if config['rconplus'][srv] is True:
-            cmd='UGCAddMod'
-            params={'0':'UGC3462586'}
-            i=0
-            while i<len(params):
-                cmd+=' '+str(params[str(i)])
-                i+=1
             try:
-                data=await conn.send(cmd)
-                if data['Successful'] is True: logmsg('info','rconplus has been loaded')
-                else: logmsg('error','rconplus has NOT been loaded for some reason')
+                port=config['rcon']['port']+int(srv)
+                conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+
+                # INIT WORKAROUND TO MAKE SURE RCONPLUS IS AVAILABLE
+                roundstate=''
+                while roundstate!='Started' and roundstate!='Starting':
+                    data=await conn.send('ServerInfo')
+                    data_json=json.dumps(data)
+                    serverinfo=json.loads(data_json)
+                    si=serverinfo['ServerInfo']
+                    maplabel=str(si['MapLabel'])
+                    gamemode=str(si['GameMode'].upper()).strip()
+                    roundstate=str(si['RoundState']).strip()
+
+                    if 'UGC' in maplabel: maplabel=str(si['MapLabel'].upper()).strip()
+                    else: maplabel=str(si['MapLabel'].lower()).strip()
+                    gamemode=str(si['GameMode'].upper()).strip()
+
+                    if roundstate=='Started' or roundstate=='Starting':
+
+                        # LOAD RCONPLUS
+                        cmd='UGCAddMod'
+                        params={'0':'UGC3462586'}
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
+                        try:
+                            data=await conn.send(cmd)
+                            if data['Successful'] is True: logmsg('info','rconplus has been loaded')
+                            else: logmsg('error','rconplus has NOT been loaded for some reason')
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+
+                        # RELOAD CURRENT MAP
+                        cmd='SwitchMap'
+                        params={'0':maplabel,'1':gamemode}
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
+                        try:
+                            data=await conn.send(cmd)
+                            data_json=json.dumps(data)
+                            rotatemap=json.loads(data_json)
+                            if rotatemap['Successful'] is True:
+                                logmsg('info','init workaround switchmap has been called successfully')
+                            else: logmsg('error','init workaround switchmap has NOT been called successfully for some reason')
+                        except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when reloading current map: '+str(e))
+
+                    else:
+                        logmsg('debug','init workaround switchmap has to wait for roundstate "Started" or "Starting"')
+                        time.sleep(3)
+                
+                await conn.send('Disconnect')
+                logmsg('debug','rcon conn disconnected')
             except Exception as e:
                 if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-        else: logmsg('info','rconplus is disabled')
-
-        # LOAD HARDCORE
-        if config['hardcore'][srv] is True:
-            cmd='UGCAddMod'
-            params={'0':'UGC3951330'}
-            i=0
-            while i<len(params):
-                cmd+=' '+str(params[str(i)])
-                i+=1
-            try:
-                data=await conn.send(cmd)
-                if data['Successful'] is True: logmsg('info','hardcore has been loaded')
-                else: logmsg('error','hardcore has NOT been loaded for some reason')
-            except Exception as e:
-                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-        else: logmsg('info','hardcore is disabled')
-
-        await conn.send('Disconnect')
+        else: logmsg('info','rconplus is disabled - no need for init workaround')
 
 
-    async def init_round():
+    async def init_round_map():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
-        
-        port=config['rcon']['port']+int(srv)
-        conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+        if config['rconplus'][srv] is True:
+            try:
+                port=config['rcon']['port']+int(srv)
+                conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
 
-        try:
-            data=await conn.send('ServerInfo')
-            data_json=json.dumps(data)
-            serverinfo=json.loads(data_json)
-            si=serverinfo['ServerInfo']
-            maplabel=str(si['MapLabel'].lower()).strip()
-            gamemode=str(si['GameMode'].upper()).strip()
-            is_first_round=False # for snd
-            if 'Team0Score' in si or 'Team1Score' in si:
-                if int(si['Team0Score'])==0 and int(si['Team1Score'])==0: is_first_round=True
+                data=await conn.send('ServerInfo')
+                data_json=json.dumps(data)
+                serverinfo=json.loads(data_json)
+                si=serverinfo['ServerInfo']
+                maplabel=str(si['MapLabel'])
+                gamemode=str(si['GameMode'].upper()).strip()
 
-            # INIT WORKAROUND
-            if maplabel=='datacenter' and gamemode=='CUSTOM':
-                logmsg('info','init workaround detected')
-                logmsg('debug','maplabel: '+maplabel)
-                logmsg('debug','gamemode: '+gamemode)
-                try: # immediately rotate to next map
-                    data=await conn.send('RotateMap')
-                    data_json=json.dumps(data)
-                    rotatemap=json.loads(data_json)
-                    if rotatemap['Successful'] is True: logmsg('info','rotatemap has been successful')
-                    else: logmsg('error','rotatemap has NOT been successful for some reason')
-                except Exception as e:
-                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when rotating map: '+str(e))
-                time.sleep(1)
-                try: # remove datacenter custom from the pool
-                    cmd='RemoveMapRotation'
-                    params={"0":"datacenter","1":"CUSTOM"}
-                    i=0
-                    while i<len(params):
-                        cmd+=' '+str(params[str(i)])
-                        i+=1
-                    data=await conn.send(cmd)
-                    data_json=json.dumps(data)
-                    removemap=json.loads(data_json)
-                    if removemap['Successful'] is True: logmsg('info','removemap has been successful')
-                    else: logmsg('error','removemap has NOT been successful for some reason')
-                except Exception as e:
-                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when removing map: '+str(e))
+                if 'UGC' in maplabel: maplabel=str(si['MapLabel'].upper()).strip()
+                else: maplabel=str(si['MapLabel'].lower()).strip()
+                gamemode=str(si['GameMode'].upper()).strip()
 
-            # MAP INIT
-            else:
-                logmsg('info','map init reached')
-                logmsg('debug','maplabel: '+maplabel)
-                logmsg('debug','gamemode: '+gamemode)
-                logmsg('debug','is_first_round: '+str(is_first_round))
+                is_first_round=True
+                if 'Teams' in si:
+                    if 'Team0Score' in si or 'Team1Score' in si:
+                        if gamemode=='SND' and (int(si['Team0Score'])!=0 or int(si['Team1Score'])!=0): is_first_round=False
 
-                if config['rconplus'][srv] is True:
-                    time.sleep(1)
+                # INIT ROUND
+                if is_first_round is True:
+                    logmsg('info','initiating round/map now...')
+                    logmsg('info','maplabel: '+maplabel)
+                    logmsg('info','gamemode: '+gamemode)
+                    logmsg('info','is_first_round: '+str(is_first_round))
 
                     # ADD BOTS
                     amount=int(config['bots'][srv]['amount'])
                     if amount!=0:
-                        if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
-
+                        if gamemode in gamemodes_teams:
                             # red team
                             cmd='AddBot'
                             params={'0':str(amount//2),'1':'RedTeam'}
@@ -177,7 +174,9 @@ def run_praefectus(meta,config,srv):
                                 if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots to RedTeam: '+str(e))
                             logmsg('info','probably added '+str(amount//2)+' bot(s) to RedTeam')
 
+                            time.sleep(0.5)
                             # blue team
+                            cmd='AddBot'
                             params={'0':str(amount//2),'1':'BlueTeam'}
                             i=0
                             while i<len(params):
@@ -188,10 +187,7 @@ def run_praefectus(meta,config,srv):
                             except Exception as e:
                                 if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots to BlueTeam: '+str(e))
                             logmsg('info','probably added '+str(amount//2)+' bot(s) to BlueTeam')
-
-                        elif gamemode=="DM" or gamemode=="CUSTOM":
-
-                            # teamless
+                        elif gamemode in gamemodes_teamless:
                             cmd='AddBot'
                             params={'0':str(amount)}
                             i=0
@@ -203,13 +199,10 @@ def run_praefectus(meta,config,srv):
                             except Exception as e:
                                 if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots: '+str(e))
                             logmsg('info','probably added '+str(amount)+' bot(s)')
-
-                        elif gamemode=="SND":
-                            #if is_first_round is True:
-                            logmsg('warn','not adding bots because gamemode is SND')
+                        elif gamemode in gamemodes_unsupported:
+                            logmsg('warn','not adding bots because "'+gamemode+'" is not supported atm')
                         else:
-                            logmsg('warn','not adding bots because gamemode "'+gamemode+'" is not supported atm')
-
+                            logmsg('error','not adding bots because gamemode: "'+gamemode+' is unknown')
                     else: logmsg('info','bots amount is 0')
 
                     # ADD CHICKEN
@@ -217,16 +210,15 @@ def run_praefectus(meta,config,srv):
                     if amount!=0:
                         cmd='SpawnChickens'
                         params={'0':str(amount)}
-                        j=0
-                        while j<len(params):
-                            cmd+=' '+str(params[str(j)])
-                            j+=1
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
                         try:
                             await conn.send(cmd)
                         except Exception as e:
                                 if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding chickens: '+str(e))
                         logmsg('info','probably added '+str(amount)+' chicken(s)')
-
                     else: logmsg('info','chickens amount is 0')
 
                     # ADD ZOMBIES
@@ -234,26 +226,25 @@ def run_praefectus(meta,config,srv):
                     if amount!=0:
                         cmd='SpawnZombies'
                         params={'0':str(amount)}
-                        j=0
-                        while j<len(params):
-                            cmd+=' '+str(params[str(j)])
-                            j+=1
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
                         try:
                             await conn.send(cmd)
                         except Exception as e:
                             if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding zombies: '+str(e))
                         logmsg('info','probably added '+str(amount)+' zombie(s)')
-
                     else: logmsg('info','zombies amount is 0')
 
                     # ENABLE PRONE
                     if config['prone'][srv] is True:
                         cmd='EnableProne'
                         params={'0':'1'}
-                        j=0
-                        while j<len(params):
-                            cmd+=' '+str(params[str(j)])
-                            j+=1
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
                         try:
                             await conn.send(cmd)
                         except Exception as e:
@@ -265,10 +256,10 @@ def run_praefectus(meta,config,srv):
                     if config['trails'][srv] is True:
                         cmd='EnableTrails'
                         params={'0':'1'}
-                        j=0
-                        while j<len(params):
-                            cmd+=' '+str(params[str(j)])
-                            j+=1
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
                         try:
                             await conn.send(cmd)
                         except Exception as e:
@@ -280,10 +271,10 @@ def run_praefectus(meta,config,srv):
                     if config['nofalldmg'][srv] is True:
                         cmd='FallDamage'
                         params={'0':False}
-                        j=0
-                        while j<len(params):
-                            cmd+=' '+str(params[str(j)])
-                            j+=1
+                        i=0
+                        while i<len(params):
+                            cmd+=' '+str(params[str(i)])
+                            i+=1
                         try:
                             await conn.send(cmd)
                         except Exception as e:
@@ -291,23 +282,21 @@ def run_praefectus(meta,config,srv):
                         logmsg('info','nofalldamage has probably been enabled')
                     else: logmsg('info','nofalldamage is disabled')
 
-                else: logmsg('warn','not doing stuff (bots, zombies, chicken, prone, trails, nofalldamage, etc.) because rconplus is disabled')
-
-        except Exception as e:
-            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-        await conn.send('Disconnect')
+                else: logmsg('info','not initiating round because is_first_round not true')
+                await conn.send('Disconnect')
+                logmsg('debug','rcon conn disconnected')
+            except Exception as e:
+                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+        else: logmsg('info','not initiating round because rconplus is disabled')
 
 
     async def player_joined(joinuser):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
-
-        time.sleep(5)
-
-        port=config['rcon']['port']+int(srv)
-        conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-
         try:
+            port=config['rcon']['port']+int(srv)
+            conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+
             data=await conn.send('ServerInfo')
             data_json=json.dumps(data)
             serverinfo=json.loads(data_json)
@@ -315,6 +304,10 @@ def run_praefectus(meta,config,srv):
             maplabel=str(si['MapLabel'].lower()).strip()
             gamemode=str(si['GameMode'].upper()).strip()
             roundstate=str(si['RoundState']).strip()
+
+            if 'UGC' in maplabel: maplabel=str(si['MapLabel'].upper()).strip()
+            else: maplabel=str(si['MapLabel'].lower()).strip()
+            gamemode=str(si['GameMode'].upper()).strip()
 
             nop0=si['PlayerCount'].split('/',2)
             nop1=nop0[0]
@@ -329,67 +322,6 @@ def run_praefectus(meta,config,srv):
                 si['PlayerCount']=str(nop2)+'/'+str(maxplayers)
 
             playercount=int(si['PlayerCount'].split('/',2)[0])
-
-            # WELCOME PLAYER
-            if config['rconplus'][srv] is True:
-                if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy':
-                    try:
-                        data=await conn.send('InspectAll')
-                        data_json=json.dumps(data)
-                        inspectall=json.loads(data_json)
-
-                        data=await conn.send('ModeratorList')
-                        data_json=json.dumps(data)
-                        modlist=json.loads(data_json)
-                        for player in inspectall['InspectList']:
-                            steamid64=str(player['UniqueId'])
-                            if str(joinuser)==str(player['PlayerName']):
-                                for mod in modlist['ModeratorList']:
-                                    mod0=mod.split('#',2)
-                                    mod1=mod0[0].strip()
-                                    if str(steamid64)==str(mod1):
-                                        cmd='GiveMenu'
-                                        params={'0':steamid64}
-                                        j=0
-                                        while j<len(params):
-                                            cmd+=' '+str(params[str(j)])
-                                            j+=1
-                                        try:
-                                            await conn.send(cmd)
-                                        except Exception as e:
-                                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when giving menu to spqr agent: '+str(e))
-                                        logmsg('info','givemenu has probably been set for '+steamid64+' ('+joinuser+')')
-
-                                        #if str(mod1)=='76561199476460201':
-                                        #    cmd='Visibility'
-                                        #    params={'0':steamid64,'1':False}
-                                        #    j=0
-                                        #    while j<len(params):
-                                        #        cmd+=' '+str(params[str(j)])
-                                        #        j+=1
-                                        #    try:
-                                        #        await conn.send(cmd)
-                                        #    except Exception as e:
-                                        #        if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting visibility for spqr agent: '+str(e))
-                                        #    logmsg('info','visibility has probably been set to false for '+steamid64+' ('+joinuser+')')
-
-                                msg=str(si['ServerName'])+'\n\n'
-                                msg+='WELCOME, '+joinuser+' :)'
-                                cmd='Notify'
-                                params={'0':steamid64,'1':msg}
-                                j=0
-                                while j<len(params):
-                                    cmd+=' '+str(params[str(j)])
-                                    j+=1
-                                try:
-                                    await conn.send(cmd)
-                                except Exception as e:
-                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when welcoming player: '+str(e))
-                                logmsg('info','player '+steamid64+' has been welcomed')
-                    except Exception as e:
-                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                else: logmsg('warn','not welcoming player because roundstate is '+roundstate)
-            else: logmsg('info','not welcoming player because rconplus is disabled')
 
             # CHECK AUTOPIN
             if config['autopin_limits'][srv]!=0:
@@ -427,47 +359,73 @@ def run_praefectus(meta,config,srv):
                 else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
             else: logmsg('info','not touching pin because autopin is disabled')
 
-            # MANAGE BOTS (REMOVE)
+            # WELCOME PLAYER
             if config['rconplus'][srv] is True:
-                if config['bots'][srv]['managed'] is True:
-                    amount=int(config['bots'][srv]['amount'])
-                    if amount!=0:
-                        if roundstate=='Started':
+                if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy':
+                    try:
+                        data=await conn.send('InspectAll')
+                        data_json=json.dumps(data)
+                        inspectall=json.loads(data_json)
 
-                            logmsg('debug','this is the time to manage bots... but that code is missing atm')
+                        data=await conn.send('ModeratorList')
+                        data_json=json.dumps(data)
+                        modlist=json.loads(data_json)
 
-                            #elif mode=="remove":
-                            #    if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
-                            #        await rcon('RemoveBot',{'0':'1','1':'RedTeam'},True)
-                            #        logmsg('info',RemoveBot+' probably removed 1 bot to RedTeam')
-                            #        await rcon('RemoveBot',{'0':'1','1':'BlueTeam'},True)
-                            #        logmsg('info',fx+' probably removed 1 bot to BlueTeam')
-                            #    elif gamemode=="DM" or gamemode=="CUSTOM":
-                            #        await rcon('RemoveBot',{'0':'1'},True)
-                            #        logmsg('info',fx+' probably removed 1 bot')
-                            #    elif gamemode=="SND":
-                            #        logmsg('warn',fx+' skipped because gamemode is SND')
+                        for player in inspectall['InspectList']:
+                            steamid64_of_joinuser=''
+                            if str(joinuser)==str(player['PlayerName']):
+                                steamid64_of_joinuser=str(player['UniqueId'])
+                                for mod in modlist['ModeratorList']:
+                                    mod0=mod.split('#',2)
+                                    mod1=mod0[0].strip()
+                                    if str(steamid64_of_joinuser)==str(mod1):
+                                        cmd='GiveMenu'
+                                        params={'0':steamid64_of_joinuser}
+                                        i=0
+                                        while i<len(params):
+                                            cmd+=' '+str(params[str(i)])
+                                            i+=1
+                                        try:
+                                            await conn.send(cmd)
+                                        except Exception as e:
+                                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when giving menu to spqr agent: '+str(e))
+                                        logmsg('info','givemenu has probably been set for '+steamid64_of_joinuser+' ('+joinuser+')')
 
-                        else: logmsg('warn','not managing bots because of roundstate '+str(roundstate))
-                    else: logmsg('info','not managing bots because amount is 0')
-                else: logmsg('info','not managing bots because "managed" is not true')
-            else: logmsg('info','not managing bots because rconplus is disabled')
+                            if steamid64_of_joinuser!='':
+                                msg=str(si['ServerName'])+'\n\n'
+                                msg+='WELCOME, '+joinuser+' :)'
+                                cmd='Notify'
+                                params={'0':steamid64_of_joinuser,'1':msg}
+                                i=0
+                                while i<len(params):
+                                    cmd+=' '+str(params[str(i)])
+                                    i+=1
+                                try:
+                                    await conn.send(cmd)
+                                except Exception as e:
+                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when welcoming player: '+str(e))
+                                logmsg('info','player '+steamid64_of_joinuser+' has been welcomed')
+                        else: logmsg('error','steamid64 was emtpy when trying to welcome player')
+
+                    except Exception as e:
+                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                else: logmsg('warn','not welcoming player because roundstate is '+roundstate)
+            else: logmsg('info','not welcoming player because rconplus is disabled')
+
+            await conn.send('Disconnect')
+            logmsg('debug','rcon conn disconnected')
 
         except Exception as e:
             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-        await conn.send('Disconnect')
 
 
     async def player_left():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
-
-        time.sleep(1)
-
-        port=config['rcon']['port']+int(srv)
-        conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-
         try:
+            port=config['rcon']['port']+int(srv)
+            conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+
             data=await conn.send('ServerInfo')
             data_json=json.dumps(data)
             serverinfo=json.loads(data_json)
@@ -490,11 +448,11 @@ def run_praefectus(meta,config,srv):
 
             playercount=int(si['PlayerCount'].split('/',2)[0])
 
-            # CHECK AUTPIN
+            # CHECK AUTOPIN
             if config['autopin_limits'][srv]!=0:
                 limit=config['autopin_limits'][srv]
 
-                if roundstate=='Starting' or roundstate=='StandBy' or roundstate=='Started':
+                if roundstate=='Started':
                     if playercount>=limit: # limit reached
                         logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin']))
                         cmd='SetPin'
@@ -533,36 +491,46 @@ def run_praefectus(meta,config,srv):
                     if amount!=0:
                         if roundstate=='Started':
 
-                            logmsg('debug','this is the time to manage bots... but that code is missing atm')
+                            if gamemode in gamemodes_teams:
 
-                            #if mode=="add":
-                            #    if gamemode=="TDM" or gamemode=="TANKTDM" or gamemode=="WW2TDM":
-                            #        await rcon('AddBot',{'0':'1','1':'RedTeam'},True)
-                            #        logmsg('info',fx+' probably added 1 bot to RedTeam')
-                            #        await rcon('AddBot',{'0':'1','1':'BlueTeam'},True)
-                            #        logmsg('info',fx+' probably added 1 bot to BlueTeam')
-                            #    elif gamemode=="DM" or gamemode=="CUSTOM":
-                            #        await rcon('AddBot',{'0':'1'},True)
-                            #        logmsg('info',fx+' probably added 1 bot')
+                                logmsg('info','...should add 1 bot now, but this code is missing atm...')
+
+                            elif gamemode in gamemodes_teamless:
+                                cmd='AddBot'
+                                params={'0':'1'}
+                                i=0
+                                while i<len(params):
+                                    cmd+=' '+str(params[str(i)])
+                                    i+=1
+                                try:
+                                    await conn.send(cmd)
+                                except Exception as e:
+                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots: '+str(e))
+                                logmsg('info','probably added 1 bot')
+                            elif gamemode in gamemodes_unsupported:
+                                logmsg('warn','not adding bot because "'+gamemode+'" is not supported atm')
+                            else:
+                                logmsg('error','not adding bot because gamemode: "'+gamemode+' is unknown')
 
                         else: logmsg('warn','not managing bots because of roundstate '+str(roundstate))
                     else: logmsg('info','not managing bots because amount is 0')
                 else: logmsg('info','not managing bots because "managed" is not true')
             else: logmsg('info','not managing bots because rconplus is disabled')
 
+            await conn.send('Disconnect')
+            logmsg('debug','rcon conn disconnected')
+
         except Exception as e:
             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-        await conn.send('Disconnect')
 
 
     async def pullstats():
         fx=inspect.stack()[0][3]
         logmsg('debug','pullstats called')
-
-        port=config['rcon']['port']+int(srv)
-        conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-
         try:
+            port=config['rcon']['port']+int(srv)
+            conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+
             data=await conn.send('ServerInfo')
             data_json=json.dumps(data)
             serverinfo=json.loads(data_json)
@@ -668,70 +636,148 @@ def run_praefectus(meta,config,srv):
                     if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                 logmsg('info',fx+' has processed all current players')
             else: logmsg('info','not pulling stats because either gamemode is not SND or the match did not end yet')
+
+            await conn.send('Disconnect')
+            logmsg('debug','rcon conn disconnected')
+
         except Exception as e:
             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-        await conn.send('Disconnect')
 
 
     def process_found_keyword(line,keyword):
-        match keyword:
-            case 'LogHAL': logmsg('info','server is starting')
+        fx=inspect.stack()[0][3]
+        #logmsg('debug',fx+' called')
+        #logmsg('debug','line: '+line)
+        #logmsg('debug','keyword: '+keyword)
+        try:
+            if line!='':
+                if keyword!='':
+                    match keyword:
+                        case 'LogHAL': logmsg('info','pavlovserver is starting')
 
-            case 'Server Status Helper':
-                logmsg('info','server is now online')
-                asyncio.run(init_server())
+                        case 'PavlovLog: Starting depot http server':
+                            logmsg('info','http server is now online')
+                            port=line.split('port: ',2)[1]
+                            logmsg('debug','port: '+port)
 
-            case 'Rotating map':
-                logmsg('info','map rotation called')
+                        case 'LogTemp: Rcon Started Successfully':
+                            logmsg('info','rcon server is now online')
+                            asyncio.run(init_server())
 
-            case 'PavlovLog: StartPlay': logmsg('info','map started')
+                        case 'LogTemp: Starting Server Status Helper':
+                            logmsg('info','status helper is now online')
 
-            case 'KillData': logmsg('debug','a player died...')
+                        case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
 
-            case 'LogLoad: LoadMap':
-                if '/Game/Maps/ServerIdle' in line: logmsg('info','map switch called')
+                        case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('info','updating blacklist/whitelist/mods')
 
-            case '"State":':
-                roundstate0=line.split('": "',1)
-                roundstate1=roundstate0[1].split('"',1)
-                roundstate=roundstate1[0]
-                logmsg('info','round state changed to: '+str(roundstate).strip())
-                match roundstate:
-                    case 'Starting': asyncio.run(init_round())
-                    #case 'StandBy':
-                    #case 'Started':
-                    case 'Ended': asyncio.run(pullstats())
+                        case 'LogTemp: Scanning Dir': logmsg('info','scanning for mods to load')
 
-            case 'Join succeeded':
-                joinuser0=line.split('succeeded: ',2)
-                joinuser=str(joinuser0[1]).strip()
-                logmsg('info','join successful for user: '+joinuser)
-                asyncio.run(player_joined(joinuser))
+                        case 'LogLoad: LoadMap: /Game/Maps/ServerIdle': logmsg('info','server is waiting for next map')
 
-            case 'LogNet: UChannel::Close':
-                leaveuser0=line.split('RemoteAddr: ',2)
-                leaveuser1=leaveuser0[1].split(',',2)
-                leaveuser=leaveuser1[0]
-                logmsg('info','user left the server: '+str(leaveuser).strip())
-                asyncio.run(player_left())
+                        case 'PavlovLog: Successfully downloaded all mods': logmsg('info','downloaded all mods required for switching map')
 
-            case 'LogTemp: Rcon: KickPlayer':
-                kickplayer0=line.split('KickPlayer ',2)
-                kickplayer=kickplayer0[1]
-                logmsg('info','player kicked: '+str(kickplayer).strip())
-                asyncio.run(player_left())
+                        case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
 
-            case 'LogTemp: Rcon: BanPlayer':
-                banplayer0=line.split('BanPlayer ',2)
-                banplayer=banplayer0[1]
-                logmsg('info','player banned: '+str(banplayer).strip())
-                asyncio.run(player_left())
-                
-            case 'Critical error': logmsg('error','server crashed: critical error')
-                
-            case 'Fatal error': logmsg('error','server crashed: fatal error')
+                        case 'LogTemp: Scanning ...':
+                            logmsg('info','scanning mod')
+                            mod=line.split('UGC',2)[1]
+                            logmsg('debug','mod: '+mod)
 
-            case 'Preparing to exit': logmsg('warn','server is shutting down')
+                        case 'PavlovLog: Initiating rotation, index':
+                            logmsg('info','initializing map switch')
+                            index=line.split(' = ',2)[1]
+                            logmsg('debug','index: '+index)
+
+                        case 'LogTemp: Switching to Map':
+                            logmsg('info','switching to new map')
+                            newmap=line.split('Map ',2)[1]
+                            logmsg('debug','newmap: '+newmap)
+
+                        case 'LogLoad: LoadMap: /UGC':
+                            logmsg('info','map has been downloaded')
+                            #logmsg('debug','line: '+line)
+                            mapugc=line.split('/',3)[1]
+                            logmsg('debug','mapugc: '+mapugc)
+                            mapname=mapugc[2].split('??',2)[0]
+                            logmsg('debug','mapname: '+mapname)
+                            mapmode=mapname[1].split('=',1)[1]
+                            logmsg('debug','mapmode: '+mapmode)
+
+                        case 'LogLoad: LoadMap: /Game/Maps/download':
+                            logmsg('info','downloading next map now')
+                            #logmsg('debug','line: '+line)
+                            line_split=line.split('=',2)
+                            mapugc=line_split[1].split('?',1)[0]
+                            logmsg('debug','mapugc: '+mapugc)
+                            mapmode=line_split[2]
+                            logmsg('debug','mapmode: '+mapmode)
+
+                        case 'LogGameState: Match State Changed from':
+                            logmsg('info','match state changed')
+                            statefrom0=line.split(' from ',1)[1]
+                            statefrom=statefrom0.split(' to ',1)[0]
+                            logmsg('debug','statefrom: '+statefrom)
+                            stateto=statefrom0.split(' to ',1)[1]
+                            logmsg('debug','stateto: '+stateto)
+
+                        case '"State":':
+                            logmsg('info','round state changed')
+                            roundstate0=line.split('": "',1)
+                            roundstate1=roundstate0[1].split('"',1)
+                            roundstate=roundstate1[0]
+                            logmsg('debug','roundstate: '+roundstate)
+                            match roundstate:
+                                case 'Starting': asyncio.run(init_round_map())
+                                #case 'StandBy':
+                                #case 'Started':
+                                case 'Ended': asyncio.run(pullstats())
+
+                        case 'Join succeeded':
+                            logmsg('info','user joined the server')
+                            joinuser0=line.split('succeeded: ',2)
+                            joinuser=str(joinuser0[1]).strip()
+                            logmsg('debug','joinuser: '+joinuser)
+                            asyncio.run(player_joined(joinuser))
+
+                        case 'LogNet: UChannel::Close':
+                            logmsg('info','user left the server')
+                            leaveuser0=line.split('RemoteAddr: ',2)
+                            leaveuser1=leaveuser0[1].split(',',2)
+                            leaveuser=str(leaveuser1[0]).strip()
+                            logmsg('debug','leaveuser: '+leaveuser)
+                            asyncio.run(player_left())
+
+                        case 'LogTemp: Rcon: KickPlayer':
+                            logmsg('info','player kicked')
+                            kickplayer0=line.split('KickPlayer ',2)
+                            kickplayer=str(kickplayer0[1]).strip()
+                            logmsg('debug','kickplayer: '+kickplayer)
+                            asyncio.run(player_left())
+
+                        case 'LogTemp: Rcon: BanPlayer':
+                            logmsg('info','player banned')
+                            banplayer0=line.split('BanPlayer ',2)
+                            banplayer=str(banplayer0[1]).strip()
+                            logmsg('debug','banplayer: '+banplayer)
+                            asyncio.run(player_left())
+
+                        case 'KillData': logmsg('debug','a player died')
+                            
+                        case 'Critical error': logmsg('error','server crashed: critical error')
+                            
+                        case 'Fatal error': logmsg('error','server crashed: fatal error')
+
+                        case 'Preparing to exit': logmsg('warn','server is shutting down')
+
+                        #case _:
+                        #    logmsg('debug','keyword doesnt match line')
+                        #    logmsg('debug','keyword: '+str(keyword).strip())
+                        #    logmsg('debug','line: '+str(line).strip())
+                else: logmsg('warn','keyword was empty - wtf')
+            else: logmsg('warn','line has been empty - wtf')
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
 
 
     def find_keyword_in_line(line,keywords):
@@ -757,20 +803,34 @@ def run_praefectus(meta,config,srv):
                     yield line
 
 
+    gamemodes_teamless=['DM','GUN','OITC','WW2GUN','CUSTOM']
+    gamemodes_teams=['PUSH','SND','TANKTDM','TDM','WW2TDM']
+    gamemodes_unsupported=['HIDE','PH','INFECTION','KOTH','TTT']
     target_log=config['target_log']
     logmsg('info',meta['name']+' '+meta['version']+' is now active ('+target_log+')')
     loglines=follow_log(target_log)
     for line in loglines:
-        if line!="":
+        line=str(line.strip())
+        if line!='':
             found_keyword=find_keyword_in_line(line,[
-                'Rotating map',
+                'LogTemp: Rcon Started Successfully',
+                'LogTemp: Scanning Dir', # LogTemp: Scanning Dir: /home/steam/pavlovserver/Pavlov/Saved/Mods
+                'LogTemp: Scanning ...', # LogTemp: Scanning ... /home/steam/pavlovserver/Pavlov/Saved/Mods/UGC3037601
+                'PavlovLog: Starting depot http server', # PavlovLog: Starting depot http server in port: 7777
+                'PavlovLog: Initiating rotation, index', # PavlovLog: Initiating rotation, index = 1
+                'LogTemp: Switching to Map', # LogTemp: Switching to Map UGC3037601 Version 26
+                'PavlovLog: Successfully downloaded all mods' # PavlovLog: Successfully downloaded all mods required switching rotation
+                'LogLoad: LoadMap: /UGC', # LogLoad: LoadMap: /UGC3037601/Pool_Day??listen?game=DM
+                'LogLoad: LoadMap: /Game/Maps/download', # LogLoad: LoadMap: /Game/Maps/download.download??listen?Map=UGC2814848?Mode=TDM
+                'LogGameState: Match State Changed from', # LogGameState: Match State Changed from EnteringMap to WaitingToStart
+                'PavlovLog: StartPlay was called',
+                'LogTemp: Starting Server Status Helper', # LogTemp: Starting Server Status Helper on Port 8177 Server
+                'PavlovLog: Updating blacklist/whitelist/mods',
+                'StatManagerLog: Stat Manager Started',
+                'LogHAL',
                 'LogLoad: LoadMap',
-                'StartPlay',
                 '"State":',
                 'Preparing to exit',
-                'LogHAL',
-                'Server Status Helper',
-                'Rcon: User',
                 'Join succeeded',
                 'LogNet: UChannel::Close',
                 'KillData',
@@ -778,4 +838,5 @@ def run_praefectus(meta,config,srv):
                 'LogTemp: Rcon: BanPlayer',
                 'Critical error',
                 'Fatal error'])
-            if found_keyword!='': process_found_keyword(line,found_keyword)
+            if found_keyword!='':
+                process_found_keyword(line,found_keyword)

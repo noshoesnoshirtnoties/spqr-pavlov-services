@@ -72,8 +72,9 @@ if __name__ == '__main__':
                 try:
                     port=config['rcon']['port']+int(srv)
                     conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-                    i=0
-                    while i<config['pinglimit']['minentries']:
+                    i=1
+                    runs=config['pinglimit']['minentries']-config['pinglimit']['keepentries']
+                    while i<runs:
                         print('[DEBUG] pinglimit run #: '+str(i))
                         data=await conn.send('ServerInfo')
                         data_json=json.dumps(data)
@@ -137,7 +138,6 @@ if __name__ == '__main__':
 
                                         # check delta
                                         if delta>limit_delta:
-                                            logmsg('warn','ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
                                             print('[WARN] ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
                                             msg='ping delta warning :('
                                             notify_player=True
@@ -145,7 +145,6 @@ if __name__ == '__main__':
 
                                         # check avg ping against soft limit
                                         if avg>limit_soft:
-                                            logmsg('warn','ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
                                             print('[WARN] ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
                                             msg='ping exceeds soft limit ('+str(limit_soft)+') :('
                                             notify_player=True
@@ -153,7 +152,6 @@ if __name__ == '__main__':
 
                                         # check avg ping against hard limit
                                         if avg>limit_hard:
-                                            logmsg('warn','ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
                                             print('[WARN] ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
                                             msg='ping exceeds hard limit ('+str(limit_hard)+') :('
                                             notify_player=True
@@ -163,7 +161,6 @@ if __name__ == '__main__':
                                         # notify
                                         if notify_player is True:
                                             if config['pinglimit'][srv]['notify'] is True:
-                                                logmsg('info','notify was triggered for player: '+str(steamid64))
                                                 if config['pinglimit'][srv]['kick'] is True: msg+='\n\nauto-kick is enabled'
                                                 cmd='Notify'
                                                 params={'0':str(steamid64),'1':msg}
@@ -182,7 +179,6 @@ if __name__ == '__main__':
                                         # kick
                                         if kick_player is True:
                                             if config['pinglimit'][srv]['kick'] is True:
-                                                logmsg('info','kick was triggered for player: '+str(steamid64))
                                                 cmd='Kick'
                                                 params={'0':str(steamid64)}
                                                 j=0
@@ -219,6 +215,6 @@ if __name__ == '__main__':
 
         await conn.send('Disconnect')
         print('[INFO] rcon disconnected ')
-    
+
     asyncio.run(pinglimit())
     print('[INFO] end of cron reached')
