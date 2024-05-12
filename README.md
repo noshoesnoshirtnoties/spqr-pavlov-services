@@ -81,6 +81,7 @@ the discord bot can be deployed to a target server like this:
 ### general
 ```
 watch 'docker ps --format "{{.ID}} {{.Status}} {{.Names}}"'
+tail -f /opt/pavlov-server/praefectus/cron/pinglimit-cron-0.log
 ```
 
 ### pavlov-server #0
@@ -114,7 +115,6 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 * pavlov-server
   * logrotate
 * praefectus
-  * check for updated log messages
   * logrotate
   * map-specific settings (like playermodel)
 * servus-publicus
