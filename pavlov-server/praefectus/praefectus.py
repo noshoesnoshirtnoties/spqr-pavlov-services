@@ -492,8 +492,19 @@ def run_praefectus(meta,config,srv):
                         if roundstate=='Started':
 
                             if gamemode in gamemodes_teams:
-
-                                logmsg('info','...should add 1 bot now, but this code is missing atm...')
+                                
+                                team=random.randint(0,1)
+                                cmd='AddBot'
+                                params={'0':'1','1':team}
+                                i=0
+                                while i<len(params):
+                                    cmd+=' '+str(params[str(i)])
+                                    i+=1
+                                try:
+                                    await conn.send(cmd)
+                                except Exception as e:
+                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding 1 bot: '+str(e))
+                                logmsg('info','probably added 1 bot to team: '+str(team))
 
                             elif gamemode in gamemodes_teamless:
                                 cmd='AddBot'
@@ -505,7 +516,7 @@ def run_praefectus(meta,config,srv):
                                 try:
                                     await conn.send(cmd)
                                 except Exception as e:
-                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding bots: '+str(e))
+                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when adding 1 bot: '+str(e))
                                 logmsg('info','probably added 1 bot')
                             elif gamemode in gamemodes_unsupported:
                                 logmsg('warn','not adding bot because "'+gamemode+'" is not supported atm')
