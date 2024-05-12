@@ -6,4 +6,4 @@
 #| | | | |
 #* * * * *
 
-30 5 * * 0 steam /home/steam/pavlov_update.sh >/dev/null 2>&1
+#30 5 * * 0 steam /home/steam/pavlov_update.sh >/dev/null 2>&1
