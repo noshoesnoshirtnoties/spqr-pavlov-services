@@ -309,76 +309,58 @@ def run_praefectus(meta,config,srv):
             else: maplabel=str(si['MapLabel'].lower()).strip()
             gamemode=str(si['GameMode'].upper()).strip()
 
-            nop0=si['PlayerCount'].split('/',2)
-            nop1=nop0[0]
-
-            # demo rec counts as 1 player in SND
-            if gamemode=="SND":
-                # demo only exists if there is players
-                if int(nop1)>0: nop2=(int(nop1)-1)
-                else: nop2=(nop0[0])
-
-                maxplayers=nop0[1]
-                si['PlayerCount']=str(nop2)+'/'+str(maxplayers)
-
-            playercount=int(si['PlayerCount'].split('/',2)[0])
-
-            # CHECK AUTOPIN
-            if config['autopin_limits'][srv]!=0:
-                limit=config['autopin_limits'][srv]
-
-                if roundstate=='Starting' or roundstate=='StandBy' or roundstate=='Started':
-                    if int(playercount)>=limit: # limit reached
-                        logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin']))
-                        cmd='SetPin'
-                        params={'0':config['autopin']}
-                        i=0
-                        while i<len(params):
-                            cmd+=' '+str(params[str(i)])
-                            i+=1
-                        try:
-                            data=await conn.send(cmd)
-                            if data['Successful'] is True: logmsg('debug','setpin has set the pin')
-                            else: logmsg('error','setpin has NOT set the pin for some reason')
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting pin: '+str(e))
-                    else: # below limit
-                        logmsg('debug','below limit ('+str(limit)+') - removing pin')
-                        cmd='SetPin'
-                        params={'0':' '}
-                        i=0
-                        while i<len(params):
-                            cmd+=' '+str(params[str(i)])
-                            i+=1
-                        try:
-                            data=await conn.send(cmd)
-                            if data['Successful'] is True: logmsg('debug','setpin has emptied the pin')
-                            else: logmsg('error','setpin has NOT emptied the pin for some reason')
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting pin: '+str(e))
-                else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
-            else: logmsg('info','not touching pin because autopin is disabled')
+            playercount_split=si['PlayerCount'].split('/',2)
+            numberofplayers=int(playercount_split[0])
+            maxplayers=int(playercount_split[1])
+            
+            demo_enabled=False # get this via rcon
+            if demo_enabled is True: # demo rec counts as 1 player
+                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
+            
+            if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
+                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
 
             # WELCOME PLAYER
             if config['rconplus'][srv] is True:
                 if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy':
                     try:
-                        data=await conn.send('InspectAll')
+                        data=await conn.send('RefreshList')
                         data_json=json.dumps(data)
-                        inspectall=json.loads(data_json)
+                        refreshlist=json.loads(data_json)
 
                         data=await conn.send('ModeratorList')
                         data_json=json.dumps(data)
                         modlist=json.loads(data_json)
 
-                        for player in inspectall['InspectList']:
+                        for player in refreshlist['PlayerList']:
+                            steamid64=str(player['UniqueId']).strip()
+
+                            cmd='InspectPlayer'
+                            params={'0':steamid64}
+                            i=0
+                            while i<len(params):
+                                cmd+=' '+str(params[str(i)])
+                                i+=1
+                            data=await conn.send(cmd)
+                            data_json=json.dumps(data)
+                            inspectplayer=json.loads(data_json)
+
+                            kda=inspectplayer['PlayerInfo']['KDA'].split('/',3)
+                            kills=kda[0]
+                            deaths=kda[1]
+                            assists=kda[2]
+                            score=inspectplayer['PlayerInfo']['Score']
+                            current_ping=inspectplayer['PlayerInfo']['Ping']
+                            playername=str(inspectplayer['PlayerInfo']['PlayerName']).strip()
+
                             steamid64_of_joinuser=''
-                            if str(joinuser)==str(player['PlayerName']):
-                                steamid64_of_joinuser=str(player['UniqueId'])
+                            if str(joinuser)==playername:
+                                steamid64_of_joinuser=steamid64
+
                                 for mod in modlist['ModeratorList']:
-                                    mod0=mod.split('#',2)
-                                    mod1=mod0[0].strip()
-                                    if str(steamid64_of_joinuser)==str(mod1):
+                                    mod_split=mod.split('#',2)
+                                    mod_steamid64=str(mod_split[0]).strip()
+                                    if steamid64_of_joinuser==mod_steamid64:
                                         cmd='GiveMenu'
                                         params={'0':steamid64_of_joinuser}
                                         i=0
@@ -392,6 +374,8 @@ def run_praefectus(meta,config,srv):
                                         logmsg('info','givemenu has probably been set for '+steamid64_of_joinuser+' ('+joinuser+')')
 
                             if steamid64_of_joinuser!='':
+                                time.sleep(1)
+
                                 msg=str(si['ServerName'])+'\n\n'
                                 msg+='WELCOME, '+joinuser+' :)'
                                 cmd='Notify'
@@ -405,7 +389,7 @@ def run_praefectus(meta,config,srv):
                                 except Exception as e:
                                     if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when welcoming player: '+str(e))
                                 logmsg('info','player '+steamid64_of_joinuser+' has been welcomed')
-                        else: logmsg('error','steamid64 was emtpy when trying to welcome player')
+                            else: logmsg('error','steamid64 was emtpy when trying to welcome player')
 
                     except Exception as e:
                         if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
@@ -434,55 +418,16 @@ def run_praefectus(meta,config,srv):
             gamemode=str(si['GameMode'].upper()).strip()
             roundstate=str(si['RoundState']).strip()
 
-            nop0=si['PlayerCount'].split('/',2)
-            nop1=nop0[0]
-
-            # demo rec counts as 1 player in SND
-            if gamemode=="SND":
-                # demo only exists if there is players
-                if int(nop1)>0: nop2=(int(nop1)-1)
-                else: nop2=(nop0[0])
-
-                maxplayers=nop0[1]
-                si['PlayerCount']=str(nop2)+'/'+str(maxplayers)
-
-            playercount=int(si['PlayerCount'].split('/',2)[0])
-
-            # CHECK AUTOPIN
-            if config['autopin_limits'][srv]!=0:
-                limit=config['autopin_limits'][srv]
-
-                if roundstate=='Started':
-                    if playercount>=limit: # limit reached
-                        logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin']))
-                        cmd='SetPin'
-                        params={'0':config['autopin']}
-                        i=0
-                        while i<len(params):
-                            cmd+=' '+str(params[str(i)])
-                            i+=1
-                        try:
-                            data=await conn.send(cmd)
-                            if data['Successful'] is True: logmsg('debug','setpin has set the pin')
-                            else: logmsg('error','setpin has NOT set the pin for some reason')
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                    else: # below limit
-                        logmsg('debug','below limit ('+str(limit)+') - removing pin')
-                        cmd='SetPin'
-                        params={'0':' '}
-                        i=0
-                        while i<len(params):
-                            cmd+=' '+str(params[str(i)])
-                            i+=1
-                        try:
-                            data=await conn.send(cmd)
-                            if data['Successful'] is True: logmsg('debug','setpin has emptied the pin')
-                            else: logmsg('error','setpin has NOT emptied the pin for some reason')
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when emptying pin: '+str(e))
-                else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
-            else: logmsg('info','not touching pin because autopin is disabled')
+            playercount_split=si['PlayerCount'].split('/',2)
+            numberofplayers=int(playercount_split[0])
+            maxplayers=int(playercount_split[1])
+            
+            demo_enabled=False # get this via rcon
+            if demo_enabled is True: # demo rec counts as 1 player
+                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
+            
+            if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
+                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
 
             # MANAGE BOTS (ADD)
             if config['rconplus'][srv] is True:
@@ -550,23 +495,21 @@ def run_praefectus(meta,config,srv):
             gamemode=str(si['GameMode'].upper()).strip()
             roundstate=str(si['RoundState']).strip()
 
-            # demo rec counts as 1 player in SND
-            if gamemode=="SND":
-                numberofplayers0=si['PlayerCount'].split('/',2)
-                numberofplayers1=numberofplayers0[0]
+            playercount_split=si['PlayerCount'].split('/',2)
+            numberofplayers=int(playercount_split[0])
+            maxplayers=int(playercount_split[1])
+            
+            demo_enabled=False # get this via rcon
+            if demo_enabled is True: # demo rec counts as 1 player
+                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
+            
+            if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
+                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
 
-                # demo only exists if there is players
-                if int(numberofplayers1)>0: numberofplayers2=(int(numberofplayers1)-1)
-                else: numberofplayers2=(numberofplayers0[0])
-
-                maxplayers=numberofplayers0[1]
-                playercount=str(numberofplayers2)+'/'+str(maxplayers)
-            else: playercount=si['PlayerCount']
-
-            # for SND get info if match has ended and which team won
+            # get info if match has ended and which team won
             si['MatchEnded']=False
             si['WinningTeam']='none'
-            if si['GameMode']=="SND" and si['Teams'] is True:
+            if gamemode in gamemodes_teams and si['Teams'] is True:
                 if int(si['Team0Score'])==10:
                     si['MatchEnded']=True
                     si['WinningTeam']='team0'
@@ -577,76 +520,90 @@ def run_praefectus(meta,config,srv):
                 si['Team0Score']=0
                 si['Team1Score']=0    
 
-            # only pull stats if match ended and gamemode is SND
-            if si['MatchEnded'] is True and si=="SND":
-                logmsg('debug','actually pulling stats now')
+            # pull stats if match ended
+            if gamemode in gamemodes_teams or gamemode in gamemodes_teamless:
+                if (gamemode=="SND" and si['MatchEnded'] is True) or gamemode!="SND":
+                    logmsg('debug','pulling stats now')
 
-                # pull scoreboard
-                try:
-                    data=await conn.send('InspectAll')
-                    data_json=json.dumps(data)
-                    inspectall=json.loads(data_json)
-                    for player in inspectall['InspectList']:
-                        kda=player['KDA'].split('/',3)
-                        kills=kda[0]
-                        deaths=kda[1]
-                        assists=kda[2]
-                        score=player['Score']
-                        ping=player['Ping']
+                    try:
+                        data=await conn.send('RefreshList')
+                        data_json=json.dumps(data)
+                        refreshlist=json.loads(data_json)
 
-                        logmsg('debug','player: '+str(player))
-                        logmsg('debug','player[PlayerName]: '+str(player['PlayerName']))
-                        logmsg('debug','player[UniqueId]: '+str(player['UniqueId']))
-                        logmsg('debug','player[KDA]: '+str(player['KDA']))
-                        logmsg('debug','kills: '+str(kills))
-                        logmsg('debug','deaths: '+str(deaths))
-                        logmsg('debug','assists: '+str(assists))
-                        logmsg('debug','score: '+str(score))
-                        logmsg('debug','ping: '+str(ping))
-                        if str(player['TeamId'])!='':
-                            logmsg('debug','player[TeamId]: '+str(player['TeamId']))
+                        for player in refreshlist['PlayerList']:
+                            steamid64=str(player['UniqueId']).strip()
 
-                        # check if user exists in steamusers
-                        logmsg('debug','checking if user exists in db')
-                        query="SELECT * FROM steamusers WHERE steamid64 = %s LIMIT 1"
-                        values=[]
-                        values.append(str(player['UniqueId']))
-                        steamusers=dbquery(query,values)
+                            cmd='InspectPlayer'
+                            params={'0':steamid64}
+                            i=0
+                            while i<len(params):
+                                cmd+=' '+str(params[str(i)])
+                                i+=1
+                            data=await conn.send(cmd)
+                            data_json=json.dumps(data)
+                            inspectplayer=json.loads(data_json)
 
-                        # if user does not exist, add user
-                        if steamusers['rowcount']==0:
-                            logmsg('debug','adding user to db because not found')
-                            query="INSERT INTO steamusers (steamid64) VALUES (%s)"
+                            kda=inspectplayer['PlayerInfo']['KDA'].split('/',3)
+                            kills=kda[0]
+                            deaths=kda[1]
+                            assists=kda[2]
+                            score=inspectplayer['PlayerInfo']['Score']
+                            ping=inspectplayer['PlayerInfo']['Ping']
+                            playername=str(inspectplayer['PlayerInfo']['PlayerName']).strip()
+
+                            logmsg('debug','player: '+str(player))
+                            logmsg('debug','playername: '+str(playername))
+                            logmsg('debug','steamid64: '+str(steamid64))
+                            logmsg('debug','kills: '+str(kills))
+                            logmsg('debug','deaths: '+str(deaths))
+                            logmsg('debug','assists: '+str(assists))
+                            logmsg('debug','score: '+str(score))
+                            logmsg('debug','ping: '+str(ping))
+                            if 'TeamId' in inspectplayer['PlayerInfo']:
+                                logmsg('debug','inspectplayer[PlayerInfo][TeamId]: '+str(inspectplayer['PlayerInfo']['TeamId']))
+
+                            # check if user exists in steamusers
+                            logmsg('debug','checking if user exists in db')
+                            query="SELECT * FROM steamusers WHERE steamid64 = %s LIMIT 1"
                             values=[]
-                            values.append(str(player['UniqueId']))
+                            values.append(str(steamid64))
+                            steamusers=dbquery(query,values)
+
+                            # if user does not exist, add user
+                            if steamusers['rowcount']==0:
+                                logmsg('debug','adding user to db because not found')
+                                query="INSERT INTO steamusers (steamid64) VALUES (%s)"
+                                values=[]
+                                values.append(str(steamid64))
+                                dbquery(query,values)
+                            else:
+                                logmsg('debug','steam user already in db: '+str(steamid64))
+
+                            # read steamuser id
+                            logmsg('debug','getting steamusers id from db')
+                            query="SELECT id FROM steamusers WHERE steamid64=%s LIMIT 1"
+                            values=[]
+                            values.append(str(steamid64))
+                            steamusers=dbquery(query,values)
+                            steamuser_id=steamusers['rows'][0]['id']
+
+                            # add stats for user
+                            logmsg('info','adding stats for user')
+                            timestamp=datetime.now(timezone.utc)            
+                            query="INSERT INTO stats ("
+                            query+="steamusers_id,kills,deaths,assists,score,ping,servername,playercount,mapugc,"
+                            query+="gamemode,matchended,teams,team0score,team1score,timestamp"
+                            query+=") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                            values=[
+                                steamuser_id,kills,deaths,assists,score,ping,si['ServerName'],numberofplayers,
+                                si['MapLabel'],si['GameMode'],si['MatchEnded'],
+                                si['Teams'],si['Team0Score'],si['Team1Score'],timestamp]
                             dbquery(query,values)
-                        else:
-                            logmsg('debug','steam user already in db: '+str(player['UniqueId']))
-
-                        # read steamuser id
-                        logmsg('debug','getting steamusers id from db')
-                        query="SELECT id FROM steamusers WHERE steamid64=%s LIMIT 1"
-                        values=[]
-                        values.append(str(player['UniqueId']))
-                        steamusers=dbquery(query,values)
-                        steamuser_id=steamusers['rows'][0]['id']
-
-                        # add stats for user
-                        logmsg('info','adding stats for user')
-                        timestamp=datetime.now(timezone.utc)            
-                        query="INSERT INTO stats ("
-                        query+="steamusers_id,kills,deaths,assists,score,ping,servername,playercount,mapugc,"
-                        query+="gamemode,matchended,teams,team0score,team1score,timestamp"
-                        query+=") VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-                        values=[
-                            steamuser_id,kills,deaths,assists,score,ping,si['ServerName'],si['PlayerCount'],
-                            si['MapLabel'],si['GameMode'],si['MatchEnded'],
-                            si['Teams'],si['Team0Score'],si['Team1Score'],timestamp]
-                        dbquery(query,values)
-                except Exception as e:
-                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                logmsg('info',fx+' has processed all current players')
-            else: logmsg('info','not pulling stats because either gamemode is not SND or the match did not end yet')
+                    except Exception as e:
+                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                    logmsg('info',fx+' has processed all current players')
+                else: logmsg('debug','not pulling stats because gamemode is SND, but its not the last round yet')
+            else: logmsg('debug','not pulling stats because gamemode is not supported')
 
             await conn.send('Disconnect')
             logmsg('debug','rcon conn disconnected')
@@ -656,88 +613,54 @@ def run_praefectus(meta,config,srv):
 
 
     def process_found_keyword(line,keyword):
-        fx=inspect.stack()[0][3]
-        #logmsg('debug',fx+' called')
-        #logmsg('debug','line: '+line)
-        #logmsg('debug','keyword: '+keyword)
         try:
             if line!='':
                 if keyword!='':
                     match keyword:
-                        case 'LogHAL': logmsg('info','pavlovserver is starting')
 
                         case 'PavlovLog: Starting depot http server':
-                            logmsg('info','http server is now online')
-                            port=line.split('port: ',2)[1]
-                            logmsg('debug','port: '+port)
+                            port=str(line.split('port: ',2)[1])
+                            logmsg('info','http server is now online on port: '+port)
 
                         case 'LogTemp: Rcon Started Successfully':
                             logmsg('info','rcon server is now online')
                             asyncio.run(init_server())
 
-                        case 'LogTemp: Starting Server Status Helper':
-                            logmsg('info','status helper is now online')
-
-                        case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
-
-                        case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('info','updating blacklist/whitelist/mods')
-
-                        case 'LogTemp: Scanning Dir': logmsg('info','scanning for mods to load')
-
-                        case 'LogLoad: LoadMap: /Game/Maps/ServerIdle': logmsg('info','server is waiting for next map')
-
-                        case 'PavlovLog: Successfully downloaded all mods': logmsg('info','downloaded all mods required for switching map')
-
-                        case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
-
                         case 'LogTemp: Scanning ...':
-                            logmsg('info','scanning mod')
-                            mod=line.split('UGC',2)[1]
-                            logmsg('debug','mod: '+mod)
+                            mod=str(line.split('UGC',2)[1])
+                            logmsg('info','scanning mod: '+mod)
 
                         case 'PavlovLog: Initiating rotation, index':
-                            logmsg('info','initializing map switch')
-                            index=line.split(' = ',2)[1]
-                            logmsg('debug','index: '+index)
+                            index=str(line.split(' = ',2)[1])
+                            logmsg('info','initializing map switch to index: '+index)
 
                         case 'LogTemp: Switching to Map':
-                            logmsg('info','switching to new map')
-                            newmap=line.split('Map ',2)[1]
-                            logmsg('debug','newmap: '+newmap)
+                            newmap=str(line.split('Map ',2)[1])
+                            logmsg('info','switching to new map: '+newmap)
 
                         case 'LogLoad: LoadMap: /UGC':
-                            logmsg('info','map has been downloaded')
-                            #logmsg('debug','line: '+line)
                             mapugc=line.split('/',3)[1]
-                            logmsg('debug','mapugc: '+mapugc)
-                            mapname=mapugc[2].split('??',2)[0]
-                            logmsg('debug','mapname: '+mapname)
-                            mapmode=mapname[1].split('=',1)[1]
-                            logmsg('debug','mapmode: '+mapmode)
+                            mapname=str(mapugc[2].split('??',2)[0])
+                            mapmode=str(mapname[1].split('=',1)[1])
+                            logmsg('info','map has been downloaded: '+mapugc+' ('+mapname+') as '+mapmode)
 
                         case 'LogLoad: LoadMap: /Game/Maps/download':
-                            logmsg('info','downloading next map now')
-                            #logmsg('debug','line: '+line)
                             line_split=line.split('=',2)
-                            mapugc=line_split[1].split('?',1)[0]
-                            logmsg('debug','mapugc: '+mapugc)
-                            mapmode=line_split[2]
-                            logmsg('debug','mapmode: '+mapmode)
+                            mapugc=str(line_split[1].split('?',1)[0])
+                            mapmode=str(line_split[2])
+                            logmsg('info','downloading next map now: '+mapugc+' as '+mapmode)
 
-                        case 'LogGameState: Match State Changed from':
-                            logmsg('info','match state changed')
-                            statefrom0=line.split(' from ',1)[1]
-                            statefrom=statefrom0.split(' to ',1)[0]
-                            logmsg('debug','statefrom: '+statefrom)
-                            stateto=statefrom0.split(' to ',1)[1]
-                            logmsg('debug','stateto: '+stateto)
+                        case 'LogGameState: Match State Changed':
+                            line_split=line.split(' from ',1)[1]
+                            statefrom=str(line_split.split(' to ',1)[0])
+                            stateto=str(line_split.split(' to ',1)[1])
+                            logmsg('info','match state changed from '+statefrom+' to '+stateto)
 
                         case '"State":':
-                            logmsg('info','round state changed')
                             roundstate0=line.split('": "',1)
                             roundstate1=roundstate0[1].split('"',1)
                             roundstate=roundstate1[0]
-                            logmsg('debug','roundstate: '+roundstate)
+                            logmsg('info','round state changed to '+roundstate)
                             match roundstate:
                                 case 'Starting': asyncio.run(init_round_map())
                                 #case 'StandBy':
@@ -745,42 +668,41 @@ def run_praefectus(meta,config,srv):
                                 case 'Ended': asyncio.run(pullstats())
 
                         case 'Join succeeded':
-                            logmsg('info','user joined the server')
-                            joinuser0=line.split('succeeded: ',2)
-                            joinuser=str(joinuser0[1]).strip()
-                            logmsg('debug','joinuser: '+joinuser)
+                            joinuser=str(line.split('succeeded: ',2)[1]).strip()
+                            logmsg('info','user joined the server: '+joinuser)
                             asyncio.run(player_joined(joinuser))
 
                         case 'LogNet: UChannel::Close':
-                            logmsg('info','user left the server')
                             leaveuser0=line.split('RemoteAddr: ',2)
                             leaveuser1=leaveuser0[1].split(',',2)
                             leaveuser=str(leaveuser1[0]).strip()
-                            logmsg('debug','leaveuser: '+leaveuser)
+                            logmsg('info','user left the server: '+leaveuser)
                             asyncio.run(player_left())
 
                         case 'LogTemp: Rcon: KickPlayer':
-                            logmsg('info','player kicked')
                             kickplayer0=line.split('KickPlayer ',2)
                             kickplayer=str(kickplayer0[1]).strip()
-                            logmsg('debug','kickplayer: '+kickplayer)
+                            logmsg('info','player has been kicked: '+kickplayer)
                             asyncio.run(player_left())
 
                         case 'LogTemp: Rcon: BanPlayer':
-                            logmsg('info','player banned')
                             banplayer0=line.split('BanPlayer ',2)
                             banplayer=str(banplayer0[1]).strip()
-                            logmsg('debug','banplayer: '+banplayer)
+                            logmsg('info','player has been banned: '+banplayer)
                             asyncio.run(player_left())
 
+                        case 'LogHAL': logmsg('info','pavlovserver is starting')
+                        case 'LogTemp: Starting Server Status Helper': logmsg('info','status helper is now online')
+                        case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
+                        case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('info','updating blacklist/whitelist/mods')
+                        case 'LogTemp: Scanning Dir': logmsg('info','scanning for mods to load')
+                        case 'LogLoad: LoadMap: /Game/Maps/ServerIdle': logmsg('info','server is waiting for next map')
+                        case 'PavlovLog: Successfully downloaded all mods': logmsg('info','downloaded all mods required for switching map')
+                        case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
                         case 'KillData': logmsg('debug','a player died')
-                            
                         case 'Critical error': logmsg('error','server crashed: critical error')
-                            
                         case 'Fatal error': logmsg('error','server crashed: fatal error')
-
                         case 'Preparing to exit': logmsg('warn','server is shutting down')
-
                         #case _:
                         #    logmsg('debug','keyword doesnt match line')
                         #    logmsg('debug','keyword: '+str(keyword).strip())
@@ -825,17 +747,17 @@ def run_praefectus(meta,config,srv):
         if line!='':
             found_keyword=find_keyword_in_line(line,[
                 'LogTemp: Rcon Started Successfully',
-                'LogTemp: Scanning Dir', # LogTemp: Scanning Dir: /home/steam/pavlovserver/Pavlov/Saved/Mods
-                'LogTemp: Scanning ...', # LogTemp: Scanning ... /home/steam/pavlovserver/Pavlov/Saved/Mods/UGC3037601
-                'PavlovLog: Starting depot http server', # PavlovLog: Starting depot http server in port: 7777
-                'PavlovLog: Initiating rotation, index', # PavlovLog: Initiating rotation, index = 1
-                'LogTemp: Switching to Map', # LogTemp: Switching to Map UGC3037601 Version 26
-                'PavlovLog: Successfully downloaded all mods' # PavlovLog: Successfully downloaded all mods required switching rotation
-                'LogLoad: LoadMap: /UGC', # LogLoad: LoadMap: /UGC3037601/Pool_Day??listen?game=DM
-                'LogLoad: LoadMap: /Game/Maps/download', # LogLoad: LoadMap: /Game/Maps/download.download??listen?Map=UGC2814848?Mode=TDM
-                'LogGameState: Match State Changed from', # LogGameState: Match State Changed from EnteringMap to WaitingToStart
+                'LogTemp: Scanning Dir',
+                'LogTemp: Scanning ...',
+                'PavlovLog: Starting depot http server',
+                'PavlovLog: Initiating rotation, index',
+                'LogTemp: Switching to Map',
+                'PavlovLog: Successfully downloaded all mods'
+                'LogLoad: LoadMap: /UGC',
+                'LogLoad: LoadMap: /Game/Maps/download',
+                'LogGameState: Match State Changed from',
                 'PavlovLog: StartPlay was called',
-                'LogTemp: Starting Server Status Helper', # LogTemp: Starting Server Status Helper on Port 8177 Server
+                'LogTemp: Starting Server Status Helper',
                 'PavlovLog: Updating blacklist/whitelist/mods',
                 'StatManagerLog: Stat Manager Started',
                 'LogHAL',

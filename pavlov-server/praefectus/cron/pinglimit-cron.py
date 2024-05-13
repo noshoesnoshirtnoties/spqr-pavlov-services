@@ -17,7 +17,6 @@ if __name__ == '__main__':
     else: srv='0'
 
     rnd_sleep=random.randint(1,10)
-    print('[DEBUG] gonna sleep for '+str(rnd_sleep)+' seconds to prevent all crons from running at the exact same time')
     time.sleep(rnd_sleep)
 
     config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
@@ -42,7 +41,7 @@ if __name__ == '__main__':
 
 
     def dbquery(query,values):
-        print('[DEBUG] dbquery called')
+        logmsg('debug','dbquery called')
         conn=mysql.connector.connect(
             host=config['mysql']['host'],
             port=config['mysql']['port'],
@@ -64,45 +63,56 @@ if __name__ == '__main__':
 
 
     async def pinglimit():
-        print('[DEBUG] pinglimit called')
+        logmsg('debug','pinglimit called')
         if config['rconplus'][srv] is True:
-            print('[DEBUG] rconplus is enabled')
+            logmsg('debug','rconplus is enabled')
             if config['pinglimit'][srv]['enabled'] is True:
-                print('[DEBUG] pinglimit is enabled')
+                logmsg('debug','pinglimit is enabled')
                 try:
                     port=config['rcon']['port']+int(srv)
                     conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-                    i=1
-                    runs=config['pinglimit']['minentries']-config['pinglimit']['keepentries']
-                    while i<runs:
-                        print('[DEBUG] pinglimit run #: '+str(i))
+                    i=0
+                    stop=False
+                    while i<config['pinglimit']['minentries']:
+                        logmsg('debug','pinglimit run #: '+str(i))
                         data=await conn.send('ServerInfo')
                         data_json=json.dumps(data)
                         serverinfo=json.loads(data_json)
                         si=serverinfo['ServerInfo']
                         roundstate=si['RoundState']
                         if roundstate=='Started':
-                            print('[DEBUG] roundstate is matching (Started)')
-                            data=await conn.send('InspectAll')
+                            logmsg('debug','roundstate is matching (Started)')
+
+                            data=await conn.send('RefreshList')
                             data_json=json.dumps(data)
-                            inspectall=json.loads(data_json)
-                            for player in inspectall['InspectList']:
-                                kda=player['KDA'].split('/',3)
-                                kills=kda[0]
-                                deaths=kda[1]
-                                assists=kda[2]
-                                score=player['Score']
-                                steamid64=player['UniqueId']
-                                current_ping=player['Ping']
+                            refreshlist=json.loads(data_json)
+                            for player in refreshlist['PlayerList']:
+                                steamid64=str(player['UniqueId']).strip()
                                 notify_player=False
                                 kick_player=False
 
-                                # check if player is actually in the server
-                                if int(kills)!=0 or int(deaths)!=0 or int(score)!=0:
+                                cmd='InspectPlayer'
+                                params={'0':steamid64}
+                                j=0
+                                while j<len(params):
+                                    cmd+=' '+str(params[str(j)])
+                                    j+=1
+                                data=await conn.send(cmd)
+                                data_json=json.dumps(data)
+                                inspectplayer=json.loads(data_json)
+
+                                kda=inspectplayer['PlayerInfo']['KDA'].split('/',3)
+                                kills=kda[0]
+                                deaths=kda[1]
+                                assists=kda[2]
+                                score=inspectplayer['PlayerInfo']['Score']
+                                current_ping=inspectplayer['PlayerInfo']['Ping']
+
+                                if int(kills)!=0 or int(deaths)!=0 or int(score)!=0: # make sure player is actually here
 
                                     # add the current sample for the current player...
                                     if int(current_ping)!=0:
-                                        print('[DEBUG] adding entry in pings db for player: '+str(steamid64))
+                                        logmsg('debug','adding entry in pings db for player: '+str(steamid64))
                                         timestamp=datetime.now(timezone.utc)
                                         query="INSERT INTO pings ("
                                         query+="steamid64,ping,timestamp"
@@ -129,7 +139,7 @@ if __name__ == '__main__':
 
                                     # check if there are enough samples
                                     if cnt_ping>=config['pinglimit']['minentries']:
-                                        print('[DEBUG] rowcount ('+str(cnt_ping)+') >= minentries ('+str(config['pinglimit']['minentries'])+')')
+                                        logmsg('debug','rowcount ('+str(cnt_ping)+') >= minentries ('+str(config['pinglimit']['minentries'])+')')
                                         avg=int(avg_ping)
                                         delta=int(max_ping)-int(min_ping)
                                         limit_delta=int(config['pinglimit'][srv]['delta'])
@@ -138,25 +148,25 @@ if __name__ == '__main__':
 
                                         # check delta
                                         if delta>limit_delta:
-                                            print('[WARN] ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
+                                            logmsg('warn','ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
                                             msg='ping delta warning :('
                                             notify_player=True
-                                        else: print('[DEBUG] ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
+                                        else: logmsg('debug','ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+') for player: '+str(steamid64))
 
                                         # check avg ping against soft limit
                                         if avg>limit_soft:
-                                            print('[WARN] ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
+                                            logmsg('warn','ping avg ('+str(avg)+') exceeds soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
                                             msg='ping exceeds soft limit ('+str(limit_soft)+') :('
                                             notify_player=True
-                                        else: print('[DEBUG] ping avg ('+str(avg)+') is within soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
+                                        else: logmsg('debug','ping avg ('+str(avg)+') is within soft limit ('+str(limit_soft)+') for player: '+str(steamid64))
 
                                         # check avg ping against hard limit
                                         if avg>limit_hard:
-                                            print('[WARN] ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
+                                            logmsg('warn','ping avg ('+str(avg)+') exceeds hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
                                             msg='ping exceeds hard limit ('+str(limit_hard)+') :('
                                             notify_player=True
                                             kick_player=True
-                                        else: print('[DEBUG] ping avg ('+str(avg)+') is within hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
+                                        else: logmsg('debug','ping avg ('+str(avg)+') is within hard limit ('+str(limit_hard)+') for player: '+str(steamid64))
 
                                         # notify
                                         if notify_player is True:
@@ -170,11 +180,11 @@ if __name__ == '__main__':
                                                     j+=1
                                                 try:
                                                     await conn.send(cmd)
-                                                    print('[INFO] player '+steamid64+' has been notified by pinglimit')
+                                                    logmsg('info','player '+steamid64+' has been notified by pinglimit')
                                                 except Exception as e:
-                                                    if str(e)!='': print('[EXCEPTION] while trying to notify: '+str(e))
-                                                    else: print('[DEBUG]: there was an empty exception - probably rconplus')
-                                            else: print('[WARN] player ('+str(steamid64)+') would have been notified, but notify is disabled')
+                                                    if str(e)!='': logmsg('error','EXCEPTION: while trying to notify: '+str(e))
+                                                    else: logmsg('debug','there was an empty exception - probably rconplus')
+                                            else: logmsg('warn','player ('+str(steamid64)+') would have been notified, but notify is disabled')
 
                                         # kick
                                         if kick_player is True:
@@ -186,35 +196,41 @@ if __name__ == '__main__':
                                                     cmd+=' '+str(params[str(j)])
                                                     j+=1
                                                 try:
+                                                    time.sleep(2)
                                                     await conn.send(cmd)
-                                                    print('[INFO] player ('+str(steamid64)+') has been kicked by pinglimit')
+                                                    logmsg('info','player ('+str(steamid64)+') has been kicked by pinglimit')
                                                 except Exception as e:
-                                                    if str(e)!='': print('[EXCEPTION] while trying to kick: '+str(e))
-                                                    else: print('[DEBUG]: there was an empty exception - probably rconplus')
-                                            else: print('[WARN] player ('+str(steamid64)+') would have been kicked, but kick is disabled')
+                                                    if str(e)!='': logmsg('error','EXCEPTION: while trying to kick: '+str(e))
+                                                    else: logmsg('debug','there was an empty exception - probably rconplus')
+                                            else: logmsg('warn','player ('+str(steamid64)+') would have been kicked, but kick is disabled')
 
                                         # delete accumulated entries, but keep some recent ones
-                                        print('[INFO] deleting entries for player in pings db')
+                                        logmsg('info','deleting entries for player in pings db')
                                         query="DELETE FROM pings WHERE steamid64 = %s ORDER BY id ASC LIMIT %s"
                                         values=[]
                                         values.append(steamid64)
                                         values.append(cnt_ping - int(config['pinglimit']['keepentries']))
                                         dbquery(query,values)
 
-                                    else: print('[INFO] canceled because there is not enough data on pings yet')
-                                else: print('[INFO] canceled because player doesnt seem to be in the server yet')
-                        else: print('[INFO] canceled because of roundstate '+str(roundstate))
+                                        # stop further querying
+                                        stop=True
 
-                        time.sleep(3)
-                        i+=1
+                                    else: logmsg('info','canceled because there is not enough data on pings yet')
+                                else: logmsg('info','canceled because player doesnt seem to be in the server yet')
+                        else: logmsg('info','canceled because of roundstate '+str(roundstate))
+
+                        if stop is False:
+                            time.sleep(3)
+                            i+=1
+                        else: i=config['pinglimit']['minentries']
                 except Exception as e:
-                    if str(e)!='': print('[EXCEPTION]: '+str(e))
-                    else: print('[DEBUG]: there was an empty exception - probably rconplus')
-            else: print('[INFO] pinglimit canceled because pinglimit is disabled')
-        else: print('[INFO] pinglimit canceled because rconplus is disabled')
+                    if str(e)!='': logmsg('error','EXCEPTION: '+str(e))
+                    else: logmsg('debug','there was an empty exception - probably rconplus')
+            else: logmsg('info','pinglimit canceled because pinglimit is disabled')
+        else: logmsg('info','pinglimit canceled because rconplus is disabled')
 
         await conn.send('Disconnect')
-        print('[INFO] rcon disconnected ')
+        logmsg('info','rcon disconnected ')
 
     asyncio.run(pinglimit())
-    print('[INFO] end of cron reached')
+    logmsg('info','end of pinglimit-cron reached')
