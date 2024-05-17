@@ -45,9 +45,8 @@ if __name__ == '__main__':
         #    except Exception as e: print('[ERROR] '+str(e))
 
         # send event msg
-        for new_event in new_events:
-            try: await channel.send(event_message)
-            except Exception as e: print('[ERROR] '+str(e))
+        try: await channel.send(event_message)
+        except Exception as e: print('[ERROR] '+str(e))
 
         # close conn
         await client.close()
