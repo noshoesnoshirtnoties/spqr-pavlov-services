@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.1
+VERSION=1.2
 USAGE="
 Usage: $0 -d <dsthost> -u <sshuser> -y\n
 -d destination host\n
@@ -68,14 +68,21 @@ echo "[INFO] starting deployment"
 
 # --- servus-publicus ---
 
+echo "[INFO] copying files..."
+$SCPCMD -r "servus-publicus" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
+
+echo "[INFO] creating cronjobs..."
+
+$SSHCMD $DSTHOST "cp cron/events-cron /etc/cron.d/events-cron"
+$SSHCMD $DSTHOST "cp cron/ranks-cron /etc/cron.d/ranks-cron"
+$SSHCMD $DSTHOST "cp cron/reminder-cron /etc/cron.d/reminder-cron"
+$SSHCMD $DSTHOST "cp cron/stats-cron /etc/cron.d/stats-cron"
+
 echo "[INFO] stopping running container..."
 $SSHCMD $DSTHOST "docker stop servus-publicus"
 
 echo "[INFO] removing old container..."
 $SSHCMD $DSTHOST "docker container rm servus-publicus"
-
-echo "[INFO] copying files..."
-$SCPCMD -r "servus-publicus" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
 echo "[INFO] building docker image..."
 $SSHCMD $DSTHOST "cd ${INSTALLDIR}/servus-publicus && docker build -t servus-publicus ."
