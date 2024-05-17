@@ -17,7 +17,7 @@ if __name__ == '__main__':
     @client.event
     async def on_ready():
         #channelid=config['bot-channel-ids']['news']
-        channelid=config['bot-channel-ids']['e-bot-log']
+        channelid=config['bot-channel-ids']['e-bot-test']
         channel=client.get_channel(int(channelid))
 
         # get random quote 
