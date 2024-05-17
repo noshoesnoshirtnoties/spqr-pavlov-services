@@ -19,20 +19,13 @@ if __name__ == '__main__':
     # regular time (begins at 01:00 UTC (02:00 WEST, 03:00 CEST, 04:00 EEST) on the last Sunday in October (25 ~ 31 October))
     daylight_saving_adjustment=1*3600
 
-    # this script expects to be run sundays
-    mon=unix + (1 * 86400) + (18 * 3600) + daylight_saving_adjustment
-    tue=unix + (2 * 86400) + (19 * 3600) + daylight_saving_adjustment
-    wed=unix + (3 * 86400) + (18 * 3600) + daylight_saving_adjustment
-    thu=unix + (4 * 86400) + (19 * 3600) + daylight_saving_adjustment
-    sat=unix + (6 * 86400) + (18 * 3600) + daylight_saving_adjustment
+    # this script expects to be run daily
+    today_now=unix + (18 * 3600) + daylight_saving_adjustment
+    one_full_day=1 * 86400
+    announcement_time=2 * one_full_day
+    event_time=today_now + announcement_time
 
-    new_events=[
-        '<t:'+str(int(mon))+':F>, <t:'+str(int(mon))+':R>',
-        '<t:'+str(int(tue))+':F>, <t:'+str(int(tue))+':R>',
-        '<t:'+str(int(wed))+':F>, <t:'+str(int(wed))+':R>',
-        '<t:'+str(int(thu))+':F>, <t:'+str(int(thu))+':R>',
-        '<t:'+str(int(sat))+':F>, <t:'+str(int(sat))+':R>'
-    ]
+    event_message='<t:'+str(event_time)+':F>, <t:'+str(event_time)+':R>'
 
     # init discord
     intents=discord.Intents.default()
@@ -44,16 +37,16 @@ if __name__ == '__main__':
         channelid=int(config['bot-channel-ids']['g-matches'])
         channel=client.get_channel(channelid)
 
-        # delete old events in discord
+        # delete old event msgs
         #async for message in channel.history(limit=10):
         #    messageid=message.id
         #    old_message=await channel.fetch_message(messageid)
         #    try: await old_message.delete()
         #    except Exception as e: print('[ERROR] '+str(e))
 
-        # add new events in discord
+        # send event msg
         for new_event in new_events:
-            try: await channel.send(new_event)
+            try: await channel.send(event_message)
             except Exception as e: print('[ERROR] '+str(e))
 
         # close conn
