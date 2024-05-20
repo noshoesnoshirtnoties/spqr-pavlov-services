@@ -93,12 +93,7 @@ if __name__ == '__main__':
                 if roundstate=='Started':
                     if numberofplayers>=limit: # limit reached
                         logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['autopin']))
-                        cmd='SetPin'
-                        params={'0':config['autopin']}
-                        i=0
-                        while i<len(params):
-                            cmd+=' '+str(params[str(i)])
-                            i+=1
+                        cmd='SetPin '+str(config['autopin'])
                         try:
                             data=await conn.send(cmd)
                             if data['Successful'] is True: logmsg('debug','setpin has set the pin')
@@ -107,24 +102,18 @@ if __name__ == '__main__':
                             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                     else: # below limit
                         logmsg('debug','below limit ('+str(limit)+') - removing pin')
-                        cmd='SetPin'
-                        params={'0':' '}
-                        i=0
-                        while i<len(params):
-                            cmd+=' '+str(params[str(i)])
-                            i+=1
+                        cmd='SetPin '
                         try:
                             data=await conn.send(cmd)
                             if data['Successful'] is True: logmsg('debug','setpin has emptied the pin')
                             else: logmsg('error','setpin has NOT emptied the pin for some reason')
                         except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when emptying pin: '+str(e))
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                 else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
 
 
             except Exception as e:
                 if str(e)!='': logmsg('error','EXCEPTION: '+str(e))
-                else: logmsg('debug','there was an empty exception - probably rconplus')
 
         else: logmsg('info','autopin canceled because autopin is disabled')
 
