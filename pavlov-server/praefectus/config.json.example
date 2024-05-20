@@ -18,7 +18,7 @@
   "target_log":"/opt/pavlov-server/praefectus/logs/Pavlov.log",
   "autopin":"1234",
   "autopin_limits":{
-    "0": 0,
+    "0": 1,
     "1": 0,
     "2": 0,
     "3": 0,
@@ -35,86 +35,86 @@
     "0": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "1":{
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "2": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "3": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "4": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "5": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "6": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "7": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "8": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     },
     "9": {
       "enabled":true,
       "notify":true,
-      "kick":false,
-      "hard":250,
-      "soft":200,
+      "kick":true,
+      "hard":200,
+      "soft":150,
       "delta":30
     }
   },
   "rconplus":{
-    "0": false,
+    "0": true,
     "1": false,
     "2": false,
     "3": false,
@@ -127,8 +127,8 @@
   },
   "bots":{
     "0": {
-      "managed": false,
-      "amount": 0
+      "managed": true,
+      "amount": 2
     },
     "1": {
       "managed": false,
@@ -168,7 +168,7 @@
     }
   },
   "chickens":{
-    "0": 0,
+    "0": 1,
     "1": 0,
     "2": 0,
     "3": 0,
@@ -180,7 +180,7 @@
     "9": 0
   },
   "zombies":{
-    "0": 0,
+    "0": 1,
     "1": 0,
     "2": 0,
     "3": 0,
@@ -192,7 +192,7 @@
     "9": 0
   },
   "trails":{
-    "0": false,
+    "0": true,
     "1": false,
     "2": false,
     "3": false,
@@ -204,7 +204,7 @@
     "9": false
   },
   "prone":{
-    "0": false,
+    "0": true,
     "1": false,
     "2": false,
     "3": false,
@@ -226,5 +226,79 @@
     "7": false,
     "8": false,
     "9": false
+  },
+  "additional_mods":{
+    "0":[UGC3277276],
+    "1":[],
+    "2":[],
+    "3":[],
+    "4":[],
+    "5":[],
+    "6":[],
+    "7":[],
+    "8":[],
+    "9":[]
+  },
+  "custom_models":{
+    "0": {
+      "all":"nato2",
+      "mods":"aurora",
+      "team0":"russian4",
+      "team1":"nato2"
+    },
+    "1": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "2": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "3": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "4": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "5": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "6": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "7": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "8": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "9": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    }
   }
 }
