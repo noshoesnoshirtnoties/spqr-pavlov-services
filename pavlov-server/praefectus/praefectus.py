@@ -163,8 +163,6 @@ def run_praefectus(meta,config,srv):
                 if is_first_round is True:
                     logmsg('info','initializing map now...')
 
-                    time.sleep(1)
-
                     # ENABLE PRONE
                     if config['prone'][srv] is True:
                         cmd='EnableProne True'
@@ -593,13 +591,13 @@ def run_praefectus(meta,config,srv):
                             mapugc=line.split('/',3)[1]
                             mapname=str(mapugc[2].split('??',2)[0])
                             mapmode=str(mapname[1].split('=',1)[1])
-                            logmsg('info','map has been downloaded: '+mapugc+' ('+mapname+') as '+mapmode)
+                            logmsg('debug','map has been downloaded: '+mapugc+' ('+mapname+') as '+mapmode)
 
                         case 'LogLoad: LoadMap: /Game/Maps/download':
                             line_split=line.split('=',2)
                             mapugc=str(line_split[1].split('?',1)[0])
                             mapmode=str(line_split[2])
-                            logmsg('info','downloading next map now: '+mapugc+' as '+mapmode)
+                            logmsg('debug','downloading next map now: '+mapugc+' as '+mapmode)
 
                         case 'LogGameState: Match State Changed':
                             line_split=line.split(' from ',1)[1]
@@ -613,8 +611,8 @@ def run_praefectus(meta,config,srv):
                             roundstate=roundstate1[0]
                             logmsg('info','round state changed to '+roundstate)
                             match roundstate:
-                                #case 'Starting':
-                                case 'StandBy': asyncio.run(init_map())
+                                case 'Starting': asyncio.run(init_map())
+                                #case 'StandBy':
                                 #case 'Started':
                                 case 'Ended': asyncio.run(pullstats())
 
@@ -625,7 +623,7 @@ def run_praefectus(meta,config,srv):
                             loginreqplatform0=line_split0[4].split('=',1)
                             loginreqplatform=str(loginreqplatform0[1]).strip()
                             loginreqsteamid=str(line_split0[5]).strip()
-                            logmsg('info','user requesting login: '+loginrequser+' ('+loginreqplatform+') ('+loginreqsteamid+')')
+                            logmsg('debug','user requesting login: '+loginrequser+' ('+loginreqplatform+') ('+loginreqsteamid+')')
 
                         case 'LogNet: Join request':
                             line_split=line.split('?name=',2)
@@ -635,16 +633,16 @@ def run_praefectus(meta,config,srv):
                             joinreqplatform=str(joinreqplatform0[1]).strip()
                             joinreqsteamid0=line_split0[5].split('=',1)
                             joinreqsteamid=str(joinreqsteamid0[1]).strip()
-                            logmsg('info','user requesting to join: '+joinrequser+' ('+joinreqsteamid+') ('+joinreqplatform+')')
+                            logmsg('debug','user requesting to join: '+joinrequser+' ('+joinreqsteamid+') ('+joinreqplatform+')')
 
                         case 'PavlovLog: Player login':
                             loginuser=str(line.split('platformid',2)[1]).strip()
-                            logmsg('info','user login successful: '+loginuser)
+                            logmsg('debug','user login successful: '+loginuser)
                             asyncio.run(player_joined(loginuser))
 
                         case 'PavlovLog: Authenticating player':
                             authuser=str(line.split('Authenticating player',2)[1]).strip()
-                            logmsg('info','user authentication successful: '+authuser)
+                            logmsg('debug','user authentication successful: '+authuser)
 
                         case 'Join succeeded':
                             joinuser=str(line.split('succeeded: ',2)[1]).strip()
@@ -672,9 +670,9 @@ def run_praefectus(meta,config,srv):
                         case 'LogTemp: Starting Server Status Helper': logmsg('info','status helper is now online')
                         case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
                         case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('debug','updating blacklist/whitelist/mods')
-                        case 'LogTemp: Scanning Dir': logmsg('info','scanning for mods to load')
+                        case 'LogTemp: Scanning Dir': logmsg('debug','scanning for mods to load')
                         case 'LogLoad: LoadMap: /Game/Maps/ServerIdle': logmsg('info','server is waiting for next map')
-                        case 'PavlovLog: Successfully downloaded all mods': logmsg('info','downloaded all mods required for switching map')
+                        case 'PavlovLog: Successfully downloaded all mods': logmsg('debug','downloaded all mods required for switching map')
                         case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
                         case 'KillData': logmsg('debug','a player died')
                         case 'Critical error': logmsg('error','server crashed: critical error')
