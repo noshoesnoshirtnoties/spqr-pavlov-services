@@ -73,10 +73,10 @@ $SCPCMD -r "servus-publicus" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
 echo "[INFO] creating cronjobs..."
 
-$SSHCMD $DSTHOST "cp cron/events-cron /etc/cron.d/events-cron"
-$SSHCMD $DSTHOST "cp cron/ranks-cron /etc/cron.d/ranks-cron"
-$SSHCMD $DSTHOST "cp cron/reminder-cron /etc/cron.d/reminder-cron"
-$SSHCMD $DSTHOST "cp cron/stats-cron /etc/cron.d/stats-cron"
+$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/events-cron /etc/cron.d/events-cron"
+$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/ranks-cron /etc/cron.d/ranks-cron"
+$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/reminder-cron /etc/cron.d/reminder-cron"
+$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/stats-cron /etc/cron.d/stats-cron"
 
 echo "[INFO] stopping running container..."
 $SSHCMD $DSTHOST "docker stop servus-publicus"
