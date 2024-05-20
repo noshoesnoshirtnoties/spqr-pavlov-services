@@ -119,8 +119,6 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * fix playercount with demo / get demo via rcon
 * servus-publicus
   * logrotate
-  * !clear <dscrdchn>
-  * !pause rcon PauseMatch
 
 ## more info
 * https://github.com/noshoesnoshirtnoties/PavlovVRBalancingTable
