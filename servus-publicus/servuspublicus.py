@@ -163,7 +163,9 @@ def run_servuspublicus(meta,config):
                 logmsg('info','access to command has been granted')
                 log_this=True
                 match command:
-                    case '!help': response=Path('txt/help.txt').read_text()
+                    case '!help':
+                        if is_senate is True: response=Path('txt/help_senate.txt').read_text()
+                        else: response=Path('txt/help_all.txt').read_text()
 
                     case '!spqr': response=Path('txt/spqr.txt').read_text()
 

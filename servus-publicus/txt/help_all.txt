@@ -1,0 +1,21 @@
+**SPQR Servus Publicus Help**
+```
+!help ....................... outputs this message
+
+!roles ...................... outputs spqr roles info
+!reqs ....................... outputs gladiator requirements
+!rules ...................... outputs gladiator rules
+
+!getstats ................... outputs stats
+!getrank .................... outputs rank
+
+!showservers ................ outputs servers
+!serverinfo <srv> ........... outputs server info
+!maplist <srv> .............. outputs current maplist
+!playerlist <srv> ........... outputs current playerlist
+!modlist <srv> .............. outputs list of server admins
+!blacklist <srv> ............ outputs list of banned players
+!pings <srv> ................ outputs average ping for all current players
+
+!register <steamid64> ....... registers current discord user with given steamid64
+```

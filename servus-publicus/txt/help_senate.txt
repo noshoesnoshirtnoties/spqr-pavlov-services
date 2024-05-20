@@ -2,11 +2,6 @@
 ```
 !help ....................... outputs this message
 
-!spqr ....................... outputs spqr translation
-!loremipsum ................. outputs lorem ipsum
-!suntzu ..................... outputs random sun tzu quote
-!echo <in> .................. outputs the input
-
 !roles ...................... outputs spqr roles info
 !reqs ....................... outputs gladiator requirements
 !rules ...................... outputs gladiator rules
@@ -22,10 +17,11 @@
 !blacklist <srv> ............ outputs list of banned players
 !pings <srv> ................ outputs average ping for all current players
 
+!register <steamid64> ....... registers current discord user with given steamid64
+
 ### Senate only
 !clear <chn> ................ deletes 1000 msgs in given channel (takes time)
 !writeas <chn> <in> ......... outputs the input to a given channel
-!register <steamid64> ....... registers current discord user with given steamid64
 !unregister <dscrdusrid> .... unregisters given discord user id
 !genteams <msgid> ........... generates teams for given discord msg id
 
@@ -41,5 +37,4 @@
 !unban <srv> <steamid64> .... unbans player with given steamid64
 
 !rcon <srv> <cmd> <params> .. executes rcon command on server
-
 ```

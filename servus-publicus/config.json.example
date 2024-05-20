@@ -19,14 +19,16 @@
       "01234567890123456789"
     ],
     "senate-cmds":[
+      "!clear",
       "!writeas",
-      "!register",
       "!unregister",
       "!genteams",
       "!resetsnd",
       "!rotatemap",
       "!setrandommap",
       "!setmap",
+      "!pause",
+      "!unpause",
       "!kick",
       "!ban",
       "!unban",
@@ -36,6 +38,10 @@
       "welcome":"012345678901234567890",
       "news":"012345678901234567891",
       "chat":"012345678901234567892"
+    },
+    "role-ids":{
+      "gladiator":"012345678901234567890",
+      "tiro":"012345678901234567890"
     }
   }
 }
