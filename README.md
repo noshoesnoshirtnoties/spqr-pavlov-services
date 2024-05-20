@@ -116,14 +116,27 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * logrotate
 * praefectus
   * logrotate
-  * map-specific settings (like playermodel)
-  * fix playercount with demo
+  * fix playercount with demo / get demo via rcon
 * servus-publicus
   * logrotate
   * !clear <dscrdchn>
+  * !pause rcon PauseMatch
 
 ## more info
 * https://github.com/noshoesnoshirtnoties/PavlovVRBalancingTable
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
 * http://pavlovwiki.com/index.php/Rcon_Overview_and_Commands
 * https://mod.io/g/pavlov/m/rcon-plus
+
+## additional mods
+* https://mod.io/g/pavlov/m/skins-kennithhs-usmc
+* https://mod.io/g/pavlov/m/skins-kennithhs-raf
+* https://mod.io/g/pavlov/m/gun-kennithhs-modern-weapons
+* https://mod.io/g/pavlov/m/gun-kennithhs-vietnam-weapons
+* https://mod.io/g/pavlov/m/gun-kennithhs-wwii-weapons-pack1
+* https://mod.io/g/pavlov/m/mod-team-arm-band
+* https://mod.io/g/pavlov/m/random-gun-on-kill1
+* https://mod.io/g/pavlov/m/fullcash
+* https://mod.io/g/pavlov/m/chicken-on-death
+* https://mod.io/g/pavlov/m/regen
+* 
