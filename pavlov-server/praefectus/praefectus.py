@@ -287,93 +287,75 @@ def run_praefectus(meta,config,srv):
         else: logmsg('info','not initiating round because rconplus is disabled')
 
 
-    async def player_joined(joinuser):
+    async def player_joined(loginuser):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
         try:
             port=config['rcon']['port']+int(srv)
             conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
 
-            data=await conn.send('ServerInfo')
+            data=await conn.send('ModeratorList')
             data_json=json.dumps(data)
-            serverinfo=json.loads(data_json)
-            si=serverinfo['ServerInfo']
-            maplabel=str(si['MapLabel'].lower()).strip()
-            gamemode=str(si['GameMode'].upper()).strip()
-            roundstate=str(si['RoundState']).strip()
+            modlist=json.loads(data_json)
 
-            if 'UGC' in maplabel: maplabel=str(si['MapLabel'].upper()).strip()
-            else: maplabel=str(si['MapLabel'].lower()).strip()
-            gamemode=str(si['GameMode'].upper()).strip()
+            data=await conn.send('InspectPlayer '+str(loginuser))
+            data_json=json.dumps(data)
+            inspectplayer=json.loads(data_json)
+            username=str(inspectplayer['PlayerInfo']['PlayerName']).strip()
 
-            playercount_split=si['PlayerCount'].split('/',2)
-            numberofplayers=int(playercount_split[0])
-            maxplayers=int(playercount_split[1])
-            
-            demo_enabled=False # get this via rcon
-            if demo_enabled is True: # demo rec counts as 1 player
-                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
-            
-            if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
-                if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
+            if loginuser in modlist['ModeratorList']:
+                # GIVEMENU
+                if config['rconplus'][srv] is True:
+                    cmd='GiveMenu '+str(loginuser)
+                    try: await conn.send(cmd)
+                    except Exception as e:
+                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                    logmsg('info','givemenu has probably been set for '+str(loginuser)+' ('+username+')')
+                else: logmsg('info','not giving menu to mod because rconplus is disabled')
 
-            try:
-                data=await conn.send('RefreshList')
-                data_json=json.dumps(data)
-                refreshlist=json.loads(data_json)
+                # CUSTOM MODEL
+                if config['rconplus'][srv] is True:
+                    if config['custom_models'][srv]['mods']!='default':
+                        skinid=config['custom_models'][srv]['mods']
+                        cmd='SetPlayerSkin '+str(loginuser)+' '+skinid
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting custom model for mod: '+str(e))
+                        logmsg('info','custom player model has probably been set for '+str(loginuser)+' ('+username+')')
+                    else: logmsg('info','not setting custom model for mod because models are set to default')
+                else: logmsg('info','not setting custom model for mod because rconplus is disabled')
 
-                data=await conn.send('ModeratorList')
-                data_json=json.dumps(data)
-                modlist=json.loads(data_json)
+            await conn.send('Disconnect')
+            logmsg('debug','rcon conn disconnected')
 
-                for player in refreshlist['PlayerList']:
-                    steamid64=str(player['UniqueId']).strip()
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
 
-                    cmd='InspectPlayer '+str(steamid64)
-                    data=await conn.send(cmd)
-                    data_json=json.dumps(data)
-                    inspectplayer=json.loads(data_json)
+    async def welcome_player(joinuser):
+        fx=inspect.stack()[0][3]
+        logmsg('debug',fx+' called')
+        try:
+            port=config['rcon']['port']+int(srv)
+            conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
 
-                    kda=inspectplayer['PlayerInfo']['KDA'].split('/',3)
-                    kills=kda[0]
-                    deaths=kda[1]
-                    assists=kda[2]
-                    score=inspectplayer['PlayerInfo']['Score']
-                    current_ping=inspectplayer['PlayerInfo']['Ping']
-                    playername=str(inspectplayer['PlayerInfo']['PlayerName']).strip()
+            data=await conn.send('RefreshList')
+            data_json=json.dumps(data)
+            refreshlist=json.loads(data_json)
+            for player in refreshlist['PlayerList']:
+                steamid64=str(player['UniqueId']).strip()
+                username=str(player['Username']).strip()
 
-                    steamid64_of_joinuser=''
-                    if str(joinuser)==playername:
-                        steamid64_of_joinuser=steamid64
-
-                        for mod in modlist['ModeratorList']:
-                            mod_split=mod.split('#',2)
-                            mod_steamid64=str(mod_split[0]).strip()
-                            if steamid64_of_joinuser==mod_steamid64:
-
-                                # GIVEMENU
-                                if config['rconplus'][srv] is True:
-                                    cmd='GiveMenu '+str(steamid64_of_joinuser)
-                                    try: await conn.send(cmd)
-                                    except Exception as e:
-                                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                                    logmsg('info','givemenu has probably been set for '+steamid64_of_joinuser+' ('+joinuser+')')
-                                else: logmsg('info','not giving menu to mod because rconplus is disabled')
-
-                                # CUSTOM MODEL
-                                if config['rconplus'][srv] is True:
-                                    if config['custom_models'][srv]['mods']!='default':
-                                        skinid=config['custom_models'][srv]['mods']
-                                        cmd='SetPlayerSkin '+str(steamid64_of_joinuser)+' '+skinid
-                                        try: await conn.send(cmd)
-                                        except Exception as e:
-                                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting custom model for mod: '+str(e))
-                                        logmsg('info','custom player model has probably been set for '+steamid64_of_joinuser+' ('+joinuser+')')
-                                    else: logmsg('info','not setting custom model for mod because models are set to default')
-                                else: logmsg('info','not setting custom model for mod because rconplus is disabled')
-
-            except Exception as e:
-                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                # WELCOME PLAYER
+                if username==joinuser:
+                    if config['rconplus'][srv] is True:
+                        time.sleep(1)
+                        msg='WELCOME, '+username+'  :)'
+                        cmd='Notify '+str(steamid64)+' '+msg
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION: while trying to notify: '+str(e))
+                        logmsg('info','player has probably been welcomed: '+username)
+                    else: logmsg('info','not welcoming player because rconplus is disabled')
 
             await conn.send('Disconnect')
             logmsg('debug','rcon conn disconnected')
@@ -580,6 +562,8 @@ def run_praefectus(meta,config,srv):
 
 
     def process_found_keyword(line,keyword):
+        fx=inspect.stack()[0][3]
+        #logmsg('debug',fx+' called')
         try:
             if line!='':
                 if keyword!='':
@@ -634,10 +618,38 @@ def run_praefectus(meta,config,srv):
                                 #case 'Started':
                                 case 'Ended': asyncio.run(pullstats())
 
+                        case 'LogNet: Login request':
+                            line_split=line.split('?Name=',2)
+                            line_split0=line_split[1].split('?',6)
+                            loginrequser=str(line_split0[0]).strip()
+                            loginreqplatform0=line_split0[4].split('=',1)
+                            loginreqplatform=str(loginreqplatform0[1]).strip()
+                            loginreqsteamid=str(line_split0[5]).strip()
+                            logmsg('info','user requesting login: '+loginrequser+' ('+loginreqplatform+') ('+loginreqsteamid+')')
+
+                        case 'LogNet: Join request':
+                            line_split=line.split('?name=',2)
+                            line_split0=line_split[1].split('?',6)
+                            joinrequser=str(line_split0[0]).strip()
+                            joinreqplatform0=line_split0[4].split('=',1)
+                            joinreqplatform=str(joinreqplatform0[1]).strip()
+                            joinreqsteamid0=line_split0[5].split('=',1)
+                            joinreqsteamid=str(joinreqsteamid0[1]).strip()
+                            logmsg('info','user requesting to join: '+joinrequser+' ('+joinreqsteamid+') ('+joinreqplatform+')')
+
+                        case 'PavlovLog: Player login':
+                            loginuser=str(line.split('platformid',2)[1]).strip()
+                            logmsg('info','user login successful: '+loginuser)
+                            asyncio.run(player_joined(loginuser))
+
+                        case 'PavlovLog: Authenticating player':
+                            authuser=str(line.split('Authenticating player',2)[1]).strip()
+                            logmsg('info','user authentication successful: '+authuser)
+
                         case 'Join succeeded':
                             joinuser=str(line.split('succeeded: ',2)[1]).strip()
-                            logmsg('info','user joined the server: '+joinuser)
-                            #asyncio.run(player_joined(joinuser))
+                            logmsg('info','user joined successfully: '+joinuser)
+                            asyncio.run(welcome_player(joinuser))
 
                         case 'LogNet: UChannel::Close':
                             leaveuser0=line.split('RemoteAddr: ',2)
@@ -729,6 +741,12 @@ def run_praefectus(meta,config,srv):
                 'LogLoad: LoadMap',
                 '"State":',
                 'Preparing to exit',
+
+                'LogNet: Login request', # LogNet: Login request: ?Name=[EU][SPQR] Agent?playerHeight=160.000000?rightHanded=1?vstock=1?platform=steam?pid=76561199476460201?name=[EU][SPQR] Agent userId: NULL:00025ee8b2f14b649e85ebcfe2cd9f86 platform: NULL
+                'LogNet: Join request', # LogNet: Join request: /Game/Maps/ServerIdle?name=[EU][SPQR] Agent?playerHeight=160.000000?rightHanded=1?vstock=1?platform=steam?pid=76561199476460201?SplitscreenCount=1
+                'PavlovLog: Player login',# PavlovLog: Player login with platformid 76561199476460201
+                'PavlovLog: Authenticating player', # PavlovLog: Authenticating player [EU][SPQR] Agent
+
                 'Join succeeded',
                 'LogNet: UChannel::Close',
                 'KillData',
