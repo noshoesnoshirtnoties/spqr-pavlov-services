@@ -230,7 +230,7 @@ def run_praefectus(meta,config,srv):
 
                     # ADD BOTS
                     amount=int(config['bots'][srv]['amount']) - numberofplayers
-                    if amount!=0:
+                    if amount>0:
                         if gamemode in gamemodes_teams:
                             cmd='AddBot '+str(amount//2)+' RedTeam'
                             try: await conn.send(cmd)
