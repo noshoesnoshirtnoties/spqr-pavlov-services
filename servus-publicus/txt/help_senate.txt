@@ -20,7 +20,7 @@
 !register <steamid64> ....... registers current discord user with given steamid64
 
 ### Senate only
-!clear <chn> ................ deletes 1000 msgs in given channel (takes time)
+!clear <chn> ................ deletes 100 msgs in given channel (takes time)
 !writeas <chn> <in> ......... outputs the input to a given channel
 !unregister <dscrdusrid> .... unregisters given discord user id
 !genteams <msgid> ........... generates teams for given discord msg id

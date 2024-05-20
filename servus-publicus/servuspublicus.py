@@ -355,7 +355,7 @@ def run_servuspublicus(meta,config):
                         if len(ums2)>1:
                             cl_chn=ums2[1]
                             chn=client.get_channel(int(config['discord']['bot-channel-ids'][cl_chn]))
-                            async for del_msg in chn.history(limit=1000):
+                            async for del_msg in chn.history(limit=100):
                                 del_msg_id=del_msg.id
                                 old_message=await chn.fetch_message(del_msg_id)
                                 try: await old_message.delete()
