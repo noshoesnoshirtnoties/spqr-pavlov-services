@@ -8,7 +8,7 @@ import mysql.connector
 
 if __name__ == '__main__':
     # read config
-    config = json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
+    config=json.loads(open('./config.json').read())
 
     # function: query mysqldb
     def dbquery(query,values):
@@ -62,8 +62,7 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        channelid=int(config['bot-channel-ids']['stats'])
-        channel=client.get_channel(channelid)
+        channel=client.get_channel(int(config['discord']['bot-channel-ids']['stats']))
 
         # delete old stats message
         async for message in channel.history(limit=10):
@@ -83,6 +82,6 @@ if __name__ == '__main__':
         # close conn
         await client.close()
 
-    client.run(config['bot_token'])
+    client.run(config['discord']['bot_token'])
 
     exit()

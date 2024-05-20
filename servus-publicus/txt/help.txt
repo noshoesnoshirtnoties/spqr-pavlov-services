@@ -23,6 +23,7 @@
 !pings <srv> ................ outputs average ping for all current players
 
 ### Senate only
+!clear <chn> ................ deletes 1000 msgs in given channel (takes time)
 !writeas <chn> <in> ......... outputs the input to a given channel
 !register <steamid64> ....... registers current discord user with given steamid64
 !unregister <dscrdusrid> .... unregisters given discord user id
@@ -32,6 +33,8 @@
 !rotatemap <srv> ............ rotates map
 !setrandommap <srv> ......... sets random snd map
 !setmap <srv> <map> <mode> .. sets specific map and gamemode
+!pause <srv> ................ pause match 
+!unpause <srv> .............. unpause match
 
 !kick <srv> <steamid64> ..... kicks player with given steamid64
 !ban <srv> <steamid64> ...... bans player with given steamid64

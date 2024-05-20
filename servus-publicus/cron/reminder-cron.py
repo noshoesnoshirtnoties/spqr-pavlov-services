@@ -7,7 +7,7 @@ from pathlib import Path
 
 if __name__ == '__main__':
     # read config
-    config = json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
+    config=json.loads(open('./config.json').read())
 
     # init discord
     intents=discord.Intents.default()
@@ -16,18 +16,18 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        #channelid=config['bot-channel-ids']['news']
-        channelid=config['bot-channel-ids']['e-bot-test']
-        channel=client.get_channel(int(channelid))
+        #channel=client.get_channel(int(config['discord']['bot-channel-ids']['news']))
+        channel=client.get_channel(int(config['discord']['bot-channel-ids']['e-bot-test']))
+
+        gladiator=config['discord']['role-ids']['gladiator']
+        tiro=config['discord']['role-ids']['tiro']
+        gmatches=config['discord']['bot-channel-ids']['g-matches']
 
         # get random quote 
-        randomquote=random.choice(os.listdir('spqr-servus-publicus/txt/suntzu'))
-        quotepath="spqr-servus-publicus/txt/suntzu/"+randomquote
+        randomquote=random.choice(os.listdir('./txt/suntzu'))
+        quotepath="./txt/suntzu/"+randomquote
         quote=Path(str(quotepath)).read_text()
 
-        gladiator=config['role-ids']['gladiator']
-        tiro=config['role-ids']['tiro']
-        gmatches=config['bot-channel-ids']['g-matches']
         response='<@&'+str(gladiator)+'> <@&'+str(tiro)+'> **automated reminder**\n\n:crossed_swords:  come play <#'+str(gmatches)+'>\n\n'+quote+'\n-SunTzu'
 
         try:
@@ -36,5 +36,5 @@ if __name__ == '__main__':
             print('[ERROR] '+str(e))
         await client.close()
 
-    client.run(config['bot_token'])
+    client.run(config['discord']['bot_token'])
     exit()

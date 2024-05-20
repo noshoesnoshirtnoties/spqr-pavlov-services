@@ -273,6 +273,20 @@ def run_servuspublicus(meta,config):
                             else: response=command+' failed - something went wrong'
                         else: response=command+' is missing parameters'
 
+                    case '!pause':
+                        if len(ums2)>1:
+                            data=await rcon('PauseMatch',{'0':'300'},ums2[1])
+                            if data['Successful'] is True: response=command+': successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
+
+                    case '!unpause':
+                        if len(ums2)>1:
+                            data=await rcon('PauseMatch',{'0':'0'},ums2[1])
+                            if data['Successful'] is True: response=command+': successful'
+                            else: response=command+' failed - something went wrong'
+                        else: response=command+' is missing parameters'
+
                     case '!kick':
                         if len(ums3)>1:
                             data=await rcon('Kick',{'0':ums3[2]},ums3[1])
@@ -334,6 +348,20 @@ def run_servuspublicus(meta,config):
                                     response=response+'\n'+steamusers_id+': '+str(current_ping)+' (current), '+str(average_ping)+' (average)'
                             else: response=command+' failed - something went wrong'
                         else: response=command+' is missing parameters'
+
+                    case '!clear':
+                        if len(ums2)>1:
+                            cl_chn=ums2[1]
+                            chn=client.get_channel(int(config['discord']['bot-channel-ids'][cl_chn]))
+                            async for del_msg in chn.history(limit=1000):
+                                del_msg_id=del_msg.id
+                                old_message=await chn.fetch_message(del_msg_id)
+                                try: await old_message.delete()
+                                except Exception as e: response=str(e).strip()
+                            response=command+': successful'
+                        else:
+                            logmsg('warn',command+' is missing parameters')
+                            response=command+' is missing parameters'
 
                     case '!echo':
                         if len(ums2)>1:

@@ -7,7 +7,7 @@ import time
 
 if __name__ == '__main__':
     # read config
-    config = json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
+    config=json.loads(open('./config.json').read())
 
     # create new events
     current=datetime.datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0)
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     today_now=unix + (18 * 3600) + daylight_saving_adjustment
     one_full_day=1 * 86400
     announcement_time=2 * one_full_day
-    event_time=today_now + announcement_time
+    event_time=int(today_now + announcement_time)
 
     event_message='<t:'+str(event_time)+':F>, <t:'+str(event_time)+':R>'
 
@@ -34,8 +34,7 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        channelid=int(config['bot-channel-ids']['g-matches'])
-        channel=client.get_channel(channelid)
+        channel=client.get_channel(int(config['discord']['bot-channel-ids']['g-matches']))
 
         # delete old event msgs
         #async for message in channel.history(limit=10):
@@ -51,6 +50,6 @@ if __name__ == '__main__':
         # close conn
         await client.close()
 
-    client.run(config['bot_token'])
+    client.run(config['discord']['bot_token'])
 
     exit()
