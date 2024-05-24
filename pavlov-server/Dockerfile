@@ -28,6 +28,7 @@ COPY pavlov_update_cron /etc/cron.d/pavlov_update_cron
 COPY conf.d/blacklist.txt /home/steam/pavlovserver/Pavlov/Saved/Config/blacklist.txt
 COPY conf.d/whitelist.txt /home/steam/pavlovserver/Pavlov/Saved/Config/whitelist.txt
 COPY conf.d/mods.txt /home/steam/pavlovserver/Pavlov/Saved/Config/mods.txt
+COPY conf.d/ModSave_WeaponSkinPack_serverconfig.json /home/steam/pavlovserver/Pavlov/Saved/Config/ModSave/WeaponSkinPack/serverconfig.json
 RUN chmod +w /home/steam/pavlovserver/Pavlov/Saved/Config/blacklist.txt
 RUN chmod +w /home/steam/pavlovserver/Pavlov/Saved/Config/whitelist.txt
 RUN chmod +w /home/steam/pavlovserver/Pavlov/Saved/Config/mods.txt
