@@ -113,6 +113,7 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
   * add elo/mmr
   * use docker-compose / new builder
 * pavlov-server
+  * enable demo (mount docker volume)
   * logrotate
 * praefectus
   * logrotate
@@ -120,21 +121,29 @@ docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-pub
 * servus-publicus
   * logrotate
 
-## more info
+## more
+### info
 * https://github.com/noshoesnoshirtnoties/PavlovVRBalancingTable
 * http://pavlovwiki.com/index.php/Setting_up_a_dedicated_server
 * http://pavlovwiki.com/index.php/Rcon_Overview_and_Commands
 * https://mod.io/g/pavlov/m/rcon-plus
 
-## additional mods
+### additional mods
+* https://mod.io/g/pavlov/m/pavlovartists-weapon-skin-pack
 * https://mod.io/g/pavlov/m/skins-kennithhs-usmc
 * https://mod.io/g/pavlov/m/skins-kennithhs-raf
+* https://mod.io/g/pavlov/m/colonists-ww2-avatars
 * https://mod.io/g/pavlov/m/gun-kennithhs-modern-weapons
 * https://mod.io/g/pavlov/m/gun-kennithhs-vietnam-weapons
 * https://mod.io/g/pavlov/m/gun-kennithhs-wwii-weapons-pack1
-* https://mod.io/g/pavlov/m/mod-team-arm-band
+* https://mod.io/g/pavlov/m/colonists-ww1-guns-pack
+* https://mod.io/g/pavlov/m/colonists-ww2-pack
+* https://mod.io/g/pavlov/m/colonists-guns-pack
+* https://mod.io/g/pavlov/m/gun-thompson-and-ppsh-with-drummags
+* https://mod.io/g/pavlov/m/minigun
+* https://mod.io/g/pavlov/m/msbs
 * https://mod.io/g/pavlov/m/random-gun-on-kill1
-* https://mod.io/g/pavlov/m/fullcash
 * https://mod.io/g/pavlov/m/chicken-on-death
+* https://mod.io/g/pavlov/m/mod-team-arm-band
+* https://mod.io/g/pavlov/m/fullcash
 * https://mod.io/g/pavlov/m/regen
-* 
