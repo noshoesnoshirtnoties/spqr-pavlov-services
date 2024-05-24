@@ -201,5 +201,11 @@ if __name__ == '__main__':
         await conn.send('Disconnect')
         logmsg('debug','rcon disconnected ')
 
-    asyncio.run(pinglimit())
+    i=0
+    runs=config['pinglimit']['minentries']//2
+    while i<runs:
+        logmsg('debug','starting run #: '+str(i))
+        asyncio.run(pinglimit())
+        i+=1
+        time.sleep(3)
     logmsg('debug','end of pinglimit-cron reached')

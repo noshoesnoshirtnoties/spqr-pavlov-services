@@ -67,7 +67,7 @@ def run_praefectus(meta,config,srv):
             conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
 
             roundstate=''
-            while roundstate!='Started' and roundstate!='Starting':
+            while roundstate!='Started':
                 data=await conn.send('ServerInfo')
                 data_json=json.dumps(data)
                 serverinfo=json.loads(data_json)
@@ -81,7 +81,8 @@ def run_praefectus(meta,config,srv):
                 gamemode=str(si['GameMode'].upper()).strip()
 
                 # INIT WORKAROUND
-                if roundstate=='Started' or roundstate=='Starting':
+                if roundstate=='Started':
+                    logmsg('info','initializing server now...')
 
                     # LOAD ADDITIONAL MODS
                     for mod in config['additional_mods'][srv]:
@@ -114,9 +115,9 @@ def run_praefectus(meta,config,srv):
                         else: logmsg('error','init workaround switchmap has NOT been called successfully for some reason')
                     except Exception as e:
                             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                else: logmsg('debug','init workaround has to wait for roundstate "Started" or "Starting"')
 
-                time.sleep(3)
+                else: logmsg('debug','init workaround has to wait because roundstate is: '+str(roundstate))
+                time.sleep(1)
                 
             await conn.send('Disconnect')
             logmsg('debug','rcon conn disconnected')
@@ -161,34 +162,7 @@ def run_praefectus(meta,config,srv):
 
                 # INIT
                 if is_first_round is True:
-                    logmsg('info','initializing map now...')
-
-                    # ENABLE PRONE
-                    if config['prone'][srv] is True:
-                        cmd='EnableProne True'
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','prone has probably been enabled')
-                    else: logmsg('info','prone is disabled')
-
-                    # ENABLE TRAILS
-                    if config['trails'][srv] is True:
-                        cmd='EnableTrails True'
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','trails have probably been enabled')
-                    else: logmsg('info','trails are disabled')
-
-                    # ENABLE NOFALLDMG
-                    if config['nofalldmg'][srv] is True:
-                        cmd='FallDamage False'
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','nofalldamage has probably been enabled')
-                    else: logmsg('info','nofalldamage is disabled')
+                    logmsg('info','seems to be first round - initializing map now...')
 
                     if gamemode in gamemodes_teamless: # SET CUSTOM MODELS TEAMLESS
                         if config['custom_models'][srv]['all']!='default':
@@ -228,9 +202,45 @@ def run_praefectus(meta,config,srv):
                         else: logmsg('info','custom player models are set to default for team1')
                     else: logmsg('info','not setting custom player models because gamemode is not supported')
 
+                    # ENABLE PRONE
+                    if config['prone'][srv] is True:
+                        cmd='EnableProne True'
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','prone has probably been enabled')
+                    else: logmsg('info','prone is disabled')
+
+                    # ENABLE TRAILS
+                    if config['trails'][srv] is True:
+                        cmd='EnableTrails True'
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','trails have probably been enabled')
+                    else: logmsg('info','trails are disabled')
+
+                    # ENABLE NOFALLDMG
+                    if config['nofalldmg'][srv] is True:
+                        cmd='FallDamage False'
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','nofalldamage has probably been enabled')
+                    else: logmsg('info','nofalldamage is disabled')
+
                     # ADD BOTS
-                    amount=int(config['bots'][srv]['amount']) - numberofplayers
-                    if amount>0:
+                    if config['bots'][srv]['amount']>0:
+
+                        # clear first
+                        cmd='RemoveBot '+str(config['bots'][srv]['amount'])
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably removed whatever bots have been there...')
+
+                        amount=int(config['bots'][srv]['amount']) - numberofplayers
+
                         if gamemode in gamemodes_teams:
                             cmd='AddBot '+str(amount//2)+' RedTeam'
                             try: await conn.send(cmd)
@@ -255,25 +265,34 @@ def run_praefectus(meta,config,srv):
                             logmsg('error','not adding bots because gamemode: "'+gamemode+' is unknown')
                     else: logmsg('info','bots amount is 0')
 
-                    # ADD CHICKEN
-                    amount=int(config['chickens'][srv])
-                    if amount!=0:
-                        cmd='SpawnChickens '+str(amount)
+                    # ADD ZOMBIES
+                    if config['zombies'][srv]!=0:
+
+                        # clear first
+                        cmd='RemoveZombies '+str(config['zombies'][srv]['amount'])
                         try: await conn.send(cmd)
                         except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','probably added '+str(amount)+' chicken(s)')
-                    else: logmsg('info','chickens amount is 0')
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably removed whatever zombies have been there...')
 
-                    # ADD ZOMBIES
-                    amount=int(config['zombies'][srv])
-                    if amount!=0:
+                        amount=int(config['zombies'][srv])
+
                         cmd='SpawnZombies '+str(amount)
                         try: await conn.send(cmd)
                         except Exception as e:
                             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                         logmsg('info','probably added '+str(amount)+' zombie(s)')
                     else: logmsg('info','zombies amount is 0')
+
+                    # ADD CHICKEN
+                    if config['chickens'][srv]!=0:
+                        amount=int(config['chickens'][srv])
+                        cmd='SpawnChickens '+str(amount)
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably added '+str(amount)+' chicken(s)')
+                    else: logmsg('info','chickens amount is 0')
 
                 else: logmsg('info','not initiating round because is_first_round not true')
 
@@ -328,6 +347,7 @@ def run_praefectus(meta,config,srv):
 
         except Exception as e:
             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+
 
     async def welcome_player(joinuser):
         fx=inspect.stack()[0][3]
@@ -396,12 +416,13 @@ def run_praefectus(meta,config,srv):
                         if roundstate=='Starting' or roundstate=='Started' or roundstate=='StandBy':
 
                             if gamemode in gamemodes_teams:
-                                team=random.randint(0,1)
-                                cmd='AddBot 1 '+str(team)
-                                try: await conn.send(cmd)
-                                except Exception as e:
-                                    if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                                logmsg('info','probably added 1 bot to team: '+str(team))
+                                #team=random.randint(0,1)
+                                #cmd='AddBot 1 '+str(team)
+                                #try: await conn.send(cmd)
+                                #except Exception as e:
+                                #    if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                                #logmsg('info','probably added 1 bot to team: '+str(team))
+                                logmsg('info','not added 1 bot because i dont know to what team')
 
                             elif gamemode in gamemodes_teamless:
                                 cmd='AddBot 1'
@@ -611,7 +632,7 @@ def run_praefectus(meta,config,srv):
                             roundstate=roundstate1[0]
                             logmsg('info','round state changed to '+roundstate)
                             match roundstate:
-                                case 'Starting': asyncio.run(init_map())
+                                #case 'Starting': asyncio.run(init_map())
                                 #case 'StandBy':
                                 #case 'Started':
                                 case 'Ended': asyncio.run(pullstats())
@@ -647,7 +668,7 @@ def run_praefectus(meta,config,srv):
                         case 'Join succeeded':
                             joinuser=str(line.split('succeeded: ',2)[1]).strip()
                             logmsg('info','user joined successfully: '+joinuser)
-                            asyncio.run(welcome_player(joinuser))
+                            #asyncio.run(welcome_player(joinuser))
 
                         case 'LogNet: UChannel::Close':
                             leaveuser0=line.split('RemoteAddr: ',2)
@@ -668,12 +689,15 @@ def run_praefectus(meta,config,srv):
 
                         case 'LogHAL': logmsg('info','pavlovserver is starting')
                         case 'LogTemp: Starting Server Status Helper': logmsg('info','status helper is now online')
-                        case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
+                        case 'StatManagerLog: Stat Manager Started':
+                            logmsg('info','statmanager is now online')
                         case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('debug','updating blacklist/whitelist/mods')
                         case 'LogTemp: Scanning Dir': logmsg('debug','scanning for mods to load')
                         case 'LogLoad: LoadMap: /Game/Maps/ServerIdle': logmsg('info','server is waiting for next map')
                         case 'PavlovLog: Successfully downloaded all mods': logmsg('debug','downloaded all mods required for switching map')
-                        case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
+                        case 'PavlovLog: StartPlay was called':
+                            logmsg('info','startplay was called')
+                            asyncio.run(init_map())
                         case 'KillData': logmsg('debug','a player died')
                         case 'Critical error': logmsg('error','server crashed: critical error')
                         case 'Fatal error': logmsg('error','server crashed: fatal error')
