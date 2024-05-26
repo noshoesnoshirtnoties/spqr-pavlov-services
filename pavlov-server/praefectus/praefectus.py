@@ -67,7 +67,7 @@ def run_praefectus(meta,config,srv):
             conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
 
             roundstate=''
-            while roundstate!='Started':
+            while roundstate!='Started' and roundstate!='Starting':
                 data=await conn.send('ServerInfo')
                 data_json=json.dumps(data)
                 serverinfo=json.loads(data_json)
@@ -81,7 +81,7 @@ def run_praefectus(meta,config,srv):
                 gamemode=str(si['GameMode'].upper()).strip()
 
                 # INIT WORKAROUND
-                if roundstate=='Started':
+                if roundstate=='Started' or roundstate=='Starting':
                     logmsg('info','initializing server now...')
 
                     # LOAD ADDITIONAL MODS
@@ -304,7 +304,7 @@ def run_praefectus(meta,config,srv):
         else: logmsg('info','not initiating round because rconplus is disabled')
 
 
-    async def player_joined(loginuser):
+    async def player_joined(joinuser):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
         try:
@@ -315,32 +315,34 @@ def run_praefectus(meta,config,srv):
             data_json=json.dumps(data)
             modlist=json.loads(data_json)
 
-            data=await conn.send('InspectPlayer '+str(loginuser))
+            data=await conn.send('RefreshList')
             data_json=json.dumps(data)
-            inspectplayer=json.loads(data_json)
-            username=str(inspectplayer['PlayerInfo']['PlayerName']).strip()
+            refreshlist=json.loads(data_json)
+            for player in refreshlist['PlayerList']:
+                steamid64=str(player['UniqueId']).strip()
+                username=str(player['Username']).strip()
 
-            if loginuser in modlist['ModeratorList']:
-                # GIVEMENU
-                if config['rconplus'][srv] is True:
-                    cmd='GiveMenu '+str(loginuser)
-                    try: await conn.send(cmd)
-                    except Exception as e:
-                        if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                    logmsg('info','givemenu has probably been set for '+str(loginuser)+' ('+username+')')
-                else: logmsg('info','not giving menu to mod because rconplus is disabled')
-
-                # CUSTOM MODEL
-                if config['rconplus'][srv] is True:
-                    if config['custom_models'][srv]['mods']!='default':
-                        skinid=config['custom_models'][srv]['mods']
-                        cmd='SetPlayerSkin '+str(loginuser)+' '+skinid
+                if joinuser==username and steamid64 in modlist['ModeratorList']:
+                    # GIVEMENU
+                    if config['rconplus'][srv] is True:
+                        cmd='GiveMenu '+str(steamid64)
                         try: await conn.send(cmd)
                         except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting custom model for mod: '+str(e))
-                        logmsg('info','custom player model has probably been set for '+str(loginuser)+' ('+username+')')
-                    else: logmsg('info','not setting custom model for mod because models are set to default')
-                else: logmsg('info','not setting custom model for mod because rconplus is disabled')
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','givemenu has probably been set for '+str(steamid64)+' ('+str(username)+')')
+                    else: logmsg('info','not giving menu to mod because rconplus is disabled')
+
+                    # CUSTOM MODEL
+                    if config['rconplus'][srv] is True:
+                        if config['custom_models'][srv]['mods']!='default':
+                            skinid=config['custom_models'][srv]['mods']
+                            cmd='SetPlayerSkin '+str(steamid64)+' '+skinid
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+' when setting custom model for mod: '+str(e))
+                            logmsg('info','custom player model has probably been set for '+str(steamid64)+' ('+str(username)+')')
+                        else: logmsg('info','not setting custom model for mod because models are set to default')
+                    else: logmsg('info','not setting custom model for mod because rconplus is disabled')
 
             await conn.send('Disconnect')
             logmsg('debug','rcon conn disconnected')
@@ -632,8 +634,8 @@ def run_praefectus(meta,config,srv):
                             roundstate=roundstate1[0]
                             logmsg('info','round state changed to '+roundstate)
                             match roundstate:
-                                #case 'Starting': asyncio.run(init_map())
-                                #case 'StandBy':
+                                #case 'Starting':
+                                case 'StandBy': asyncio.run(init_map())
                                 #case 'Started':
                                 case 'Ended': asyncio.run(pullstats())
 
@@ -659,7 +661,6 @@ def run_praefectus(meta,config,srv):
                         case 'PavlovLog: Player login':
                             loginuser=str(line.split('platformid',2)[1]).strip()
                             logmsg('debug','user login successful: '+loginuser)
-                            asyncio.run(player_joined(loginuser))
 
                         case 'PavlovLog: Authenticating player':
                             authuser=str(line.split('Authenticating player',2)[1]).strip()
@@ -669,6 +670,7 @@ def run_praefectus(meta,config,srv):
                             joinuser=str(line.split('succeeded: ',2)[1]).strip()
                             logmsg('info','user joined successfully: '+joinuser)
                             #asyncio.run(welcome_player(joinuser))
+                            asyncio.run(player_joined(joinuser))
 
                         case 'LogNet: UChannel::Close':
                             leaveuser0=line.split('RemoteAddr: ',2)
@@ -688,16 +690,13 @@ def run_praefectus(meta,config,srv):
                             logmsg('info','player has been banned: '+banplayer)
 
                         case 'LogHAL': logmsg('info','pavlovserver is starting')
+                        case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
                         case 'LogTemp: Starting Server Status Helper': logmsg('info','status helper is now online')
-                        case 'StatManagerLog: Stat Manager Started':
-                            logmsg('info','statmanager is now online')
+                        case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
                         case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('debug','updating blacklist/whitelist/mods')
                         case 'LogTemp: Scanning Dir': logmsg('debug','scanning for mods to load')
                         case 'LogLoad: LoadMap: /Game/Maps/ServerIdle': logmsg('info','server is waiting for next map')
                         case 'PavlovLog: Successfully downloaded all mods': logmsg('debug','downloaded all mods required for switching map')
-                        case 'PavlovLog: StartPlay was called':
-                            logmsg('info','startplay was called')
-                            asyncio.run(init_map())
                         case 'KillData': logmsg('debug','a player died')
                         case 'Critical error': logmsg('error','server crashed: critical error')
                         case 'Fatal error': logmsg('error','server crashed: fatal error')
@@ -740,6 +739,7 @@ def run_praefectus(meta,config,srv):
     gamemodes_unsupported=['HIDE','PH','INFECTION','KOTH','TTT','ZWV']
     target_log=config['target_log']
     logmsg('info',meta['name']+' '+meta['version']+' is now active ('+target_log+')')
+
     loglines=follow_log(target_log)
     for line in loglines:
         line=str(line.strip())
@@ -763,12 +763,10 @@ def run_praefectus(meta,config,srv):
                 'LogLoad: LoadMap',
                 '"State":',
                 'Preparing to exit',
-
-                'LogNet: Login request', # LogNet: Login request: ?Name=[EU][SPQR] Agent?playerHeight=160.000000?rightHanded=1?vstock=1?platform=steam?pid=76561199476460201?name=[EU][SPQR] Agent userId: NULL:00025ee8b2f14b649e85ebcfe2cd9f86 platform: NULL
-                'LogNet: Join request', # LogNet: Join request: /Game/Maps/ServerIdle?name=[EU][SPQR] Agent?playerHeight=160.000000?rightHanded=1?vstock=1?platform=steam?pid=76561199476460201?SplitscreenCount=1
-                'PavlovLog: Player login',# PavlovLog: Player login with platformid 76561199476460201
-                'PavlovLog: Authenticating player', # PavlovLog: Authenticating player [EU][SPQR] Agent
-
+                'LogNet: Login request',
+                'LogNet: Join request',
+                'PavlovLog: Player login',
+                'PavlovLog: Authenticating player',
                 'Join succeeded',
                 'LogNet: UChannel::Close',
                 'KillData',

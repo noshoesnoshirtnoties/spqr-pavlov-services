@@ -16,15 +16,12 @@ if __name__ == '__main__':
     if str(sys.argv[1])!='': srv=str(sys.argv[1])
     else: srv='0'
 
-    rnd_sleep=random.randint(1,10)
-    time.sleep(rnd_sleep)
-
     config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
 
     if bool(config['debug'])==True: level=logging.DEBUG
     else: level=logging.INFO
     logging.basicConfig(
-        filename='/opt/pavlov-server/praefectus/cron/pinglimit-cron-'+str(srv)+'.log',
+        filename='/opt/pavlov-server/praefectus/cron/praefectus-cron-'+str(srv)+'.log',
         filemode='a',
         format='%(asctime)s,%(msecs)d [%(levelname)s] %(message)s',
         datefmt='%m/%d/%Y %H:%M:%S',
@@ -61,24 +58,61 @@ if __name__ == '__main__':
         conn.close()
         return data
 
-    
-    async def pinglimit():
-        logmsg('debug','pinglimit called')
+
+    async def pin_limit(conn,serverinfo):
+        logmsg('debug','pin_limit called')
+        if config['pinlimit'][srv]!=0:
+            logmsg('debug','pinlimit is enabled')
+            try:
+                si=serverinfo['ServerInfo']
+                roundstate=si['RoundState']
+                playercount_split=si['PlayerCount'].split('/',2)
+                numberofplayers=int(playercount_split[0])
+                maxplayers=int(playercount_split[1])
+                
+                demo_enabled=False # get this via rcon
+                if demo_enabled is True: # demo rec counts as 1 player
+                    if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
+            
+                if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
+                    if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
+
+                if roundstate=='Started':
+                    if numberofplayers>=limit: # limit reached
+                        logmsg('debug','limit ('+str(limit)+') reached - setting pin '+str(config['pin']))
+                        cmd='SetPin '+str(config['pin'])
+                        try:
+                            data=await conn.send(cmd)
+                            if data['Successful'] is True: logmsg('debug','setpin has set the pin')
+                            else: logmsg('error','setpin has NOT set the pin for some reason')
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                    else: # below limit
+                        logmsg('debug','below limit ('+str(limit)+') - removing pin')
+                        cmd='SetPin '
+                        try:
+                            data=await conn.send(cmd)
+                            if data['Successful'] is True: logmsg('debug','setpin has emptied the pin')
+                            else: logmsg('error','setpin has NOT emptied the pin for some reason')
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                else: logmsg('warn','not touching pin because of roundstate '+str(roundstate))
+
+            except Exception as e:
+                if str(e)!='': logmsg('error','EXCEPTION: '+str(e))
+        else: logmsg('info','pinlimit canceled because pinlimit is disabled')
+
+
+    async def ping_limit(conn,serverinfo):
+        logmsg('debug','ping_limit called')
         if config['rconplus'][srv] is True:
             logmsg('debug','rconplus is enabled')
             if config['pinglimit'][srv]['enabled'] is True:
                 logmsg('debug','pinglimit is enabled')
                 try:
-                    port=config['rcon']['port']+int(srv)
-                    conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
-                    
-                    data=await conn.send('ServerInfo')
-                    data_json=json.dumps(data)
-                    serverinfo=json.loads(data_json)
                     si=serverinfo['ServerInfo']
                     roundstate=si['RoundState']
                     if roundstate=='Started':
-
                         data=await conn.send('RefreshList')
                         data_json=json.dumps(data)
                         refreshlist=json.loads(data_json)
@@ -162,7 +196,7 @@ if __name__ == '__main__':
                                     # notify
                                     if notify_player is True:
                                         if config['pinglimit'][srv]['notify'] is True:
-                                            if config['pinglimit'][srv]['kick'] is True: msg+='\n\nauto-kick is enabled'
+                                            if config['pinglimit'][srv]['kick'] is True and kick_player is True: msg+='\n\nauto-kick is enabled'
                                             cmd='Notify '+str(steamid64)+' '+msg
                                             try: await conn.send(cmd)
                                             except Exception as e:
@@ -175,7 +209,7 @@ if __name__ == '__main__':
                                         if config['pinglimit'][srv]['kick'] is True:
                                             cmd='Kick '+str(steamid64)
                                             try:
-                                                time.sleep(2)
+                                                time.sleep(4)
                                                 await conn.send(cmd)
                                                 logmsg('info',str(steamid64)+': player has been kicked by pinglimit')
                                             except Exception as e:
@@ -192,20 +226,40 @@ if __name__ == '__main__':
 
                                 else: logmsg('info',str(steamid64)+': skipping because not enough data')
                             else: logmsg('info',str(steamid64)+': skipping because not alive yet')
-                    else: logmsg('info','skipping this run because of roundstate '+str(roundstate))
+                    else: logmsg('info','skipping this pinglimit run because of roundstate '+str(roundstate))
+
                 except Exception as e:
                     if str(e)!='': logmsg('error','EXCEPTION: '+str(e))
             else: logmsg('info','pinglimit canceled because pinglimit is disabled')
         else: logmsg('info','pinglimit canceled because rconplus is disabled')
 
-        await conn.send('Disconnect')
-        logmsg('debug','rcon disconnected ')
 
-    i=0
-    runs=config['pinglimit']['minentries']//2
-    while i<runs:
-        logmsg('debug','starting run #: '+str(i))
-        asyncio.run(pinglimit())
-        i+=1
-        time.sleep(3)
-    logmsg('debug','end of pinglimit-cron reached')
+    async def praefectus_cron(rnd_sleep):
+        logmsg('debug','praefectus_cron called')
+        time.sleep(rnd_sleep)
+
+        try:
+            port=config['rcon']['port']+int(srv)
+            conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
+            
+            data=await conn.send('ServerInfo')
+            data_json=json.dumps(data)
+            serverinfo=json.loads(data_json)
+
+            await pin_limit(conn,serverinfo)
+
+            i=0
+            runs=config['pinglimit']['minentries']//4
+            while i<runs:
+                logmsg('debug','starting run #: '+str(i))
+                await ping_limit(conn,serverinfo)
+                i+=1
+                time.sleep(2)
+            await conn.send('Disconnect')
+            logmsg('debug','rcon disconnected ')
+        except Exception as e:
+            if str(e)!='': logmsg('error','EXCEPTION: '+str(e))
+    
+
+    asyncio.run(praefectus_cron(random.randint(1,20)))
+    logmsg('debug','end of praefectus-cron reached')
