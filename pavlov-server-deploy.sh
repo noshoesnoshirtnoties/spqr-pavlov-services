@@ -114,17 +114,11 @@ else
   echo "[WARN] ufw is inactive - please check if this is what you want"
 fi
 
-echo "[INFO] creating cronjob for pinglimit..."
-PINGCRONCMD0='echo "'
-PINGCRONCMD1='" > /etc/cron.d/pinglimit-cron-'
-PINGCRON="* * * * * root cd /opt/pavlov-server/praefectus && python3 cron/pinglimit-cron.py ${SRV} >/dev/null 2>&1"
-$SSHCMD $DSTHOST "${PINGCRONCMD0}${PINGCRON}${PINGCRONCMD1}${SRV}"
-
-echo "[INFO] creating cronjob for autopin..."
-PINCRONCMD0='echo "'
-PINCRONCMD1='" > /etc/cron.d/autopin-cron-'
-PINCRON="* * * * * root cd /opt/pavlov-server/praefectus && python3 cron/autopin-cron.py ${SRV} >/dev/null 2>&1"
-$SSHCMD $DSTHOST "${PINCRONCMD0}${PINCRON}${PINCRONCMD1}${SRV}"
+echo "[INFO] creating praefectus cronjob..."
+CRONCMD0='echo "'
+CRONCMD1='" > /etc/cron.d/praefectus-cron-'
+CRON="* * * * * root cd /opt/pavlov-server/praefectus && python3 cron/praefectus-cron.py ${SRV} >/dev/null 2>&1"
+$SSHCMD $DSTHOST "${CRONCMD0}${CRON}${CRONCMD1}${SRV}"
 
 echo "[INFO] building docker image for praefectus..."
 $SSHCMD $DSTHOST "cd ${INSTALLDIR}/pavlov-server/praefectus && docker build -t praefectus-pavlov-server ."
