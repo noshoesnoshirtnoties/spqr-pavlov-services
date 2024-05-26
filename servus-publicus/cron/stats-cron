@@ -6,4 +6,4 @@
 #| | | | |
 #* * * * *
 
-0 * * * * root cd /opt/servus-publicus && python3 ./cron/stats-cron.py >/dev/null 2>&1
+*/5 * * * * root cd /opt/servus-publicus && python3 ./cron/stats-cron.py >/dev/null 2>&1
