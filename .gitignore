@@ -1,5 +1,6 @@
 pavlovserver/conf.d/blacklist.txt
 pavlovserver/conf.d/mods.txt
+pavlovserver/conf.d/ModSave_WeaponSkinPack_serverconfig.json
 pavlovserver/conf.d/whitelist.txt
 pavlovserver/conf.d/0
 pavlovserver/conf.d/1
