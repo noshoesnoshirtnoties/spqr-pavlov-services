@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        channel=client.get_channel(int(config['discord']['bot-channel-ids']['g-matches']))
+        channel=client.get_channel(int(config['discord']['channel-ids']['g-matches']))
 
         # delete old event msgs
         #async for message in channel.history(limit=10):

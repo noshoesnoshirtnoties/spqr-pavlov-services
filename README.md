@@ -1,7 +1,7 @@
 # SPQR Pavlov Services
 
 ## description
-this repo contains everything needed to rollout and run pavlov vr custom servers, as well as a discord bot, using docker. to get started, clone this repo to your system and keep reading in order to use it :)
+this repo contains everything needed to rollout and run pavlov vr custom servers, as well as a discord bot. to get started, clone this repo to your system and keep reading in order to use it :)
 
 * "pavlov-server" is the pavlov vr custom server
 * "praefectus" is the monitoring service for the game servers
@@ -10,7 +10,6 @@ this repo contains everything needed to rollout and run pavlov vr custom servers
 ## requirements
 * a debian or ubuntu server, accessible as root or with root privs
 * a mysqldb (see database_template.sql)
-* docker
 * python3
 
 ## config
@@ -77,49 +76,20 @@ the discord bot can be deployed to a target server like this:
 ./servus-publicus-deploy.sh -d myfancyserver.com -u root
 ```
 
-## example commands for service handling
-### general
-```
-watch 'docker ps --format "{{.ID}} {{.Status}} {{.Names}}"'
-tail -f /opt/pavlov-server/praefectus/cron/pinglimit-cron-0.log
-```
-
-### pavlov-server #0
-```
-docker exec -it pavlov-server-0 bash
-docker exec -it pavlov-server-0 bash -c 'tail -f /home/steam/pavlovserver/Pavlov/Saved/Logs/Pavlov.log'
-
-```
-
-### praefectus-pavlov-server #0
-```
-docker exec -it praefectus-pavlov-server-0 bash
-docker exec -it praefectus-pavlov-server-0 bash -c 'tail -f /opt/pavlov-server/praefectus/praefectus-0.log'
-```
-
-### servus-publicus
-```
-docker exec -it servus-publicus bash
-docker exec -it servus-publicus bash -c 'tail -f /opt/servus-publicus/servus-publicus.log'
-```
-
 ## todo
 * general
-  * cron-triggered weekly container redeploy / image recreate / volume recreate
+  * cron-triggered restart
   * top ranks in #stats
-  * extended playerstats (DM + TDM)
+  * extended playerstats
     * pull steamusers details
     * ace-detection
   * add elo/mmr
-  * use docker-compose / new builder
 * pavlov-server
-  * enable demo (mount docker volume)
-  * logrotate
+  * enable demo
 * praefectus
-  * logrotate
   * fix playercount with demo / get demo via rcon
 * servus-publicus
-  * logrotate
+  * ...
 
 ## more
 ### info

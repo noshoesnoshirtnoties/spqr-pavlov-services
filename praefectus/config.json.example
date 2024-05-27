@@ -1,0 +1,303 @@
+{
+  "debug":true,
+  "rcon":{
+    "ip":"localhost",
+    "port":9100,
+    "pass":"supersecurerconpassword"
+  },
+  "mysql":{
+    "host":"localhost",
+    "port":3306,
+    "database":"spqr",
+    "user":"spqr",
+    "pass":"supersecuremysqlpassword"
+  },
+  "discord":{
+    "bot_token":"supersecurediscordbottoken"
+  },
+  "autopin":"1234",
+  "autopin_limits":{
+    "0": 1,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "pinglimit":{
+    "minentries":10,
+    "keepentries":1,
+    "0": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "1":{
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "2": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "3": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "4": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "5": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "6": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "7": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "8": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    },
+    "9": {
+      "enabled":true,
+      "notify":true,
+      "kick":true,
+      "hard":200,
+      "soft":150,
+      "delta":30
+    }
+  },
+  "rconplus":{
+    "0": true,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false,
+    "8": false,
+    "9": false
+  },
+  "bots":{
+    "0": {
+      "managed": true,
+      "amount": 2
+    },
+    "1": {
+      "managed": false,
+      "amount": 0
+    },
+    "2": {
+      "managed": false,
+      "amount": 0
+    },
+    "3": {
+      "managed": false,
+      "amount": 0
+    },
+    "4": {
+      "managed": false,
+      "amount": 0
+    },
+    "5": {
+      "managed": false,
+      "amount": 0
+    },
+    "6": {
+      "managed": false,
+      "amount": 0
+    },
+    "7": {
+      "managed": false,
+      "amount": 0
+    },
+    "8": {
+      "managed": false,
+      "amount": 0
+    },
+    "9": {
+      "managed": false,
+      "amount": 0
+    }
+  },
+  "chickens":{
+    "0": 1,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "zombies":{
+    "0": 1,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 0,
+    "6": 0,
+    "7": 0,
+    "8": 0,
+    "9": 0
+  },
+  "trails":{
+    "0": true,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false,
+    "8": false,
+    "9": false
+  },
+  "prone":{
+    "0": true,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false,
+    "8": false,
+    "9": false
+  },
+  "nofalldmg":{
+    "0": false,
+    "1": false,
+    "2": false,
+    "3": false,
+    "4": false,
+    "5": false,
+    "6": false,
+    "7": false,
+    "8": false,
+    "9": false
+  },
+  "additional_mods":{
+    "0":[UGC3277276],
+    "1":[],
+    "2":[],
+    "3":[],
+    "4":[],
+    "5":[],
+    "6":[],
+    "7":[],
+    "8":[],
+    "9":[]
+  },
+  "custom_models":{
+    "0": {
+      "all":"nato2",
+      "mods":"aurora",
+      "team0":"russian4",
+      "team1":"nato2"
+    },
+    "1": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "2": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "3": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "4": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "5": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "6": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "7": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "8": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    },
+    "9": {
+      "all":"default",
+      "mods":"default",
+      "team0":"default",
+      "team1":"default"
+    }
+  }
+}

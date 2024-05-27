@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.2
+VERSION=1.0
 USAGE="
 Usage: $0 -d <dsthost> -u <sshuser> -y\n
 -d destination host\n
@@ -8,8 +8,7 @@ Usage: $0 -d <dsthost> -u <sshuser> -y\n
 -y dont ask\n"
 
 
-# --- options processing ---
-
+# --- args ---
 if [ $# == 0 ] ; then
     echo -e $USAGE; exit 1;
 fi
@@ -44,9 +43,10 @@ while getopts ":d:u:y" optname
 shift $(($OPTIND - 1))
 
 
-# --- body ---
-
+# --- prep ---
 INSTALLDIR="/opt/"
+SERVICENAME="servus-publicus"
+SERVICEUSER="steam"
 SSHCMD="$(which ssh) -q -o StrictHostKeyChecking=no -A -F /home/${USER}/.ssh/config -l ${SSHUSER} "
 SCPCMD="$(which scp) -r -F /home/${USER}/.ssh/config "
 
@@ -66,35 +66,49 @@ fi
 echo "[INFO] starting deployment"
 
 
-# --- servus-publicus ---
+# --- install ---
+echo "[INFO] stopping running service..."
+$SSHCMD $DSTHOST "systemctl stop ${SERVICENAME}.service"
+
+echo "[INFO] creating service user..."
+$SSHCMD $DSTHOST "adduser ${SERVICEUSER}"
+
+echo "[INFO] creating base path..."
+$SSHCMD $DSTHOST "mkdir ${INSTALLDIR}"
 
 echo "[INFO] copying files..."
-$SCPCMD -r "servus-publicus" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
+$SCPCMD -r "${SERVICENAME}" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
+
+echo "[INFO] chown-ing files..."
+$SSHCMD $DSTHOST "/usr/bin/chown -R ${SERVICEUSER}:${SERVICEUSER} ${INSTALLDIR}/${SERVICENAME}"
+
+echo "[INFO] installing pip requirements..."
+$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c 'pip install -r ${INSTALLDIR}/${SERVICENAME}/requirements.txt'"
 
 echo "[INFO] creating cronjobs..."
+$SSHCMD $DSTHOST "cp \
+${INSTALLDIR}/${SERVICENAME}/cron/${SERVICENAME}-events-cron \
+${INSTALLDIR}/${SERVICENAME}/cron/${SERVICENAME}-ranks-cron \
+${INSTALLDIR}/${SERVICENAME}/cron/${SERVICENAME}-reminder-cron \
+${INSTALLDIR}/${SERVICENAME}/cron/${SERVICENAME}-stats-cron \
+/etc/cron.d/"
 
-$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/events-cron /etc/cron.d/events-cron"
-$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/ranks-cron /etc/cron.d/ranks-cron"
-$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/reminder-cron /etc/cron.d/reminder-cron"
-$SSHCMD $DSTHOST "cp ${INSTALLDIR}/servus-publicus/cron/stats-cron /etc/cron.d/stats-cron"
+echo "[INFO] creating logrotate config..."
+$SSHCMD $DSTHOST "cp ${INSTALLDIR}/${SERVICENAME}/${SERVICENAME}-logrotate /etc/logrotate.d/"
 
-echo "[INFO] stopping running container..."
-$SSHCMD $DSTHOST "docker stop servus-publicus"
+echo "[INFO] creating service file..."
+$SSHCMD $DSTHOST "cp ${INSTALLDIR}/${SERVICENAME}/${SERVICENAME}.service /etc/systemd/system/"
 
-echo "[INFO] removing old container..."
-$SSHCMD $DSTHOST "docker container rm servus-publicus"
+echo "[INFO] resetting possibly failed service..."
+$SSHCMD $DSTHOST "/usr/bin/systemctl reset-failed ${SERVICENAME}.service"
 
-echo "[INFO] building docker image..."
-$SSHCMD $DSTHOST "cd ${INSTALLDIR}/servus-publicus && docker build -t servus-publicus ."
+echo "[INFO] enabling service..."
+$SSHCMD $DSTHOST "/usr/bin/systemctl enable ${SERVICENAME}.service"
 
-echo "[INFO] starting docker container..."
-$SSHCMD $DSTHOST "docker run --name servus-publicus -d \
-  --restart unless-stopped \
-  --net=host \
-  servus-publicus"
+echo "[INFO] starting service..."
+$SSHCMD $DSTHOST "systemctl start ${SERVICENAME}.service"
 
 
 # --- done ---
-
 echo "[INFO] exiting successfully"
 exit 0

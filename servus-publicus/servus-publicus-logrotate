@@ -1,0 +1,9 @@
+/opt/servus-publicus/servus-publicus.log {
+  daily
+  missingok
+  rotate 7
+  compress
+  delaycompress
+  notifempty
+  create 0640 steam steam
+}

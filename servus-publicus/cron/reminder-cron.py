@@ -16,12 +16,12 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        #channel=client.get_channel(int(config['discord']['bot-channel-ids']['news']))
-        channel=client.get_channel(int(config['discord']['bot-channel-ids']['e-bot-test']))
+        #channel=client.get_channel(int(config['discord']['channel-ids']['news']))
+        channel=client.get_channel(int(config['discord']['channel-ids']['e-bot-test']))
 
         gladiator=config['discord']['role-ids']['gladiator']
         tiro=config['discord']['role-ids']['tiro']
-        gmatches=config['discord']['bot-channel-ids']['g-matches']
+        gmatches=config['discord']['channel-ids']['g-matches']
 
         # get random quote 
         randomquote=random.choice(os.listdir('./txt/suntzu'))
