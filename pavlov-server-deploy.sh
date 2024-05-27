@@ -87,10 +87,10 @@ echo "[INFO] starting deployment"
 
 # --- install ---
 echo "[INFO] stopping running services"
+$SSHCMD $DSTHOST "systemctl stop ${SERVICENAME2}-${SRV}.service"
 if [ "$PRAEFECTUS_ONLY" != true ]; then
   $SSHCMD $DSTHOST "systemctl stop ${SERVICENAME1}-${SRV}.service"
 fi
-$SSHCMD $DSTHOST "systemctl stop ${SERVICENAME2}-${SRV}.service"
 
 echo "[INFO] checking if service user exists"
 RESPONSE=$($SSHCMD $DSTHOST "grep '^${SERVICEUSER}:' /etc/passwd")
@@ -103,10 +103,10 @@ echo "[INFO] creating base path"
 $SSHCMD $DSTHOST "mkdir ${INSTALLDIR}"
 
 echo "[INFO] copying files"
+$SCPCMD -r "${SERVICENAME2}" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 if [ "$PRAEFECTUS_ONLY" != true ]; then
   $SCPCMD -r "${SERVICENAME1}" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 fi
-$SCPCMD -r "${SERVICENAME2}" "${SSHUSER}@${DSTHOST}:${INSTALLDIR}/"
 
 echo "[INFO] chown-ing files..."
 $SSHCMD $DSTHOST "/usr/bin/chown -R ${SERVICEUSER}:${SERVICEUSER} ${INSTALLDIR}/${SERVICENAME2}"
@@ -137,6 +137,29 @@ CRONCMD1='" > /etc/cron.d/praefectus-cron-'
 CRON="* * * * * root cd /opt/${SERVICENAME2} && python3 cron/praefectus-cron.py ${SRV} >/dev/null 2>&1"
 $SSHCMD $DSTHOST "${CRONCMD0}${CRON}${CRONCMD1}${SRV}"
 
+echo "[INFO] checking if service file exist for ${SERVICENAME2}-${SRV}"
+if $SSHCMD $DSTHOST "[ ! -f /etc/systemd/system/${SERVICENAME2}-${SRV}.service ]"; then
+  echo "[INFO] could not find service file for ${SERVICENAME2}-${SRV} - trying to create it"
+  $SSHCMD $DSTHOST "cat > /etc/systemd/system/${SERVICENAME2}-${SRV}.service <<EOL
+[Unit]
+Description=${SERVICENAME2}-${SRV}
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/praefectus
+ExecStart=/usr/bin/python3 main.py ${SRV}
+RestartSec=1
+Restart=always
+User=${SERVICEUSER}
+Group=${SERVICEUSER}
+
+[Install]
+WantedBy=multi-user.target
+EOL"
+  $SSHCMD $DSTHOST "/usr/bin/chmod 664 /etc/systemd/system/${SERVICENAME2}-${SRV}.service"
+  $SSHCMD $DSTHOST "/usr/bin/chown root:root /etc/systemd/system/${SERVICENAME2}-${SRV}.service"
+fi
+
 if [ "$PRAEFECTUS_ONLY" != true ]; then
   echo "[INFO] checking if service file exist for ${SERVICENAME1}-${SRV}"
   if $SSHCMD $DSTHOST "[ ! -f /etc/systemd/system/${SERVICENAME1}-${SRV}.service ]"; then
@@ -160,29 +183,6 @@ EOL"
     $SSHCMD $DSTHOST "/usr/bin/chmod 664 /etc/systemd/system/${SERVICENAME1}-${SRV}.service"
     $SSHCMD $DSTHOST "/usr/bin/chown root:root /etc/systemd/system/${SERVICENAME1}-${SRV}.service"
   fi
-fi
-
-echo "[INFO] checking if service file exist for ${SERVICENAME2}-${SRV}"
-if $SSHCMD $DSTHOST "[ ! -f /etc/systemd/system/${SERVICENAME2}-${SRV}.service ]"; then
-  echo "[INFO] could not find service file for ${SERVICENAME2}-${SRV} - trying to create it"
-  $SSHCMD $DSTHOST "cat > /etc/systemd/system/${SERVICENAME2}-${SRV}.service <<EOL
-[Unit]
-Description=${SERVICENAME2}-${SRV}
-
-[Service]
-Type=simple
-WorkingDirectory=/opt/praefectus
-ExecStart=/usr/bin/python3 main.py ${SRV}
-RestartSec=1
-Restart=always
-User=${SERVICEUSER}
-Group=${SERVICEUSER}
-
-[Install]
-WantedBy=multi-user.target
-EOL"
-  $SSHCMD $DSTHOST "/usr/bin/chmod 664 /etc/systemd/system/${SERVICENAME2}-${SRV}.service"
-  $SSHCMD $DSTHOST "/usr/bin/chown root:root /etc/systemd/system/${SERVICENAME2}-${SRV}.service"
 fi
 
 echo "[INFO] checking if logrotate config exists for ${SERVICENAME2}-${SRV}"
@@ -282,22 +282,22 @@ if [ "$PRAEFECTUS_ONLY" != true ]; then
 fi
 
 echo "[INFO] resetting possibly failed service..."
+$SSHCMD $DSTHOST "/usr/bin/systemctl reset-failed ${SERVICENAME2}-${SRV}.service"
 if [ "$PRAEFECTUS_ONLY" != true ]; then
   $SSHCMD $DSTHOST "/usr/bin/systemctl reset-failed ${SERVICENAME1}-${SRV}.service"
 fi
-$SSHCMD $DSTHOST "/usr/bin/systemctl reset-failed ${SERVICENAME2}-${SRV}.service"
 
 echo "[INFO] enabling service..."
+$SSHCMD $DSTHOST "/usr/bin/systemctl enable ${SERVICENAME2}-${SRV}.service"
 if [ "$PRAEFECTUS_ONLY" != true ]; then
   $SSHCMD $DSTHOST "/usr/bin/systemctl enable ${SERVICENAME1}-${SRV}.service"
 fi
-$SSHCMD $DSTHOST "/usr/bin/systemctl enable ${SERVICENAME2}-${SRV}.service"
 
 echo "[INFO] starting service..."
+$SSHCMD $DSTHOST "/usr/bin/systemctl start ${SERVICENAME2}-${SRV}.service"
 if [ "$PRAEFECTUS_ONLY" != true ]; then
   $SSHCMD $DSTHOST "/usr/bin/systemctl start ${SERVICENAME1}-${SRV}.service"
 fi
-$SSHCMD $DSTHOST "/usr/bin/systemctl start ${SERVICENAME2}-${SRV}.service"
 
 
 # --- done ---
