@@ -16,12 +16,12 @@ if __name__ == '__main__':
     if str(sys.argv[1])!='': srv=str(sys.argv[1])
     else: srv='0'
 
-    config=json.loads(open('/opt/pavlov-server/praefectus/config.json').read())
+    config=json.loads(open('config.json').read())
 
     if bool(config['debug'])==True: level=logging.DEBUG
     else: level=logging.INFO
     logging.basicConfig(
-        filename='/opt/pavlov-server/praefectus/cron/praefectus-cron-'+str(srv)+'.log',
+        filename='cron/praefectus-cron-'+str(srv)+'.log',
         filemode='a',
         format='%(asctime)s,%(msecs)d [%(levelname)s] %(message)s',
         datefmt='%m/%d/%Y %H:%M:%S',
@@ -64,8 +64,10 @@ if __name__ == '__main__':
         if config['pinlimit'][srv]!=0:
             logmsg('debug','pinlimit is enabled')
             try:
+                limit=config['pinlimit'][srv]
                 si=serverinfo['ServerInfo']
                 roundstate=si['RoundState']
+                gamemode=str(si['GameMode'].upper()).strip()
                 playercount_split=si['PlayerCount'].split('/',2)
                 numberofplayers=int(playercount_split[0])
                 maxplayers=int(playercount_split[1])
@@ -164,7 +166,6 @@ if __name__ == '__main__':
 
                                 # check if there are enough samples
                                 if cnt_ping>=config['pinglimit']['minentries']:
-                                    logmsg('debug','rowcount ('+str(cnt_ping)+') >= minentries ('+str(config['pinglimit']['minentries'])+')')
                                     avg=int(avg_ping)
                                     delta=int(max_ping)-int(min_ping)
                                     limit_delta=int(config['pinglimit'][srv]['delta'])
@@ -174,7 +175,7 @@ if __name__ == '__main__':
                                     # check delta
                                     if delta>limit_delta:
                                         logmsg('info',str(steamid64)+': players ping delta ('+str(delta)+') exceeds delta limit ('+str(limit_delta)+')')
-                                        msg='ping delta warning :( connection seems unstable'
+                                        msg='ping delta warning :(\n\nconnection seems unstable'
                                         notify_player=True
                                     else: logmsg('debug',str(steamid64)+': players ping delta ('+str(delta)+') is within delta limit ('+str(limit_delta)+')')
 
@@ -202,7 +203,7 @@ if __name__ == '__main__':
                                             except Exception as e:
                                                 if str(e)!='': logmsg('error','EXCEPTION: while trying to notify: '+str(e))
                                             logmsg('info',str(steamid64)+': player has probably been notified by pinglimit')
-                                        else: logmsg('warn',str(steamid64)+': player would have been notified, but notify is disabled')
+                                        else: logmsg('info',str(steamid64)+': player would have been notified, but notify is disabled')
 
                                     # kick
                                     if kick_player is True:
@@ -214,19 +215,19 @@ if __name__ == '__main__':
                                                 logmsg('info',str(steamid64)+': player has been kicked by pinglimit')
                                             except Exception as e:
                                                 if str(e)!='': logmsg('error','EXCEPTION: while trying to kick: '+str(e))
-                                        else: logmsg('warn',str(steamid64)+': player would have been kicked, but kick is disabled')
+                                        else: logmsg('info',str(steamid64)+': player would have been kicked, but kick is disabled')
 
                                     # delete accumulated entries, but keep some recent ones
-                                    logmsg('info',str(steamid64)+': deleting entries for current player')
+                                    logmsg('debug',str(steamid64)+': deleting entries because limits have been retained')
                                     query="DELETE FROM pings WHERE steamid64 = %s ORDER BY id ASC LIMIT %s"
                                     values=[]
                                     values.append(steamid64)
                                     values.append(cnt_ping - int(config['pinglimit']['keepentries']))
                                     dbquery(query,values)
 
-                                else: logmsg('info',str(steamid64)+': skipping because not enough data')
-                            else: logmsg('info',str(steamid64)+': skipping because not alive yet')
-                    else: logmsg('info','skipping this pinglimit run because of roundstate '+str(roundstate))
+                                else: logmsg('debug',str(steamid64)+': skipping because not enough data')
+                            else: logmsg('debug',str(steamid64)+': skipping because not alive yet')
+                    else: logmsg('debug','skipping this pinglimit run because of roundstate '+str(roundstate))
 
                 except Exception as e:
                     if str(e)!='': logmsg('error','EXCEPTION: '+str(e))
@@ -249,7 +250,7 @@ if __name__ == '__main__':
             await pin_limit(conn,serverinfo)
 
             i=0
-            runs=config['pinglimit']['minentries']//4
+            runs=3
             while i<runs:
                 logmsg('debug','starting run #: '+str(i))
                 await ping_limit(conn,serverinfo)
