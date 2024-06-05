@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.0
+VERSION=1.1
 USAGE="
 Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -y\n
 -d destination host\n
@@ -134,7 +134,7 @@ fi
 echo "[INFO] creating praefectus cronjob"
 CRONCMD0='echo "'
 CRONCMD1='" > /etc/cron.d/praefectus-cron-'
-CRON="* * * * * root cd /opt/${SERVICENAME2} && python3 cron/praefectus-cron.py ${SRV} >/dev/null 2>&1"
+CRON="* * * * * ${SERVICEUSER} cd /opt/${SERVICENAME2} && python3 cron/praefectus-cron.py ${SRV} >/dev/null 2>&1"
 $SSHCMD $DSTHOST "${CRONCMD0}${CRON}${CRONCMD1}${SRV}"
 
 echo "[INFO] checking if service file exist for ${SERVICENAME2}-${SRV}"
@@ -197,6 +197,9 @@ if $SSHCMD $DSTHOST "[ ! -f /etc/logrotate.d/${SERVICENAME2}-logrotate-${SRV} ]"
   delaycompress
   notifempty
   create 0640 ${SERVICEUSER} ${SERVICEUSER}
+  postrotate
+    /bin/systemctl restart ${SERVICENAME2}-${SRV}.service
+  endscript
 }
 EOL"
   $SSHCMD $DSTHOST "/usr/bin/chmod 644 /etc/logrotate.d/${SERVICENAME2}-logrotate-${SRV}"
