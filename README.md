@@ -102,6 +102,8 @@ the discord bot can be deployed to a target server like this:
 * https://mod.io/g/pavlov/m/pavlovartists-weapon-skin-pack
 * https://mod.io/g/pavlov/m/skins-kennithhs-usmc
 * https://mod.io/g/pavlov/m/skins-kennithhs-raf
+* https://mod.io/g/pavlov/m/skins-kennithhs-vietnam-us
+* https://mod.io/g/pavlov/m/skins-kennithhs-vietnam-nva
 * https://mod.io/g/pavlov/m/colonists-ww2-avatars
 * https://mod.io/g/pavlov/m/gun-kennithhs-modern-weapons
 * https://mod.io/g/pavlov/m/gun-kennithhs-vietnam-weapons
