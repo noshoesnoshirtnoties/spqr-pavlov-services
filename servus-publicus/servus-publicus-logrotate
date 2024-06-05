@@ -6,4 +6,7 @@
   delaycompress
   notifempty
   create 0640 steam steam
+  postrotate
+    /bin/systemctl restart servus-publicus.service
+  endscript
 }

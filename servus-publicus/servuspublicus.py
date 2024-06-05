@@ -234,7 +234,7 @@ def run_servuspublicus(meta,config):
                                 data=await rcon('InspectAll',{},ums2[1])
                                 if data['Successful'] is True:
                                     response=command+': successful'
-                                    for player in data['InspectList']: response=response+'\n'+str(player['PlayerName'])+' ('+str(player['UniqueId'])+')'
+                                    for player in data['InspectList']: response=response+'\n'+str(player['UniqueId'])+' ('+str(player['PlayerName'])+')'
                                 else: response=command+' failed - something went wrong'
                             else: response=command+' is missing parameters'
 
@@ -349,7 +349,7 @@ def run_servuspublicus(meta,config):
                                         pings=dbquery(query,values)
                                         average_ping=pings['rows'][0]['avg_ping']
 
-                                        response=response+'\n'+steamusers_id+': '+str(current_ping)+' (current), '+str(average_ping)+' (average)'
+                                        response=response+'\n'+steamusers_id+': '+str(average_ping)+' (avg)'
                                 else: response=command+' failed - something went wrong'
                             else: response=command+' is missing parameters'
 
