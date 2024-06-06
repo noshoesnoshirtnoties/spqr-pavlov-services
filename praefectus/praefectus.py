@@ -163,71 +163,6 @@ def run_praefectus(meta,config,srv):
                 if is_first_round is True:
                     logmsg('info','seems to be first round - initializing map now...')
 
-                    if gamemode in gamemodes_teamless: # SET CUSTOM MODELS TEAMLESS
-                        if config['custom_models'][srv]['all']!='default':
-                            skinid=config['custom_models'][srv]['all']
-
-                            cmd='SetTeamSkin RedTeam '+str(skinid)
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','custom player models have probably been set: '+str(skinid))
-
-                            cmd='SetTeamSkin BlueTeam '+str(skinid)
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','custom player models have probably been set: '+str(skinid))
-                        else: logmsg('info','custom player models are set to default for all')
-                    elif gamemode in gamemodes_teams: # SET CUSTOM MODELS WITH TEAMS
-                        if config['custom_models'][srv]['team0']!='default':
-                            skinid=config['custom_models'][srv]['team0']
-
-                            cmd='SetTeamSkin RedTeam '+str(skinid)
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','custom player models for team0 have probably been set: '+str(skinid))
-                        else: logmsg('info','custom player models are set to default for team0')
-
-                        if config['custom_models'][srv]['team1']!='default':
-                            skinid=config['custom_models'][srv]['team1']
-
-                            cmd='SetTeamSkin BlueTeam '+str(skinid)
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','custom player models for team1 have probably been set: '+str(skinid))
-                        else: logmsg('info','custom player models are set to default for team1')
-                    else: logmsg('info','not setting custom player models because gamemode is not supported')
-
-                    # ENABLE PRONE
-                    if config['prone'][srv] is True:
-                        cmd='EnableProne True'
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','prone has probably been enabled')
-                    else: logmsg('info','prone is disabled')
-
-                    # ENABLE TRAILS
-                    if config['trails'][srv] is True:
-                        cmd='EnableTrails True'
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','trails have probably been enabled')
-                    else: logmsg('info','trails are disabled')
-
-                    # ENABLE NOFALLDMG
-                    if config['nofalldmg'][srv] is True:
-                        cmd='FallDamage False'
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','nofalldamage has probably been enabled')
-                    else: logmsg('info','nofalldamage is disabled')
-
                     # ADD BOTS
                     if config['bots'][srv]['amount']>0:
 
@@ -292,6 +227,72 @@ def run_praefectus(meta,config,srv):
                                 if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                         logmsg('info','probably added '+str(amount)+' chicken(s)')
                     else: logmsg('info','chickens amount is 0')
+
+                    # SET CUSTOM MODELS
+                    if gamemode in gamemodes_teamless:
+                        if config['custom_models'][srv]['all']!='default':
+                            skinid=config['custom_models'][srv]['all']
+
+                            cmd='SetTeamSkin RedTeam '+str(skinid)
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','custom player models have probably been set: '+str(skinid))
+
+                            cmd='SetTeamSkin BlueTeam '+str(skinid)
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','custom player models have probably been set: '+str(skinid))
+                        else: logmsg('info','custom player models are set to default for all')
+                    elif gamemode in gamemodes_teams:
+                        if config['custom_models'][srv]['team0']!='default':
+                            skinid=config['custom_models'][srv]['team0']
+
+                            cmd='SetTeamSkin RedTeam '+str(skinid)
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','custom player models for team0 have probably been set: '+str(skinid))
+                        else: logmsg('info','custom player models are set to default for team0')
+
+                        if config['custom_models'][srv]['team1']!='default':
+                            skinid=config['custom_models'][srv]['team1']
+
+                            cmd='SetTeamSkin BlueTeam '+str(skinid)
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','custom player models for team1 have probably been set: '+str(skinid))
+                        else: logmsg('info','custom player models are set to default for team1')
+                    else: logmsg('info','not setting custom player models because gamemode is not supported')
+
+                    # ENABLE PRONE
+                    if config['prone'][srv] is True:
+                        cmd='EnableProne True'
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','prone has probably been enabled')
+                    else: logmsg('info','prone is disabled')
+
+                    # ENABLE TRAILS
+                    if config['trails'][srv] is True:
+                        cmd='EnableTrails True'
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','trails have probably been enabled')
+                    else: logmsg('info','trails are disabled')
+
+                    # ENABLE NOFALLDMG
+                    if config['nofalldmg'][srv] is True:
+                        cmd='FallDamage False'
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','nofalldamage has probably been enabled')
+                    else: logmsg('info','nofalldamage is disabled')
 
                 else: logmsg('info','not initiating round because is_first_round not true')
 
