@@ -42,17 +42,17 @@ CREATE TABLE stats (
   timestamp DATETIME NOT NULL,
   PRIMARY KEY (id)
 );
-CREATE TABLE ranks (
-  id INT NOT NULL AUTO_INCREMENT,
-  steamusers_id INT NOT NULL,
-  rank INT NOT NULL,
-  title VARCHAR(255) NOT NULL,
-  PRIMARY KEY (id)
-);
 CREATE TABLE pings (
   id INT NOT NULL AUTO_INCREMENT,
   steamid64 VARCHAR(255) NOT NULL,
   ping FLOAT NOT NULL,
   timestamp DATETIME NOT NULL,
+  PRIMARY KEY (id)
+);
+CREATE TABLE ranks (
+  id INT NOT NULL AUTO_INCREMENT,
+  steamusers_id INT NOT NULL,
+  rank INT NOT NULL,
+  title VARCHAR(255) NOT NULL,
   PRIMARY KEY (id)
 );

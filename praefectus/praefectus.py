@@ -36,8 +36,6 @@ def run_praefectus(meta,config,srv):
     def dbquery(query,values):
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
-        #logmsg('debug','query: '+str(query))
-        #logmsg('debug','values: '+str(values))
         conn=mysql.connector.connect(
             host=config['mysql']['host'],
             port=config['mysql']['port'],
@@ -61,7 +59,6 @@ def run_praefectus(meta,config,srv):
     async def init_server():
         fx=inspect.stack()[0][3]
         logmsg('debug',fx+' called')
-
         try:
             port=config['rcon']['port']+int(srv)
             conn=PavlovRCON(config['rcon']['ip'],port,config['rcon']['pass'])
@@ -148,85 +145,9 @@ def run_praefectus(meta,config,srv):
                     if 'Team0Score' in si or 'Team1Score' in si:
                         if gamemode=='SND' and (int(si['Team0Score'])!=0 or int(si['Team1Score'])!=0): is_first_round=False
 
-                playercount_split=si['PlayerCount'].split('/',2)
-                numberofplayers=int(playercount_split[0])
-                maxplayers=int(playercount_split[1])
-                
-                demo_enabled=False # get this via rcon
-                if demo_enabled is True: # demo rec counts as 1 player
-                    if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
-                
-                if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
-                    if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
-
                 # INIT
                 if is_first_round is True:
                     logmsg('info','seems to be first round - initializing map now...')
-
-                    # ADD BOTS
-                    if config['bots'][srv]['amount']>0:
-
-                        # clear first
-                        cmd='RemoveBot '+str(config['bots'][srv]['amount'])
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','probably removed whatever bots have been there...')
-
-                        amount=int(config['bots'][srv]['amount']) - numberofplayers
-
-                        if gamemode in gamemodes_teams:
-                            cmd='AddBot '+str(amount//2)+' RedTeam'
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','probably added '+str(amount//2)+' bot(s) to RedTeam')
-
-                            cmd='AddBot '+str(amount//2)+' BlueTeam'
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','probably added '+str(amount//2)+' bot(s) to BlueTeam')
-                        elif gamemode in gamemodes_teamless:
-                            cmd='AddBot '+str(amount)
-                            try: await conn.send(cmd)
-                            except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                            logmsg('info','probably added '+str(amount)+' bot(s)')
-                        elif gamemode in gamemodes_unsupported:
-                            logmsg('warn','not adding bots because "'+gamemode+'" is not supported atm')
-                        else:
-                            logmsg('error','not adding bots because gamemode: "'+gamemode+' is unknown')
-                    else: logmsg('info','bots amount is 0')
-
-                    # ADD ZOMBIES
-                    if config['zombies'][srv]!=0:
-
-                        # clear first
-                        cmd='RemoveZombies '+str(config['zombies'][srv]['amount'])
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','probably removed whatever zombies have been there...')
-
-                        amount=int(config['zombies'][srv])
-
-                        cmd='SpawnZombies '+str(amount)
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','probably added '+str(amount)+' zombie(s)')
-                    else: logmsg('info','zombies amount is 0')
-
-                    # ADD CHICKEN
-                    if config['chickens'][srv]!=0:
-                        amount=int(config['chickens'][srv])
-                        cmd='SpawnChickens '+str(amount)
-                        try: await conn.send(cmd)
-                        except Exception as e:
-                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
-                        logmsg('info','probably added '+str(amount)+' chicken(s)')
-                    else: logmsg('info','chickens amount is 0')
 
                     # SET CUSTOM MODELS
                     if gamemode in gamemodes_teamless:
@@ -293,6 +214,90 @@ def run_praefectus(meta,config,srv):
                             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
                         logmsg('info','nofalldamage has probably been enabled')
                     else: logmsg('info','nofalldamage is disabled')
+
+                    # ADD ZOMBIES
+                    if config['zombies'][srv]!=0:
+
+                        # clear first
+                        cmd='RemoveZombies '+str(config['zombies'][srv]['amount'])
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably removed whatever zombies have been there...')
+
+                        amount=int(config['zombies'][srv])
+
+                        cmd='SpawnZombies '+str(amount)
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably added '+str(amount)+' zombie(s)')
+                    else: logmsg('info','zombies amount is 0')
+
+                    # ADD CHICKEN
+                    if config['chickens'][srv]!=0:
+                        amount=int(config['chickens'][srv])
+                        cmd='SpawnChickens '+str(amount)
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably added '+str(amount)+' chicken(s)')
+                    else: logmsg('info','chickens amount is 0')
+
+                    # ADD BOTS
+                    if config['bots'][srv]['amount']>0:
+
+                        # clear first
+                        cmd='RemoveBot '+str(config['bots'][srv]['amount'])
+                        try: await conn.send(cmd)
+                        except Exception as e:
+                            if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                        logmsg('info','probably removed whatever bots have been there...')
+
+                        # get current number of players
+                        data=await conn.send('ServerInfo')
+                        data_json=json.dumps(data)
+                        serverinfo=json.loads(data_json)
+                        si=serverinfo['ServerInfo']
+
+                        playercount_split=si['PlayerCount'].split('/',2)
+                        numberofplayers=int(playercount_split[0])
+                        maxplayers=int(playercount_split[1])
+                        
+                        demo_enabled=False # get this via rcon
+                        if demo_enabled is True: # demo rec counts as 1 player
+                            if int(numberofplayers)>0: numberofplayers=(numberofplayers-1) # demo only exists if there are players
+                        
+                        if gamemode=="SND": # for whatever reason SND has 1 additional player (with comp mode off and demo off)
+                            if int(numberofplayers)>0: numberofplayers=(numberofplayers-1)
+
+                        # set amount
+                        amount=int(config['bots'][srv]['amount']) - numberofplayers
+
+                        # actually add bots
+                        if gamemode in gamemodes_teams:
+                            cmd='AddBot '+str(amount//2)+' RedTeam'
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','probably added '+str(amount//2)+' bot(s) to RedTeam')
+
+                            cmd='AddBot '+str(amount//2)+' BlueTeam'
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','probably added '+str(amount//2)+' bot(s) to BlueTeam')
+                        elif gamemode in gamemodes_teamless:
+                            cmd='AddBot '+str(amount)
+                            try: await conn.send(cmd)
+                            except Exception as e:
+                                if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
+                            logmsg('info','probably added '+str(amount)+' bot(s)')
+                        elif gamemode in gamemodes_unsupported:
+                            logmsg('warn','not adding bots because "'+gamemode+'" is not supported atm')
+                        else:
+                            logmsg('error','not adding bots because gamemode: "'+gamemode+' is unknown')
+                    else: logmsg('info','bots amount is 0')
 
                 else: logmsg('info','not initiating round because is_first_round not true')
 
@@ -444,7 +449,7 @@ def run_praefectus(meta,config,srv):
             if str(e)!='': logmsg('error','EXCEPTION in '+fx+': '+str(e))
 
 
-    async def pullstats():
+    async def pull_stats():
         fx=inspect.stack()[0][3]
         logmsg('debug','pullstats called')
         try:
@@ -630,10 +635,10 @@ def run_praefectus(meta,config,srv):
                             roundstate=roundstate1[0]
                             logmsg('info','round state changed to '+roundstate)
                             match roundstate:
-                                #case 'Starting':
-                                case 'StandBy': asyncio.run(init_map())
+                                case 'Starting': asyncio.run(init_map())
+                                #case 'StandBy':
                                 #case 'Started':
-                                case 'Ended': asyncio.run(pullstats())
+                                #case 'Ended': asyncio.run(pull_stats())   # mysql table "rank" is broken...
 
                         case 'LogNet: Login request':
                             line_split=line.split('?Name=',2)
@@ -688,7 +693,9 @@ def run_praefectus(meta,config,srv):
                             logmsg('info','player has been banned: '+banplayer)
 
                         case 'LogHAL': logmsg('info','pavlovserver is starting')
-                        case 'PavlovLog: StartPlay was called': logmsg('info','startplay was called')
+                        case 'PavlovLog: StartPlay was called':
+                            logmsg('info','startplay was called')
+                            #asyncio.run(init_map())
                         case 'LogTemp: Starting Server Status Helper': logmsg('info','status helper is now online')
                         case 'StatManagerLog: Stat Manager Started': logmsg('info','statmanager is now online')
                         case 'PavlovLog: Updating blacklist/whitelist/mods': logmsg('debug','updating blacklist/whitelist/mods')

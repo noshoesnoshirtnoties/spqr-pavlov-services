@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-VERSION=1.1
+VERSION=1.2
 USAGE="
-Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -y\n
+Usage: $0 -d <dsthost> -u <sshuser> -s <srv> -p -y\n
 -d destination host\n
--s server number (0-9)\n
 -u ssh/scp user\n
+-s server number (0-9)\n
 -p praefectus only\n
 -y dont ask\n"
 
@@ -53,13 +53,6 @@ shift $(($OPTIND - 1))
 
 
 # --- prep ---
-INSTALLDIR="/opt"
-SERVICENAME1="pavlovserver"
-SERVICENAME2="praefectus"
-SERVICEUSER="steam"
-SSHCMD="$(which ssh) -q -o StrictHostKeyChecking=no -A -F /home/${USER}/.ssh/config -l ${SSHUSER} "
-SCPCMD="$(which scp) -r -F /home/${USER}/.ssh/config "
-
 if [ -z $DSTHOST ]; then
   echo "[WARN] destination host is invalid - assuming 'spqr-server'"
   DSTHOST="spqr-server"
@@ -73,6 +66,13 @@ if [ -z $SSHUSER ]; then
   echo "[WARN] ssh user is invalid - assuming 'root'"
   SSHUSER="root"
 fi
+
+INSTALLDIR="/opt"
+SERVICENAME1="pavlovserver"
+SERVICENAME2="praefectus"
+SERVICEUSER="steam"
+SSHCMD="$(which ssh) -q -o StrictHostKeyChecking=no -A -F /home/${USER}/.ssh/config -l ${SSHUSER} "
+SCPCMD="$(which scp) -r -F /home/${USER}/.ssh/config "
 
 PAVBASEPATH="/home/steam/${SERVICENAME1}-${SRV}"
 PORT1=$((x=7777, y=$SRV, x+y))
@@ -118,7 +118,7 @@ echo "[INFO] installing requirements"
 $SSHCMD $DSTHOST "apt update && apt upgrade -y && apt install -y -q lsb-release gdb curl lib32gcc-s1 libc++-dev unzip python3 python3-pip"
 
 echo "[INFO] installing pip requirements"
-$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"pip install -r ${INSTALLDIR}/${SERVICENAME2}/requirements.txt\""
+$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"pip install -r ${INSTALLDIR}/${SERVICENAME2}/requirements.txt --break-system-packages\""
 
 echo "[INFO] checking if ufw is active"
 RESPONSE=$($SSHCMD $DSTHOST "ufw status")
@@ -228,7 +228,7 @@ if [ "$PRAEFECTUS_ONLY" != true ]; then
   echo "[INFO] checking if a pavlovserver is installed"
   if $SSHCMD $DSTHOST "[ ! -d \"${PAVBASEPATH}/Pavlov\" ]"; then
     echo "[WARN] could not find a pavlovserver - trying to install it"
-    $SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"~/Steam/steamcmd.sh +force_install_dir ${PAVBASEPATH} +login anonymous +app_update 622970 -beta default +exit\""
+    $SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"~/Steam/steamcmd.sh +force_install_dir ${PAVBASEPATH} +login anonymous +app_update 622970 +exit\""
   fi
 
   # this breaks install...

@@ -51,8 +51,8 @@ SSHCMD="$(which ssh) -q -o StrictHostKeyChecking=no -A -F /home/${USER}/.ssh/con
 SCPCMD="$(which scp) -r -F /home/${USER}/.ssh/config "
 
 if [ -z $DSTHOST ]; then
-  echo "[WARN] destination host is invalid - assuming 'spqr-server'"
-  DSTHOST="spqr-server"
+  echo "[WARN] destination host is invalid - assuming 'pavlovserver'"
+  DSTHOST="pavlovserver"
 fi
 
 if [ -z $SSHUSER ]; then
