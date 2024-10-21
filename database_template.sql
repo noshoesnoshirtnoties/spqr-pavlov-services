@@ -2,6 +2,7 @@
 DROP DATABASE IF EXISTS spqr;
 CREATE DATABASE spqr;
 USE spqr;
+
 CREATE TABLE register (
   id INT NOT NULL AUTO_INCREMENT,
   discordusers_id INT NOT NULL,

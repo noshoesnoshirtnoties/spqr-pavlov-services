@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.0
+VERSION=1.1
 USAGE="
 Usage: $0 -d <dsthost> -u <sshuser> -y\n
 -d destination host\n
@@ -83,7 +83,7 @@ echo "[INFO] chown-ing files..."
 $SSHCMD $DSTHOST "/usr/bin/chown -R ${SERVICEUSER}:${SERVICEUSER} ${INSTALLDIR}/${SERVICENAME}"
 
 echo "[INFO] installing pip requirements..."
-$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c 'pip install -r ${INSTALLDIR}/${SERVICENAME}/requirements.txt'"
+$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c 'pip install --break-system-packages -r ${INSTALLDIR}/${SERVICENAME}/requirements.txt'"
 
 echo "[INFO] creating cronjobs..."
 $SSHCMD $DSTHOST "cp \

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=1.1
+VERSION=1.2
 USAGE="
 Usage: $0 -d <dsthost> -s <srv> -u <sshuser> -p -y\n
 -d destination host\n
@@ -118,7 +118,7 @@ echo "[INFO] installing requirements"
 $SSHCMD $DSTHOST "apt update && apt upgrade -y && apt install -y -q lsb-release gdb curl lib32gcc-s1 libc++-dev unzip python3 python3-pip"
 
 echo "[INFO] installing pip requirements"
-$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"pip install -r ${INSTALLDIR}/${SERVICENAME2}/requirements.txt\""
+$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"pip install --break-system-packages -r ${INSTALLDIR}/${SERVICENAME2}/requirements.txt\""
 
 echo "[INFO] checking if ufw is active"
 RESPONSE=$($SSHCMD $DSTHOST "ufw status")
@@ -228,7 +228,7 @@ if [ "$PRAEFECTUS_ONLY" != true ]; then
   echo "[INFO] checking if a pavlovserver is installed"
   if $SSHCMD $DSTHOST "[ ! -d \"${PAVBASEPATH}/Pavlov\" ]"; then
     echo "[WARN] could not find a pavlovserver - trying to install it"
-    $SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"~/Steam/steamcmd.sh +force_install_dir ${PAVBASEPATH} +login anonymous +app_update 622970 -beta default +exit\""
+    $SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"~/Steam/steamcmd.sh +force_install_dir ${PAVBASEPATH} +login anonymous +app_update 622970 +exit\""
   fi
 
   # this breaks install...
