@@ -80,7 +80,7 @@ the discord bot can be deployed to a target server like this:
 * general
   * cron-triggered restart
   * top ranks in #stats
-  * extended playerstats
+  * extended playerstats (another service for stats log?)
     * pull steamusers details
     * ace-detection
   * add elo/mmr
