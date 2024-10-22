@@ -118,11 +118,7 @@ echo "[INFO] installing requirements"
 $SSHCMD $DSTHOST "apt update && apt upgrade -y && apt install -y -q lsb-release gdb curl lib32gcc-s1 libc++-dev unzip python3 python3-pip"
 
 echo "[INFO] installing pip requirements"
-<<<<<<< HEAD
 $SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"pip install --break-system-packages -r ${INSTALLDIR}/${SERVICENAME2}/requirements.txt\""
-=======
-$SSHCMD $DSTHOST "sudo su ${SERVICEUSER} -c \"pip install -r ${INSTALLDIR}/${SERVICENAME2}/requirements.txt --break-system-packages\""
->>>>>>> 7db5cfb13a83ee116af6c56ae9f6fb017600cd11
 
 echo "[INFO] checking if ufw is active"
 RESPONSE=$($SSHCMD $DSTHOST "ufw status")
